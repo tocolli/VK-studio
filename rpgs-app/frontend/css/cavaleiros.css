@@ -1,0 +1,145 @@
+/* --- PALETA CAVALEIROS: Aço Polido e Sangue Real --- */
+:root {
+    --metal-polido: #d1d1d1;    /* Prata brilhante */
+    --metal-fosco: #71797E;     /* Cinza metálico */
+    --ferro-velho: #2c2c2c;     /* Fundo das placas */
+    --sangue-vibrante: #e60000; /* Vermelho para contraste */
+    --sangue-escuro: #800000;   /* Vermelho bordô */
+    --texto-prata: #e5e4e2;
+}
+
+/* Fundo Principal com Imagem Local */
+main {
+    /* Substitua 'fundo-cavaleiros.jpg' pelo caminho da sua imagem */
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.85)), 
+                url('../img/cavaleiros-armadura.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+    position: relative;
+    background-color: #0a0a0a;
+}
+
+/* Remove a animação antiga de brasas */
+#animacao-sistema, #animacao-sistema::before {
+    display: none !important;
+}
+
+/* Títulos Heráldicos */
+.section-title {
+    color: var(--metal-polido) !important;
+    border-bottom: 2px solid var(--sangue-vibrante) !important;
+    text-shadow: 0 0 10px rgba(230, 0, 0, 0.5), 2px 2px 4px #000;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+}
+
+/* --- CARDS: Placas de Armadura com Reflexo --- */
+.doc-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%) !important;
+    border: 1px solid var(--metal-fosco) !important;
+    border-left: 4px solid var(--sangue-vibrante) !important;
+    box-shadow: 8px 8px 25px rgba(0, 0, 0, 0.9) !important;
+    padding: 0px !important;
+    border-radius: 0px !important;
+    position: relative;
+    overflow: hidden; /* Necessário para o efeito de brilho não vazar */
+    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* EFEITO DE BRILHO METÁLICO (SHINE) */
+.doc-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        to right, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.1) 50%, 
+        transparent 100%
+    );
+    transform: skewX(-25deg);
+    transition: 0.7s;
+    pointer-events: none;
+}
+
+.doc-card:hover::after {
+    left: 150%;
+}
+
+.doc-card:hover {
+    border-color: var(--metal-polido) !important;
+    box-shadow: 0 0 20px rgba(230, 0, 0, 0.4) !important;
+    transform: translateY(-5px);
+}
+
+/* Cabeçalho do Card (Estandarte) */
+.doc-card h3 {
+    background: linear-gradient(to right, var(--sangue-escuro), #222) !important;
+    padding: 15px !important;
+    margin: 0 !important;
+    color: var(--metal-polido) !important;
+    font-family: 'Cinzel', serif;
+    border-bottom: 2px solid var(--metal-fosco);
+    text-shadow: 1px 1px 2px #000;
+}
+
+/* Informações extras (Categoria) */
+.doc-card small {
+    display: block;
+    padding: 10px 20px 0 20px;
+    color: var(--sangue-vibrante);
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.7em;
+    letter-spacing: 1px;
+}
+
+/* Texto de conteúdo */
+.doc-card p {
+    padding: 15px 20px 20px 20px;
+    color: var(--texto-prata) !important;
+    font-family: 'EB Garamond', serif;
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
+/* Imagens das Relíquias */
+.doc-card img {
+    border-bottom: 1px solid var(--metal-fosco);
+    filter: grayscale(0.4) sepia(0.1) contrast(1.2);
+    width: 100%;
+    transition: 0.5s;
+}
+
+.doc-card:hover img {
+    filter: grayscale(0) contrast(1.1);
+}
+
+/* Botão de Voltar (Metal e Sangue) */
+.header-sistema button {
+    background: #111 !important;
+    border: 1px solid var(--metal-fosco) !important;
+    color: var(--metal-polido) !important;
+    box-shadow: inset 0 0 5px var(--sangue-escuro);
+    font-family: 'Cinzel', serif;
+}
+
+.header-sistema button:hover {
+    background: var(--sangue-escuro) !important;
+    border-color: var(--metal-polido) !important;
+}
+
+/* --- CORES DE RANK (CAVALEIROS) --- */
+.rank-d, .rank-c-minus, .rank-c, .rank-c-plus { color: #ffffff !important; text-shadow: 0 0 5px #ccc; } /* Autorizados */
+.rank-b-minus, .rank-b, .rank-b-plus { color: #3498db !important; text-shadow: 0 0 8px #2980b9; }    /* Azul Metálico */
+.rank-a-minus, .rank-a-plus { color: #f1c40f !important; text-shadow: 0 0 10px #f39c12; }           /* Ouro */
+.rank-s-minus, .rank-s-plus { color: #9b59b6 !important; text-shadow: 0 0 12px #8e44ad; }           /* Roxo Épico */
+.rank-x { color: #e74c3c !important; text-shadow: 0 0 15px #c0392b; animation: perigo 1s infinite alternate; } /* X - Perigo */
+
+@keyframes perigo {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.5) drop-shadow(0 0 10px #ff0000); }
+}

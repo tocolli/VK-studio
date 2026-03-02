@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oceano Estrelado - Diário de Bordo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Special+Elite&display=swap');
+        
+        :root { 
+            --deep-sea: #001d3d;
+            --ocean-blue: #003566;
+            --shore-blue: #00b4d8;
+            --gold-glow: #ffc300;
+            --parchment: #fdf0d5;
+        }
+
+        body {
+            background: radial-gradient(circle at top, var(--shore-blue), var(--ocean-blue), var(--deep-sea)) fixed;
+            color: var(--parchment);
+            font-family: 'Special Elite', cursive;
+            min-height: 100vh;
+        }
+
+        /* PAINÉIS ARREDONDADOS E COM BRILHO */
+        .glass-panel {
+            background: rgba(0, 8, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 195, 0, 0.3);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            padding: 20px;
+            margin-bottom: 25px;
+            transition: border 0.3s;
+        }
+        .glass-panel:hover { border-color: var(--gold-glow); }
+
+        /* BOTÃO PERGAMINHO ESTILO SELO */
+        .parchment-card {
+            background: linear-gradient(135deg, #f3e5ab, #e9d8a6);
+            border-radius: 15px;
+            border: 1px solid #8b4513;
+            color: #4b2a0b;
+            padding: 12px;
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .parchment-card:hover { transform: translateY(-3px) rotate(1deg); }
+
+        .bar-outer { height: 18px; background: rgba(0,0,0,0.5); border-radius: 20px; padding: 2px; border: 1px solid var(--gold-glow); }
+        .bar-inner { height: 100%; border-radius: 20px; transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        h2 { font-family: 'Cinzel Decorative', serif; color: var(--gold-glow); letter-spacing: 2px; }
+        
+        input { background: transparent; border-bottom: 1px solid rgba(255,195,0,0.2); outline: none; padding: 2px; }
+        input:focus { border-bottom: 1px solid var(--gold-glow); }
+
+        #modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 8, 20, 0.95); z-index: 100; align-items: center; justify-content: center;
+        }
+    </style>
+</head>
+<body class="p-6 max-w-xl mx-auto pb-24">
+
+    <header class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-['Cinzel_Decorative'] text-white drop-shadow-[0_0_15px_rgba(255,195,0,0.5)]">Oceano Estrelado</h1>
+        <div class="mt-6 flex flex-col gap-2">
+            <input type="text" id="char-name" placeholder="Nome..." class="text-center text-2xl text-white font-bold border-none w-full">
+            <input type="text" id="char-alcunha" placeholder="A Alcunha Infame" class="text-center text-sm italic text-yellow-400 border-none w-full opacity-80">
+        </div>
+    </header>
+
+    <div class="grid grid-cols-2 gap-6 mb-8">
+        <div class="glass-panel !mb-0 !p-4 flex flex-col gap-2">
+            <div class="flex justify-between text-[10px] font-bold text-red-400"><span>VIDA</span> <span id="vit-val">10/10</span></div>
+            <div class="flex gap-2 text-xs">
+                <input type="number" id="vit-cur" value="10" class="w-full text-center" oninput="travaStatus('vit')">
+                <input type="number" id="vit-max" value="10" class="w-full text-center" oninput="travaStatus('vit')">
+            </div>
+            <div class="bar-outer"><div id="bar-vit" class="bar-inner bg-gradient-to-r from-red-900 to-red-500"></div></div>
+        </div>
+        <div class="glass-panel !mb-0 !p-4 flex flex-col gap-2">
+            <div class="flex justify-between text-[10px] font-bold text-blue-400"><span>VIGOR</span> <span id="vig-val">12/12</span></div>
+            <div class="flex gap-2 text-xs">
+                <input type="number" id="vig-cur" value="12" class="w-full text-center" oninput="travaStatus('vig')">
+                <input type="number" id="vig-max" value="12" class="w-full text-center" oninput="travaStatus('vig')">
+            </div>
+            <div class="bar-outer"><div id="bar-vig" class="bar-inner bg-gradient-to-r from-blue-900 to-blue-500"></div></div>
+        </div>
+    </div>
+
+    <section class="glass-panel">
+        <div class="grid grid-cols-2 gap-6 text-sm">
+            <div class="flex flex-col"> <label class="text-[9px] text-yellow-500">ORIGEM</label> <input type="text" id="char-origem"> </div>
+            <div class="flex flex-col"> <label class="text-[9px] text-yellow-500">CARGO</label> <input type="text" id="char-cargo"> </div>
+            <div class="flex flex-col"> <label class="text-[9px] text-yellow-500">IDADE</label> <input type="number" id="char-idade"> </div>
+            <div class="flex flex-col"> <label class="text-[9px] text-red-500">RECOMPENSA (KRAKENS)</label> <input type="number" id="char-bounty" class="text-red-500 font-bold"> </div>
+        </div>
+    </section>
+
+    <section class="parchment-card text-center mb-10" onclick="openModal('marca', 0)">
+        <h2 class="text-xs !text-[#4b2a0b] mb-1">MARCA DO OCEANO</h2>
+        <p id="marca-display-nome" class="font-bold text-lg uppercase tracking-wider">Registrar Marca</p>
+        <div class="mt-2 text-xs flex justify-center items-center gap-2">
+            CARGAS: <input type="number" id="marca-cargas" value="0" class="w-12 text-center border-[#8b4513] text-[#4b2a0b]" onclick="event.stopPropagation()" oninput="autoSave()">
+        </div>
+    </section>
+
+    <section class="glass-panel">
+        <h2 class="text-sm mb-6 text-center">ATRIBUTOS</h2>
+        <div id="attr-list" class="grid grid-cols-2 md:grid-cols-3 gap-6"></div>
+    </section>
+
+    <section class="glass-panel">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-sm">DESTREZAS & DADOS</h2>
+            <button onclick="addSkill('destreza')" class="w-8 h-8 rounded-full border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black transition">+</button>
+        </div>
+        <div id="destreza-list" class="grid gap-4"></div>
+    </section>
+
+    <div class="space-y-6">
+        <section class="glass-panel">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-sm">ARSENAL (ARMAS)</h2><button onclick="addSkill('armas')" class="text-xs text-yellow-500">ADICIONAR</button></div>
+            <div id="armas-list" class="grid grid-cols-1 gap-2"></div>
+        </section>
+
+        <section class="glass-panel">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-sm">Inventário</h2><button onclick="addSkill('inv')" class="text-xs text-yellow-500">ADICIONAR</button></div>
+            <div id="inv-list" class="grid grid-cols-1 gap-2"></div>
+        </section>
+
+        <section class="glass-panel">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-sm">TRAJES & VESTES</h2><button onclick="addSkill('vestes')" class="text-xs text-yellow-500">ADICIONAR</button></div>
+            <div id="vestes-list" class="grid grid-cols-1 gap-2"></div>
+        </section>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mt-8 mb-10">
+        <div class="glass-panel !p-3 !mb-0 text-center border-orange-700"><p class="text-[9px] mb-1">GAIVOTAS</p><input type="number" id="coin-b" class="w-full text-center text-orange-500"></div>
+        <div class="glass-panel !p-3 !mb-0 text-center border-slate-400"><p class="text-[9px] mb-1">SERPENTES</p><input type="number" id="coin-s" class="w-full text-center text-slate-300"></div>
+        <div class="glass-panel !p-3 !mb-0 text-center border-yellow-500"><p class="text-[9px] mb-1">KRAKENS</p><input type="number" id="coin-g" class="w-full text-center text-yellow-500"></div>
+    </div>
+
+    <button onclick="saveData(true)" class="w-full py-4 rounded-full bg-yellow-500 text-black font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(255,195,0,0.4)] hover:scale-[1.02] transition">Selar Diário de Bordo</button>
+
+    <div id="modal-overlay">
+        <div class="glass-panel w-11/12 max-w-md border-yellow-500 p-8">
+            <input type="text" id="item-name" placeholder="NOME DO REGISTRO" class="w-full text-xl font-bold mb-6 text-white uppercase border-none text-center">
+            <textarea id="item-desc" placeholder="Descreva os efeitos, dano ou segredos deste item..." class="w-full h-48 bg-white/5 p-4 rounded-xl text-sm border border-white/10 text-parchment outline-none mb-6"></textarea>
+            <div class="flex gap-4">
+                <button onclick="closeModal()" class="flex-1 py-3 rounded-lg border border-white/20 text-xs">VOLTAR</button>
+                <button onclick="saveModalData()" class="flex-1 py-3 rounded-lg bg-yellow-500 text-black font-bold text-xs">CONFIRMAR</button>
+            </div>
+            <button onclick="deleteCurrentItem()" id="delete-btn" class="w-full mt-6 text-[10px] text-red-500 underline uppercase opacity-50 hover:opacity-100">Jogar ao Mar</button>
+        </div>
+    </div>
+
+    <script>
+        const attrs = ["Força", "Agilidade", "Constituição", "Percepção", "Carisma", "Intelecto"];
+        const urlParams = new URLSearchParams(window.location.search);
+        let fichaId = urlParams.get('id');
+        const usuarioId = localStorage.getItem('usuarioId');
+        
+        let skillsData = { destreza: [], armas: [], inv: [], vestes: [], marca: [{name: "", desc: ""}] };
+        let currentEditing = { type: null, index: null };
+
+        function init() {
+            const attrContainer = document.getElementById('attr-list');
+            attrs.forEach(a => {
+                attrContainer.innerHTML += `
+                    <div class="flex flex-col items-center gap-1 p-3 bg-white/5 rounded-2xl border border-white/10">
+                        <span class="text-[9px] text-yellow-500 uppercase tracking-tighter">${a}</span>
+                        <input type="number" id="attr-${a}" value="0" class="w-full text-center text-lg font-bold border-none" oninput="autoSave()">
+                    </div>`;
+            });
+            if (fichaId && fichaId !== 'null') loadData(); else refreshUI();
+        }
+
+        function getDiceType(level) {
+            if (level <= 0) return "d12";
+            if (level <= 3) return "d16";
+            if (level <= 6) return "d20";
+            if (level <= 8) return "d25";
+            return "d30";
+        }
+
+        function refreshUI() {
+            document.getElementById('marca-display-nome').innerText = skillsData.marca[0].name || "Registrar Marca";
+            const gavetas = { destreza: 'destreza-list', armas: 'armas-list', inv: 'inv-list', vestes: 'vestes-list' };
+            
+            Object.keys(gavetas).forEach(type => {
+                const list = document.getElementById(gavetas[type]);
+                list.innerHTML = skillsData[type].map((s, i) => `
+                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/10 cursor-pointer hover:bg-white/10 transition" onclick="openModal('${type}', ${i})">
+                        <div class="flex-1">
+                            <p class="text-xs font-bold uppercase tracking-widest text-white">${s.name || 'Novo Registro'}</p>
+                            ${type === 'destreza' ? `<p class="text-[9px] text-yellow-500 mt-1">DADO ATUAL: <span class="bg-yellow-500 text-black px-1 rounded">${getDiceType(s.val)}</span></p>` : ''}
+                        </div>
+                        ${type === 'destreza' ? `<input type="number" value="${s.val || 0}" class="w-12 bg-black/40 rounded p-1 text-xs text-center border-none" onclick="event.stopPropagation()" oninput="updateDest(${i}, this.value)">` : ''}
+                    </div>`).join('');
+            });
+            updateBars();
+        }
+
+        function updateDest(idx, val) { skillsData.destreza[idx].val = parseInt(val); autoSave(); refreshUI(); }
+        function addSkill(type) { skillsData[type].push({ name: "Novo Registro", desc: "", val: 0 }); refreshUI(); }
+
+        function openModal(type, index) {
+            currentEditing = { type, index };
+            const data = skillsData[type][index];
+            document.getElementById('item-name').value = data.name;
+            document.getElementById('item-desc').value = data.desc;
+            document.getElementById('modal-overlay').style.display = 'flex';
+        }
+
+        function saveModalData() {
+            const d = skillsData[currentEditing.type][currentEditing.index];
+            d.name = document.getElementById('item-name').value;
+            d.desc = document.getElementById('item-desc').value;
+            closeModal(); refreshUI(); autoSave();
+        }
+
+        function deleteCurrentItem() {
+            if(currentEditing.type === 'marca') return alert("A marca não pode ser excluída.");
+            skillsData[currentEditing.type].splice(currentEditing.index, 1);
+            closeModal(); refreshUI(); autoSave();
+        }
+
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+        function travaStatus(tipo) {
+            const cur = document.getElementById(`${tipo}-cur`);
+            const max = document.getElementById(`${tipo}-max`);
+            if (parseInt(cur.value) > parseInt(max.value)) cur.value = max.value;
+            updateBars();
+        }
+
+        function updateBars() {
+            ['vit', 'vig'].forEach(s => {
+                const cur = document.getElementById(`${s}-cur`).value;
+                const max = document.getElementById(`${s}-max`).value;
+                document.getElementById(`bar-${s}`).style.width = (cur / max * 100) + "%";
+                document.getElementById(`${s}-val`).innerText = `${cur}/${max}`;
+            });
+            autoSave();
+        }
+
+        let timer;
+        function autoSave() { clearTimeout(timer); timer = setTimeout(() => saveData(false), 3000); }
+
+        async function saveData(alertar = false) {
+            if (!usuarioId) return;
+            const payload = {
+                id: (fichaId === 'null' || !fichaId) ? null : fichaId,
+                usuario_id: usuarioId,
+                nome_personagem: document.getElementById('char-name').value || "Capitão Sem Nome",
+                sistema: "Oceano Estrelado",
+                dados_json: {
+                    nickname: document.getElementById('char-alcunha').value,
+                    origem: document.getElementById('char-origem').value,
+                    cargo: document.getElementById('char-cargo').value,
+                    idade: document.getElementById('char-idade').value,
+                    bounty: document.getElementById('char-bounty').value,
+                    stats: {
+                        vit: [document.getElementById('vit-cur').value, document.getElementById('vit-max').value],
+                        vig: [document.getElementById('vig-cur').value, document.getElementById('vig-max').value],
+                        marca_cargas: document.getElementById('marca-cargas').value
+                    },
+                    coins: [document.getElementById('coin-b').value, document.getElementById('coin-s').value, document.getElementById('coin-g').value],
+                    attrs: {},
+                    skills: skillsData
+                }
+            };
+            attrs.forEach(a => payload.dados_json.attrs[a] = document.getElementById(`attr-${a}`).value);
+
+            try {
+                const res = await fetch('http://localhost:3000/salvar-ficha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                if (result.id) fichaId = result.id;
+                if (alertar) alert(result.message);
+            } catch (err) { console.error("Erro ao salvar"); }
+        }
+
+        async function loadData() {
+            try {
+                const res = await fetch(`http://localhost:3000/carregar-ficha/${fichaId}`);
+                const f = await res.json();
+                const d = JSON.parse(f.dados_json);
+                document.getElementById('char-name').value = f.nome_personagem;
+                document.getElementById('char-alcunha').value = d.nickname || "";
+                document.getElementById('char-origem').value = d.origem || "";
+                document.getElementById('char-cargo').value = d.cargo || "";
+                document.getElementById('char-idade').value = d.idade || "";
+                document.getElementById('char-bounty').value = d.bounty || "0";
+                document.getElementById('vit-cur').value = d.stats.vit[0]; document.getElementById('vit-max').value = d.stats.vit[1];
+                document.getElementById('vig-cur').value = d.stats.vig[0]; document.getElementById('vig-max').value = d.stats.vig[1];
+                document.getElementById('marca-cargas').value = d.stats.marca_cargas || 0;
+                document.getElementById('coin-b').value = d.coins[0]; document.getElementById('coin-s').value = d.coins[1]; document.getElementById('coin-g').value = d.coins[2];
+                attrs.forEach(a => document.getElementById(`attr-${a}`).value = d.attrs[a] || 0);
+                skillsData = d.skills || { destreza: [], armas: [], inv: [], vestes: [], marca: [{name: "", desc: ""}] };
+                refreshUI();
+            } catch (err) { console.error("Erro ao carregar"); }
+        }
+        init();
+    </script>
+</body>
+</html>

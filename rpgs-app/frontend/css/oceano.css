@@ -1,0 +1,72 @@
+/* --- PALETA PIRATA: Areia, Ouro Velho e Madeira --- */
+:root {
+    --pirata-areia: #d2b48c;
+    --pirata-ouro: #c1a35f;
+    --pirata-madeira: #3e2723;
+    --pirata-preto: #0a0a0a;
+}
+
+/* Fundo Principal com a Imagem Local */
+main {
+    /* Se o CSS e a imagem estiverem na mesma pasta, use apenas o nome. 
+       Se a imagem estiver numa pasta 'img', use: url('../img/fundo-navio.jpg') */
+    background: url('../img/background-oceano.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+    background-color: #000510; /* Cor de segurança caso a imagem demore a carregar */
+    position: relative;
+}
+
+/* Remove a animação de peixes/bolhas */
+#animacao-sistema, #animacao-sistema::after {
+    display: none !important;
+}
+
+/* Títulos da Seção */
+.section-title {
+    color: var(--pirata-areia) !important;
+    border-bottom: 2px solid var(--pirata-ouro) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-family: 'Cinzel', serif;
+}
+
+/* Cards de Documentação - Estilo Couro/Madeira Escura */
+.doc-card {
+    background: rgba(10, 10, 10, 0.8) !important; 
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--pirata-ouro) !important;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.8) !important;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 2px;
+}
+
+/* Remove efeitos antigos */
+.doc-card::before {
+    display: none !important;
+}
+
+.doc-card h3 {
+    color: var(--pirata-ouro) !important;
+    text-shadow: 1px 1px 2px black;
+}
+
+.doc-card p {
+    color: var(--pirata-areia) !important;
+    font-size: 1.15em;
+}
+
+/* Botão Voltar Personalizado */
+.header-sistema button {
+    background: rgba(62, 39, 35, 0.8) !important;
+    border: 1px solid var(--pirata-ouro) !important;
+    color: var(--pirata-areia) !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: 0.3s;
+}
+
+.header-sistema button:hover {
+    background: var(--pirata-ouro) !important;
+    color: var(--pirata-madeira) !important;
+    box-shadow: 0 0 10px var(--pirata-ouro);
+}

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>VK.Studio - Master Forge</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=EB+Garamond&display=swap');
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #c1a35f; border-radius: 10px; }
+
+        body {
+            background-color: #050505; color: #ccc;
+            font-family: 'EB Garamond', serif; margin: 0;
+            display: flex; height: 100vh; overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px; height: 100vh; background: #0d0d0d;
+            border-right: 1px solid #2c2c2c; padding: 30px 20px;
+            box-sizing: border-box; display: flex; flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar h2 { font-family: 'Cinzel', serif; color: #c1a35f; letter-spacing: 2px; }
+        .sidebar p { font-size: 0.8em; color: #666; margin-bottom: 30px; }
+
+        .nav-item {
+            padding: 15px; color: #aaa; cursor: pointer;
+            font-family: 'Cinzel', serif; transition: 0.3s;
+            border-bottom: 1px solid #1a1a1a; font-size: 0.9em;
+        }
+        .nav-item:hover, .nav-item.active { color: #c1a35f; background: #111; }
+
+        .main { flex: 1; padding: 40px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
+
+        .secao-painel { display: none !important; }
+        .secao-painel.ativo { display: block !important; }
+
+        .forge-card { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 30px; border-radius: 4px; margin-bottom: 20px; }
+        .field { display: flex; flex-direction: column; margin-bottom: 20px; }
+        label { color: #c1a35f; font-family: 'Cinzel', serif; font-size: 0.8em; margin-bottom: 8px; }
+        
+        input, select, textarea {
+            background: #000; border: 1px solid #2c2c2c; color: #fff; padding: 12px;
+            font-family: 'EB Garamond', serif; outline: none;
+        }
+        input:focus, select:focus, textarea:focus { border-color: #c1a35f; }
+
+        button { 
+            width: 100%; padding: 15px; background: none; border: 1px solid #c1a35f; 
+            color: #c1a35f; font-family: 'Cinzel', serif; cursor: pointer; margin-top: 10px; 
+        }
+        button:hover { background: #c1a35f; color: #000; }
+        .btn-delete { border-color: #800; color: #800; width: fit-content; padding: 8px 20px; font-size: 0.8em; margin-right: 10px; }
+        .btn-edit { border-color: #3498db; color: #3498db; width: fit-content; padding: 8px 20px; font-size: 0.8em; }
+
+        .log-terminal {
+            background: #000; border: 1px solid #1a1a1a; padding: 15px;
+            font-family: monospace; font-size: 11px; color: #0f0;
+            max-height: 200px; overflow-y: auto; margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2>VK.MASTER</h2>
+        <p>Mestre: Vitor</p>
+        <div class="nav-item active" onclick="trocarAbaVisual('aba-forja', this)">Forjar Documento</div>
+        <div class="nav-item" onclick="trocarAbaVisual('aba-biblioteca', this)">Biblioteca de Bestas</div>
+        <div class="nav-item" onclick="trocarAbaVisual('aba-gerenciar', this)">Gerenciar Acervo</div>
+        <div class="nav-item" onclick="trocarAbaVisual('aba-vigiar', this)">Vigiar Usuários</div>
+        <div class="nav-item" onclick="window.location.href='dashboard.html'">Visão do Jogador</div>
+        <div class="nav-item logout-btn" style="color:#800; margin-top:auto;" onclick="logout()">Encerrar Sessão</div>
+    </aside>
+
+    <main class="main">
+        <section id="aba-forja" class="secao-painel ativo">
+            <h1 id="forja-titulo-secao">Forjar Novo Conhecimento</h1>
+            <div class="forge-card">
+                <input type="hidden" id="adm-id-edit">
+                <div class="field"><label>TÍTULO</label><input type="text" id="adm-titulo"></div>
+                <div class="field">
+                    <label>SISTEMA</label>
+                    <select id="adm-sistema" onchange="atualizarCategorias()">
+                        <option value="Cavaleiros de Armadura" selected>Cavaleiros de Armadura</option>
+                        <option value="Decadência Cinza">Decadência Cinza</option>
+                        <option value="Oceano Estrelado">Oceano Estrelado</option>
+                    </select>
+                </div>
+                <div class="field"><label>CATEGORIA</label><select id="adm-categoria" onchange="verificarCamposEspeciais()"></select></div>
+                
+                <div class="field" id="campo-rank" style="display:none;">
+                    <label>RANK DE LICENÇA</label>
+                    <select id="adm-rank">
+                        <option value="">Sem Rank</option>
+                        <option value="D">Rank D</option><option value="C">Rank C</option>
+                        <option value="B">Rank B</option><option value="A">Rank A</option>
+                        <option value="S">Rank S</option><option value="X">Rank X</option>
+                    </select>
+                </div>
+
+                <div class="field" id="campo-livro" style="display:none;">
+                    <label>VINCULAR AO LIVRO</label>
+                    <select id="adm-livro-id"></select>
+                </div>
+
+                <div class="field"><label>ILUSTRAÇÃO PRINCIPAL</label><input type="file" id="adm-file"></div>
+                
+                <div class="field">
+                    <label>CONTEÚDO (DICA: COLE IMAGEM COM CTRL+V)</label>
+                    <textarea id="adm-conteudo" style="height: 250px;"></textarea>
+                </div>
+                
+                <button type="button" id="btn-salvar-geral" onclick="salvarDoc()">SELAR NO BANCO</button>
+                <button type="button" id="btn-cancelar-edit" style="display:none; border-color:#666; color:#666; margin-top:5px;" onclick="cancelarEdicao()">CANCELAR EDIÇÃO</button>
+            </div>
+        </section>
+
+        <section id="aba-biblioteca" class="secao-painel">
+            <h1>Novo Volume de Bestiário</h1>
+            <div class="forge-card">
+                <div class="field"><label>NOME DO LIVRO</label><input type="text" id="book-titulo"></div>
+                <div class="field">
+                    <label>SISTEMA DO LIVRO</label>
+                    <select id="book-sistema">
+                        <option value="Cavaleiros de Armadura" selected>Cavaleiros de Armadura</option>
+                        <option value="Decadência Cinza">Decadência Cinza</option>
+                        <option value="Oceano Estrelado">Oceano Estrelado</option>
+                    </select>
+                </div>
+                <div class="field"><label>CAPA DO LIVRO</label><input type="file" id="book-file"></div>
+                <div class="field">
+                    <label>CONTEÚDO / HISTÓRIA (COLE IMAGEM COM CTRL+V)</label>
+                    <textarea id="book-conteudo" style="height: 350px;"></textarea>
+                </div>
+                <button type="button" onclick="salvarLivro()">CRIAR VOLUME</button>
+            </div>
+        </section>
+
+        <section id="aba-gerenciar" class="secao-painel">
+            <h1>Gerenciar Acervo</h1>
+            <div id="lista-itens-adm"></div>
+        </section>
+
+        <section id="aba-vigiar" class="secao-painel">
+            <h1>Vigiar Usuários</h1>
+            <div id="lista-usuarios-adm"></div>
+            <div id="painel-detalhes-usuario" style="display:none; margin-top:40px; border-top: 1px solid #2c2c2c; padding-top:20px;">
+                <h2 id="nome-vigia" style="color:var(--ds-gold);">DETALHES DO JOGADOR</h2>
+                <div id="fichas-vigia" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        window.onbeforeunload = () => "As alterações não salvas serão perdidas.";
+
+        const categoriasOficiais = {
+            "Decadência Cinza": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Veículos", "Magias/Rituais"],
+            "Oceano Estrelado": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Embarcações", "Magias/Rituais"],
+            "Cavaleiros de Armadura": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Montaria", "Magias/Rituais"]
+        };
+
+        function trocarAbaVisual(idAba, el) {
+            const abas = document.getElementsByClassName('secao-painel');
+            for(let a of abas) a.classList.remove('ativo');
+            const itens = document.getElementsByClassName('nav-item');
+            for(let i of itens) i.classList.remove('active');
+
+            document.getElementById(idAba).classList.add('ativo');
+            el.classList.add('active');
+
+            if(idAba === 'aba-gerenciar') mostrarGerenciar();
+            if(idAba === 'aba-vigiar') listarUsuarios();
+        }
+
+        // --- SISTEMA DE COLAGEM UNIVERSAL (CORRIGIDO) ---
+        document.addEventListener('paste', async (e) => {
+            const targetId = e.target.id;
+            if (targetId !== 'adm-conteudo' && targetId !== 'book-conteudo') return;
+
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            
+            for (let item of items) {
+                if (item.type.indexOf("image") !== -1) {
+                    e.preventDefault();
+                    const blob = item.getAsFile();
+                    const formData = new FormData();
+                    formData.append('imagem', blob);
+
+                    try {
+                        console.log("Tentando subir imagem para o servidor...");
+                        const res = await fetch('http://localhost:3000/admin/upload-galeria', { 
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!res.ok) {
+                            const errText = await res.text();
+                            throw new Error(`Servidor respondeu com erro: ${errText}`);
+                        }
+                        
+                        const data = await res.json();
+                        console.log("Upload concluído:", data.url);
+                        
+                        const area = e.target;
+                        const tag = `\n<img src="${data.url}" style="width:100%; max-height:450px; object-fit:contain; margin:20px 0; border:1px solid #c1a35f; border-radius:4px;">\n`;
+                        
+                        const pos = area.selectionStart;
+                        area.value = area.value.substring(0, pos) + tag + area.value.substring(area.selectionEnd);
+                        
+                        area.focus();
+                        area.setSelectionRange(pos + tag.length, pos + tag.length);
+
+                    } catch (err) {
+                        console.error("ERRO NO CTRL+V:", err);
+                        alert("Falha no envio. Abra o console (F12) para ver o erro detalhado.");
+                    }
+                }
+            }
+        });
+
+        window.onload = () => {
+            atualizarCategorias();
+            carregarLivrosParaSelect();
+        };
+
+        // --- GERENCIAR E EDITAR ---
+        async function mostrarGerenciar() {
+            const container = document.getElementById('lista-itens-adm');
+            container.innerHTML = "Consultando registros...";
+            try {
+                const res = await fetch('http://localhost:3000/admin/todas-documentacoes');
+                const docs = await res.json();
+                container.innerHTML = docs.map(i => `
+                    <div class="forge-card">
+                        <p style="color:#c1a35f; margin:0;">[${i.sistema}] - ${i.categoria}</p>
+                        <h3 style="margin: 10px 0;">${i.titulo}</h3>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-delete" onclick="deletarItem(${i.id})">Banir</button>
+                            <button class="btn-edit" onclick='prepararEdicao(${JSON.stringify(i).replace(/'/g, "&apos;")})'>Reforjar</button>
+                        </div>
+                    </div>`).join('');
+            } catch (e) { container.innerHTML = "Erro de conexão."; }
+        }
+
+        function prepararEdicao(item) {
+            trocarAbaVisual('aba-forja', document.querySelector('[onclick*="aba-forja"]'));
+            document.getElementById('forja-titulo-secao').innerText = "Reforjando: " + item.titulo;
+            document.getElementById('adm-id-edit').value = item.id;
+            document.getElementById('adm-titulo').value = item.titulo;
+            document.getElementById('adm-sistema').value = item.sistema;
+            atualizarCategorias();
+            document.getElementById('adm-categoria').value = item.categoria;
+            document.getElementById('adm-rank').value = item.rank_item || "";
+            document.getElementById('adm-livro-id').value = item.livro_id || "";
+            document.getElementById('adm-conteudo').value = item.conteudo;
+            document.getElementById('btn-salvar-geral').innerText = "SALVAR ALTERAÇÕES";
+            document.getElementById('btn-cancelar-edit').style.display = "block";
+            verificarCamposEspeciais();
+        }
+
+        function cancelarEdicao() {
+            document.getElementById('adm-id-edit').value = "";
+            document.getElementById('forja-titulo-secao').innerText = "Forjar Novo Conhecimento";
+            document.getElementById('btn-salvar-geral').innerText = "SELAR NO BANCO";
+            document.getElementById('btn-cancelar-edit').style.display = "none";
+            document.getElementById('adm-titulo').value = "";
+            document.getElementById('adm-conteudo').value = "";
+        }
+
+        // --- VIGIA E HISTÓRICO ---
+        async function listarUsuarios() {
+            const res = await fetch('http://localhost:3000/admin/listar-usuarios');
+            const users = await res.json();
+            document.getElementById('lista-usuarios-adm').innerHTML = users.map(u => `
+                <div class="forge-card" onclick="vigiarFichas(${u.id}, '${u.nome}')" style="cursor:pointer; border-left: 3px solid ${u.cargo==1?'#c1a35f':'#444'}">
+                    <p style="margin:0; font-family:'Cinzel';">JOGADOR: ${u.nome}</p>
+                    <small>${u.email}</small>
+                </div>`).join('');
+        }
+
+        async function vigiarFichas(id, nome) {
+            document.getElementById('nome-vigia').innerText = "Vigiando: " + nome;
+            document.getElementById('painel-detalhes-usuario').style.display = "block";
+            const res = await fetch(`http://localhost:3000/admin/fichas-usuario/${id}`);
+            const fichas = await res.json();
+            
+            document.getElementById('fichas-vigia').innerHTML = fichas.map(f => `
+                <div class="forge-card" style="margin-bottom:0;">
+                    <p style="color:#c1a35f; margin:0;">${f.sistema}</p>
+                    <h3 style="margin-bottom:10px;">${f.nome_personagem}</h3>
+                    <div class="log-terminal" id="terminal-${f.id}">Buscando histórico...</div>
+                </div>`).join('');
+
+            fichas.forEach(f => carregarLogsTerminal(f.id));
+        }
+
+        async function carregarLogsTerminal(fichaId) {
+            const res = await fetch(`http://localhost:3000/admin/logs/${fichaId}`);
+            const logs = await res.json();
+            const term = document.getElementById(`terminal-${fichaId}`);
+            if(logs.length === 0) term.innerText = "> Nenhuma alteração registrada.";
+            else term.innerHTML = logs.map(l => `> [${new Date(l.data_hora).toLocaleTimeString()}] ${l.alteracao}`).join('<br>');
+        }
+
+        // --- SALVAMENTO ---
+        async function salvarDoc() {
+            const formData = new FormData();
+            formData.append('id', document.getElementById('adm-id-edit').value);
+            formData.append('titulo', document.getElementById('adm-titulo').value);
+            formData.append('sistema', document.getElementById('adm-sistema').value);
+            formData.append('categoria', document.getElementById('adm-categoria').value);
+            formData.append('rank_item', document.getElementById('adm-rank').value);
+            formData.append('livro_id', document.getElementById('adm-livro-id').value);
+            formData.append('conteudo', document.getElementById('adm-conteudo').value);
+            const file = document.getElementById('adm-file').files[0];
+            if (file) formData.append('imagem', file);
+
+            const res = await fetch('http://localhost:3000/salvar-documentacao', { method: 'POST', body: formData });
+            const data = await res.json();
+            alert(data.message);
+            cancelarEdicao();
+        }
+
+        async function carregarLivrosParaSelect() {
+            const res = await fetch('http://localhost:3000/admin/listar-livros');
+            const livros = await res.json();
+            document.getElementById('adm-livro-id').innerHTML = '<option value="">Nenhum</option>' + 
+                livros.map(l => `<option value="${l.id}">${l.titulo_livro}</option>`).join('');
+        }
+
+        function atualizarCategorias() {
+            const sis = document.getElementById('adm-sistema').value;
+            document.getElementById('adm-categoria').innerHTML = (categoriasOficiais[sis] || []).map(c => `<option value="${c}">${c}</option>`).join('');
+            verificarCamposEspeciais();
+        }
+
+        function verificarCamposEspeciais() {
+            const cat = document.getElementById('adm-categoria').value;
+            const sis = document.getElementById('adm-sistema').value;
+            document.getElementById('campo-livro').style.display = (cat === "Bestiário") ? "flex" : "none";
+            document.getElementById('campo-rank').style.display = (sis === "Cavaleiros de Armadura" && cat !== "Bestiário") ? "flex" : "none";
+        }
+
+        async function deletarItem(id) {
+            if(confirm("Banir registro?")) {
+                await fetch(`http://localhost:3000/documentacao/${id}`, { method: 'DELETE' });
+                mostrarGerenciar();
+            }
+        }
+
+        async function salvarLivro() {
+            const formData = new FormData();
+            formData.append('titulo_livro', document.getElementById('book-titulo').value);
+            formData.append('sistema', document.getElementById('book-sistema').value);
+            formData.append('conteudo', document.getElementById('book-conteudo').value);
+            const file = document.getElementById('book-file').files[0];
+            if (file) formData.append('imagem', file);
+            await fetch('http://localhost:3000/admin/criar-livro', { method: 'POST', body: formData });
+            alert("Volume Forjado!");
+            carregarLivrosParaSelect();
+        }
+
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+    </script>
+</body>
+</html>

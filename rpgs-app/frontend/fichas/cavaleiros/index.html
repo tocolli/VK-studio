@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Caminho da Armadura - Ficha</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=MedievalSharp&display=swap');
+        :root { --metal: #1a1a1a; --bronze: #cd7f32; --iron: #444; }
+        body {
+            background-color: var(--metal); color: #d1d1d1; font-family: 'MedievalSharp', cursive;
+            background-image: url('https://www.transparenttextures.com/patterns/dark-leather.png');
+        }
+        .metal-panel {
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border: 2px solid var(--iron);
+            border-image: linear-gradient(to bottom, #777, #222) 1; box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            padding: 15px; margin-bottom: 20px;
+        }
+        .wood-header {
+            background: linear-gradient(to bottom, #5d3a24, #3d2b1f); border-bottom: 3px solid var(--bronze);
+            color: #f0d9b5; font-family: 'Cinzel', serif;
+        }
+        .bar-container { height: 14px; background: #000; border-radius: 7px; overflow: hidden; border: 1px solid #333; }
+        .bar-fill { height: 100%; transition: width 0.4s ease; }
+        .dot { width: 12px; height: 12px; border: 1px solid var(--bronze); border-radius: 2px; cursor: pointer; }
+        .dot.filled { background: var(--bronze); box-shadow: 0 0 8px var(--bronze); }
+        
+        .slot { 
+            aspect-ratio: 1/1; background: rgba(0,0,0,0.4); border: 1px solid var(--iron); 
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            font-size: 9px; text-align: center; padding: 2px; overflow: hidden;
+        }
+        .slot.has-content { border-color: var(--bronze); background: rgba(205, 127, 50, 0.1); }
+        .slot-label { color: var(--bronze); font-weight: bold; margin-bottom: 2px; font-size: 7px; opacity: 0.6; }
+
+        .inventory-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+
+        #modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center;
+        }
+        .modal-content { background: #2a2a2a; border: 2px solid var(--bronze); width: 90%; max-width: 400px; padding: 20px; }
+    </style>
+</head>
+<body class="p-4 max-w-lg mx-auto pb-24">
+
+    <header class="wood-header p-4 rounded-t-lg text-center mb-4">
+        <h1 class="text-xl uppercase tracking-widest">O Caminho da Armadura</h1>
+        <input type="text" id="char-name" placeholder="NOME DO CAVALEIRO" class="text-center bg-transparent border-none w-full mt-1 text-sm uppercase outline-none" oninput="autoSave()">
+    </header>
+
+    <div class="grid grid-cols-3 gap-2 mb-4 text-center">
+        <div class="metal-panel !p-2 !mb-0 text-center">
+            <span class="text-[9px] text-red-500 font-bold">VITALIDADE</span>
+            <div class="flex justify-center text-xs my-1">
+                <input type="number" id="vit-cur" value="7" class="w-8 text-center bg-transparent" oninput="travaStatus('vit')"> /
+                <input type="number" id="vit-max" value="7" class="w-8 text-center bg-transparent" oninput="travaStatus('vit')">
+            </div>
+            <div class="bar-container"><div id="bar-vit" class="bar-fill bg-red-700"></div></div>
+        </div>
+        <div class="metal-panel !p-2 !mb-0 text-center">
+            <span class="text-[9px] text-blue-400 font-bold">ÍMPETO</span>
+            <div class="flex justify-center text-xs my-1">
+                <input type="number" id="imp-cur" value="9" class="w-8 text-center bg-transparent" oninput="travaStatus('imp')"> /
+                <input type="number" id="imp-max" value="9" class="w-8 text-center bg-transparent" oninput="travaStatus('imp')">
+            </div>
+            <div class="bar-container"><div id="bar-imp" class="bar-fill bg-blue-700"></div></div>
+        </div>
+        <div class="metal-panel !p-2 !mb-0 text-center">
+            <span class="text-[9px] text-purple-400 font-bold">LUCIDEZ</span>
+            <div class="flex justify-center text-xs my-1">
+                <input type="number" id="luc-cur" value="10" class="w-8 text-center bg-transparent" oninput="travaStatus('luc')"> /
+                <input type="number" id="luc-max" value="10" class="w-8 text-center bg-transparent" oninput="travaStatus('luc')">
+            </div>
+            <div class="bar-container"><div id="bar-luc" class="bar-fill bg-purple-700"></div></div>
+        </div>
+    </div>
+
+    <div class="metal-panel flex justify-around items-center py-2 mb-4">
+        <div class="text-center"><p class="text-[10px] text-gray-500 uppercase">Movimentação</p><p id="mov-val" class="text-xl font-bold text-[#cd7f32]">4</p></div>
+        <div class="text-center border-l border-gray-700 pl-8"><p class="text-[10px] text-gray-500 uppercase">Carga Máxima</p><p id="cap-val" class="text-xl font-bold text-[#cd7f32]">5</p></div>
+    </div>
+
+    <section class="metal-panel">
+        <h2 class="text-[#cd7f32] text-xs mb-4 border-b border-[#444] pb-1 uppercase">Atributos</h2>
+        <div id="attr-list" class="space-y-3"></div>
+    </section>
+
+    <section class="metal-panel">
+        <h2 class="text-[#cd7f32] text-xs mb-3 uppercase">Proficiências (7 Slots)</h2>
+        <div id="proficiency-grid" class="grid grid-cols-4 gap-2"></div>
+    </section>
+
+    <section class="metal-panel">
+        <div class="flex justify-between items-center mb-2 text-xs">
+            <h2 class="text-[#cd7f32] uppercase">Integridade da Armadura</h2>
+            <div>
+                <input type="number" id="arm-cur" value="10" class="w-8 text-center bg-transparent" oninput="travaStatus('arm')"> /
+                <input type="number" id="arm-max" value="10" class="w-8 text-center bg-transparent" oninput="travaStatus('arm')">
+            </div>
+        </div>
+        <div class="bar-container h-4 mb-3"><div id="bar-arm" class="bar-fill bg-gray-500"></div></div>
+        <select id="arm-state" class="text-xs p-1 bg-black border border-[#444] w-full" onchange="autoSave()"><option>Impecável</option><option>Riscada</option><option>Amassada</option><option>Rompida</option></select>
+    </section>
+
+    <section class="metal-panel">
+        <div class="flex justify-between items-center mb-2">
+            <h2 class="text-[#cd7f32] text-xs uppercase">Habilidades/Armas</h2>
+            <button onclick="addSkill()" class="text-[#cd7f32] font-bold border border-[#cd7f32] px-2 rounded text-xs">+</button>
+        </div>
+        <div id="skills-list" class="space-y-2"></div>
+    </section>
+
+    <section class="metal-panel">
+        <div class="flex justify-between items-center mb-3 text-xs">
+            <h2 class="text-[#cd7f32] uppercase">Inventário</h2>
+            <select id="alforge-select" onchange="updateInventorySize()" class="bg-black border border-[#444] p-1 text-[10px]"><option value="10">Pequeno (10)</option><option value="20" selected>Grande (20)</option></select>
+        </div>
+        <div id="inventory-grid" class="inventory-grid mb-3"></div>
+        <div id="weight-warning" class="text-center text-[10px] p-1 border border-gray-800 bg-black/40">Carga: <span id="current-weight">0</span> / <span id="max-weight">5</span></div>
+        <button onclick="saveData(true)" class="w-full bg-[#cd7f32] text-black font-bold text-[10px] mt-2 p-2">SALVAR NO BANCO</button>
+    </section>
+
+    <div id="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title" class="text-[#cd7f32] font-['Cinzel'] mb-4 uppercase text-center">Editar Slot</h3>
+            <input type="text" id="item-name" placeholder="Nome" class="w-full bg-black border-b border-[#cd7f32] p-2 mb-4 outline-none text-white">
+            <textarea id="item-desc" placeholder="Descrição e Buffs..." class="w-full h-32 bg-black/50 p-2 text-xs outline-none border border-gray-800 text-white"></textarea>
+            <div class="flex gap-2 mt-4">
+                <button onclick="closeModal()" class="flex-1 border border-gray-600 p-2 text-xs text-white">CANCELAR</button>
+                <button onclick="saveModalData()" class="flex-1 bg-[#cd7f32] text-black p-2 text-xs font-bold">CONFIRMAR</button>
+            </div>
+            <button onclick="deleteCurrentItem()" id="delete-btn" class="w-full mt-2 text-[10px] text-red-800 uppercase">Limpar Slot</button>
+        </div>
+    </div>
+
+    <script>
+        const attrs = ["Temperança", "Vigor Bruto", "Zelo", "Humanidade", "Estratégia"];
+        const urlParams = new URLSearchParams(window.location.search);
+        let fichaId = urlParams.get('id');
+        const usuarioId = localStorage.getItem('usuarioId');
+        
+        let inventoryData = {};
+        let proficiencyData = {};
+        let skillsData = [];
+        let currentEditing = { type: null, index: null };
+
+        function init() {
+            const list = document.getElementById('attr-list');
+            attrs.forEach(a => {
+                const row = document.createElement('div');
+                row.className = "flex flex-col gap-1";
+                row.innerHTML = `<div class="flex justify-between items-center text-[11px] uppercase"><span class="font-bold tracking-wider">${a}</span><span class="text-[#cd7f32] font-bold" id="num-${a}">0</span></div>
+                <div class="flex justify-between" id="dots-${a}">${Array.from({length: 10}, (_, i) => `<div class="dot" data-attr="${a}" data-value="${i+1}" onclick="setAttr('${a}', ${i+1})"></div>`).join('')}</div>`;
+                list.appendChild(row);
+            });
+            if (fichaId && fichaId !== 'null') loadData(); else refreshUI();
+        }
+
+        function openModal(type, index) {
+            currentEditing = { type, index };
+            let data = type === 'inv' ? inventoryData[index] : (type === 'prof' ? proficiencyData[index] : skillsData[index]);
+            document.getElementById('item-name').value = data?.name || "";
+            document.getElementById('item-desc').value = data?.desc || "";
+            document.getElementById('modal-overlay').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+        function saveModalData() {
+            const item = { name: document.getElementById('item-name').value, desc: document.getElementById('item-desc').value };
+            if (currentEditing.type === 'inv') inventoryData[currentEditing.index] = item;
+            else if (currentEditing.type === 'prof') proficiencyData[currentEditing.index] = item;
+            else skillsData[currentEditing.index] = item;
+            closeModal();
+            refreshUI();
+            autoSave();
+        }
+
+        function deleteCurrentItem() {
+            if (currentEditing.type === 'inv') delete inventoryData[currentEditing.index];
+            else if (currentEditing.type === 'prof') delete proficiencyData[currentEditing.index];
+            else skillsData.splice(currentEditing.index, 1);
+            closeModal();
+            refreshUI();
+            autoSave();
+        }
+
+        function refreshUI() {
+            renderProficiencies();
+            renderInventory();
+            renderSkills();
+            updateCalculations();
+            updateBars();
+        }
+
+        function travaStatus(tipo) {
+            const cur = document.getElementById(`${tipo}-cur`);
+            const max = document.getElementById(`${tipo}-max`);
+            if (parseInt(cur.value) > parseInt(max.value)) cur.value = max.value;
+            updateBars();
+        }
+
+        function updateBars() {
+            ['vit', 'imp', 'luc', 'arm'].forEach(s => {
+                const cur = document.getElementById(`${s}-cur`).value;
+                const max = document.getElementById(`${s}-max`).value;
+                document.getElementById(`bar-${s}`).style.width = (cur / max * 100) + "%";
+            });
+            autoSave();
+        }
+
+        function setAttr(name, val) {
+            document.querySelectorAll(`[data-attr="${name}"]`).forEach(d => d.classList.toggle('filled', parseInt(d.dataset.value) <= val));
+            document.getElementById(`num-${name}`).innerText = val;
+            updateCalculations();
+            autoSave();
+        }
+
+        function updateCalculations() {
+            const vigor = parseInt(document.getElementById('num-Vigor Bruto').innerText) || 0;
+            const cap = vigor + 5;
+            document.getElementById('mov-val').innerText = (vigor * 2) + 4;
+            document.getElementById('cap-val').innerText = cap;
+            document.getElementById('max-weight').innerText = cap;
+            const current = Object.keys(inventoryData).length;
+            document.getElementById('current-weight').innerText = current;
+            document.getElementById('weight-warning').style.color = current > cap ? "red" : "#cd7f32";
+        }
+
+        function renderProficiencies() {
+            const grid = document.getElementById('proficiency-grid'); grid.innerHTML = '';
+            for(let i=0; i < 7; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'slot' + (proficiencyData[i] ? ' has-content' : '');
+                slot.onclick = () => openModal('prof', i);
+                slot.innerHTML = `<span class="slot-label">SLOT ${i+1}</span><span class="truncate w-full font-bold uppercase text-[8px]">${proficiencyData[i]?.name || ''}</span>`;
+                grid.appendChild(slot);
+            }
+        }
+
+        function renderInventory() {
+            const size = document.getElementById('alforge-select').value;
+            const grid = document.getElementById('inventory-grid'); grid.innerHTML = '';
+            for(let i=0; i < size; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'slot' + (inventoryData[i] ? ' has-content' : '');
+                slot.onclick = () => openModal('inv', i);
+                slot.innerHTML = `<span class="truncate w-full font-bold uppercase text-[7px]">${inventoryData[i]?.name || ''}</span>`;
+                grid.appendChild(slot);
+            }
+        }
+
+        function renderSkills() {
+    const list = document.getElementById('skills-list'); 
+    list.innerHTML = '';
+    skillsData.forEach((s, i) => {
+        const div = document.createElement('div');
+        div.className = "flex items-center gap-2 bg-black/40 p-2 border-l-2 border-[#cd7f32] cursor-pointer";
+        // A mágica acontece aqui para o popup abrir no clique:
+        div.onclick = () => openModal('skill', i); 
+        div.innerHTML = `<div class="flex-1"><p class="text-[10px] font-bold text-[#cd7f32] uppercase">${s.name}</p><p class="text-[8px] text-gray-500 truncate">${s.desc}</p></div>`;
+        list.appendChild(div);
+    });
+}
+
+        function addSkill() { skillsData.push({ name: "Nova Habilidade", desc: "" }); renderSkills(); autoSave(); }
+        function updateInventorySize() { renderInventory(); autoSave(); }
+
+        let timer;
+        function autoSave() { clearTimeout(timer); timer = setTimeout(() => saveData(false), 2000); }
+
+       async function saveData(alertar = false) {
+    if (!usuarioId) return;
+
+    // Criamos o objeto de dados sem incluir NENHUMA referência a fotos ou base64
+    const payload = {
+        id: (fichaId === 'null' || !fichaId) ? null : fichaId,
+        usuario_id: usuarioId,
+        nome_personagem: document.getElementById('char-name').value || "Novo Cavaleiro",
+        sistema: "Cavaleiros de Armadura",
+        dados_json: {
+            stats: {
+                vit: [document.getElementById('vit-cur').value, document.getElementById('vit-max').value],
+                imp: [document.getElementById('imp-cur').value, document.getElementById('imp-max').value],
+                luc: [document.getElementById('luc-cur').value, document.getElementById('luc-max').value],
+                arm: [document.getElementById('arm-cur').value, document.getElementById('arm-max').value],
+                armState: document.getElementById('arm-state').value,
+                alforge: document.getElementById('alforge-select').value
+            },
+            attrs: {}, 
+            inventory: inventoryData, 
+            proficiency: proficiencyData, 
+            skills: skillsData
+        }
+    };
+
+    attrs.forEach(a => payload.dados_json.attrs[a] = document.getElementById(`num-${a}`).innerText);
+    
+    try {
+        const res = await fetch('http://localhost:3000/salvar-ficha', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        
+        if (result.id) {
+            fichaId = result.id; // Isso mata o erro de "undefined"
+        }
+        
+        if (alertar) alert(result.message || "Sincronizado!");
+    } catch (err) { 
+        console.error("Erro fatal ao salvar:", err); 
+    }
+}
+
+        async function loadData() {
+            try {
+                const res = await fetch(`http://localhost:3000/carregar-ficha/${fichaId}`);
+                const ficha = await res.json();
+                const d = JSON.parse(ficha.dados_json);
+                document.getElementById('char-name').value = ficha.nome_personagem;
+                inventoryData = d.inventory || {}; proficiencyData = d.proficiency || {}; skillsData = d.skills || [];
+                ['vit', 'imp', 'luc', 'arm'].forEach(s => {
+                    document.getElementById(`${s}-cur`).value = d.stats[s][0];
+                    document.getElementById(`${s}-max`).value = d.stats[s][1];
+                });
+                document.getElementById('arm-state').value = d.stats.armState;
+                document.getElementById('alforge-select').value = d.stats.alforge || "20";
+                attrs.forEach(a => setAttr(a, parseInt(d.attrs[a] || 0)));
+                refreshUI();
+            } catch (err) { console.error("Erro ao carregar"); }
+        }
+        init();
+    </script>
+</body>
+</html>

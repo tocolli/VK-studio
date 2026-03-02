@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>VK.Studio - Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=EB+Garamond&display=swap');
+
+        :root {
+            --ds-gold: #c1a35f;
+            --ds-dark-bg: #0a0a0a;
+            --ds-sidebar: #050505;
+            --ds-border: #2c2c2c;
+            --ds-modal-bg: rgba(0, 0, 0, 0.95);
+        }
+
+        /* Esconde barras de rolagem */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--ds-sidebar); }
+        ::-webkit-scrollbar-thumb { background: var(--ds-gold); border-radius: 10px; }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--ds-dark-bg);
+            color: #ccc;
+            font-family: 'EB Garamond', serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- BARRA DE PESQUISA GLOBAL --- */
+        .search-container {
+            position: absolute;
+            top: 20px;
+            right: 50px;
+            z-index: 50;
+        }
+
+        #global-search {
+            background: rgba(0,0,0,0.7);
+            border: 1px solid var(--ds-gold);
+            color: var(--ds-gold);
+            padding: 10px 15px;
+            font-family: 'Cinzel', serif;
+            width: 200px;
+            outline: none;
+            transition: 0.3s;
+            font-size: 0.8em;
+        }
+
+        #global-search:focus { width: 300px; box-shadow: 0 0 10px var(--ds-gold); }
+
+        /* --- MENU LATERAL --- */
+        aside {
+            width: 260px;
+            background-color: var(--ds-sidebar);
+            border-right: 2px solid var(--ds-border);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 15px;
+            box-shadow: 10px 0 20px rgba(0,0,0,0.5);
+            z-index: 20;
+        }
+
+        .user-profile {
+            text-align: center;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--ds-border);
+            margin-bottom: 30px;
+        }
+
+        .user-profile h3 {
+            font-family: 'Cinzel', serif;
+            color: var(--ds-gold);
+            font-size: 1.1em;
+            margin: 0;
+        }
+
+        nav ul { list-style: none; padding: 0; margin: 0; }
+        nav li {
+            padding: 15px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            border-left: 3px solid transparent;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 0.85em;
+        }
+
+        nav li:hover {
+            background: linear-gradient(to right, #1a1a1a, transparent);
+            border-left: 3px solid var(--ds-gold);
+            color: white;
+            padding-left: 25px;
+        }
+
+        /* --- CONTEÚDO PRINCIPAL --- */
+        main {
+            flex-grow: 1;
+            position: relative;
+            padding: 80px 50px 50px 50px;
+            overflow-y: auto;
+            background-image: radial-gradient(circle at center, #111 0%, #0a0a0a 100%);
+        }
+
+        #corpo-conteudo { position: relative; z-index: 5; }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            border-bottom: 1px solid var(--ds-gold);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            color: var(--ds-gold);
+        }
+
+        /* ESTILO DOS BOTÕES DE SISTEMA */
+        .grid-sistemas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .card-sistema {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid var(--ds-border);
+            padding: 30px;
+            text-align: center;
+            transition: 0.4s;
+            cursor: pointer;
+        }
+
+        .card-sistema:hover {
+            border-color: var(--ds-gold);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(193, 163, 95, 0.15);
+        }
+
+        .card-sistema h3 { font-family: 'Cinzel', serif; color: var(--ds-gold); margin-bottom: 10px; }
+
+        /* GRID DE DOCUMENTOS */
+        .grid-docs {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .doc-card {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid var(--ds-border);
+            padding: 20px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .doc-card:hover { border-color: var(--ds-gold); box-shadow: 0 0 15px rgba(193, 163, 95, 0.2); }
+
+        /* CORES DOS RANKS NOS CARDS E POPUP */
+        h3.rank-d, h3.rank-c { color: #888 !important; }
+        h3.rank-b { color: #3498db !important; text-shadow: 0 0 8px rgba(52, 152, 219, 0.5); }
+        h3.rank-a { color: #f1c40f !important; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
+        h3.rank-s { color: #9b59b6 !important; text-shadow: 0 0 12px rgba(155, 89, 182, 0.5); }
+        h3.rank-x { color: #ff0000 !important; text-shadow: 0 0 15px #800; animation: perigo 1.5s infinite; }
+
+        @keyframes perigo { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        /* --- MODAIS --- */
+        .modal, .modal-leitura {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--ds-modal-bg);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            justify-content: center; align-items: center;
+        }
+
+        .modal-content, .modal-leitura-content {
+            width: 80%;
+            max-width: 950px;
+            max-height: 85vh;
+            padding: 40px;
+            overflow-y: auto;
+            position: relative;
+            background: #0d0d0d;
+            border: 1px solid var(--ds-gold);
+        }
+
+        .tema-oceano { background: #000510; border: 2px solid #0047ab !important; }
+        .tema-cavaleiros { background: #2a1b0a !important; border: 4px solid #71797E !important; }
+
+        .tema-cavaleiros #modal-titulo,
+        .tema-cavaleiros .btn-categoria { color: #800 !important; text-shadow: 0 0 5px rgba(128, 0, 0, 0.5); }
+
+        .tema-cavaleiros .btn-categoria:hover { border-color: var(--ds-gold); color: var(--ds-gold) !important; background: rgba(193, 163, 95, 0.1); text-shadow: none; }
+
+        .close-modal, .close-leitura {
+            position: absolute; top: 20px; right: 20px;
+            color: var(--ds-gold); font-size: 2em; cursor: pointer;
+        }
+
+        .grid-categorias {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px; margin-top: 30px;
+        }
+
+        .btn-categoria {
+            background: #000; border: 1px solid var(--ds-border);
+            color: var(--ds-gold); padding: 20px; font-family: 'Cinzel', serif;
+            font-size: 0.8em; cursor: pointer; transition: 0.3s; text-align: center;
+        }
+
+        .btn-categoria:hover { border-color: var(--ds-gold); background: rgba(193, 163, 95, 0.1); }
+        
+        .btn-vinculo {
+            background: #cd7f32; color: #000; font-family: 'Cinzel';
+            padding: 10px 20px; border: none; cursor: pointer; font-weight: bold;
+            margin-top: 20px; transition: 0.3s;
+        }
+        .btn-vinculo:hover { background: #fff; }
+
+        .logout { margin-top: auto; color: #555; cursor: pointer; text-align: center; font-size: 0.8em; font-family: 'Cinzel'; }
+        .logout:hover { color: #800; }
+
+        .btn-nova-ficha {
+            background: var(--ds-gold); color: black; font-family: 'Cinzel'; 
+            padding: 10px 20px; border: none; cursor: pointer; font-weight: bold; margin-bottom: 20px;
+        }
+
+        #seletor-ficha-vinculo {
+            display: none; background: #111; border: 1px solid var(--ds-gold);
+            padding: 20px; margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div class="user-profile">
+            <small style="letter-spacing: 2px;">JOGADOR</small>
+            <h3 id="nome-usuario">Viajante</h3>
+        </div>
+        <nav><ul id="menu-nav">
+            <li onclick="mostrarSecao('sistemas')">Sistemas</li>
+            <li onclick="mostrarSecao('minhas-fichas')">Minhas Fichas</li>
+        </ul></nav>
+        <div class="logout" onclick="logout()">Abandonar Vínculo</div>
+    </aside>
+
+    <div class="search-container">
+        <input type="text" id="global-search" placeholder="PESQUISAR NO ACERVO..." onkeyup="if(event.key === 'Enter') pesquisaGlobal()">
+    </div>
+
+    <main id="content">
+        <div id="corpo-conteudo"></div> 
+    </main>
+
+    <div id="meuModal" class="modal">
+        <div id="modal-box" class="modal-content">
+            <span class="close-modal" onclick="fecharModal()">&times;</span>
+            <h2 id="modal-titulo" class="section-title" style="text-align: center;">Categorias</h2>
+            <div id="botoes-modal" class="grid-categorias"></div>
+        </div>
+    </div>
+
+    <div id="modalNovaFicha" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-modal" onclick="fecharModalNovaFicha()">&times;</span>
+            <h2 class="section-title" style="text-align: center;">Escolha o Destino</h2>
+            <div class="grid-sistemas">
+                <div class="card-sistema" onclick="abrirEditorFicha('cavaleiros')"><h3>Cavaleiros de Armadura</h3></div>
+                <div class="card-sistema" onclick="abrirEditorFicha('decadencia')"><h3>Decadência Cinza</h3></div>
+                <div class="card-sistema" onclick="abrirEditorFicha('oceano')"><h3>Oceano Estrelado</h3></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalLeitura" class="modal-leitura">
+        <div class="modal-leitura-content">
+            <span class="close-leitura" onclick="fecharLeitura()">&times;</span>
+            <div id="conteudo-leitura-full"></div>
+            
+            <div id="area-vinculo-item" style="display:none; border-top:1px solid #333; margin-top:30px; padding-top:20px;">
+                <button class="btn-vinculo" onclick="mostrarSeletorFichas()">VINCULAR ESTE ITEM À UMA FICHA</button>
+                <div id="seletor-ficha-vinculo">
+                    <p style="font-size:0.8em; color:var(--ds-gold); margin-bottom:10px;">SELECIONE O PERSONAGEM:</p>
+                    <div id="lista-fichas-vinculo"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const usuarioId = localStorage.getItem('usuarioId');
+        let itemAtualParaVinculo = null;
+
+        document.getElementById('nome-usuario').innerText = localStorage.getItem('usuarioNome') || 'Viajante';
+
+        function mostrarSecao(secao) {
+            const corpo = document.getElementById('corpo-conteudo');
+            const antigo = document.getElementById('estilo-sistema');
+            if (antigo) antigo.remove();
+
+            if (secao === 'sistemas') {
+                corpo.innerHTML = `
+                    <h2 class="section-title">Os Três Mundos</h2>
+                    <div class="grid-sistemas">
+                        <div class="card-sistema" onclick="abrirPopupSistema('Decadência Cinza')"><h3>Decadência Cinza</h3><p>Onde tudo começou</p></div>
+                        <div class="card-sistema" onclick="abrirPopupSistema('Oceano Estrelado')"><h3>Oceano Estrelado</h3><p>Mar de Estrelas</p></div>
+                        <div class="card-sistema" onclick="abrirPopupSistema('Cavaleiros de Armadura')"><h3>Cavaleiros de Armadura</h3><p>Por Valtharia</p></div>
+                    </div>
+                `;
+            } else if (secao === 'minhas-fichas') {
+                corpo.innerHTML = `
+                    <h2 class="section-title">Meus Personagens</h2>
+                    <button class="btn-nova-ficha" onclick="abrirPopupNovaFicha()">+ Nova Ficha</button>
+                    <div id="grid-minhas-fichas" class="grid-docs"><p>Invocando registros...</p></div>
+                `;
+                carregarMinhasFichas();
+            } else {
+                corpo.innerHTML = `<h2 class="section-title">${secao}</h2><p>Buscando no abismo...</p>`;
+            }
+        }
+
+        async function pesquisaGlobal() {
+            const campo = document.getElementById('global-search');
+            const termo = campo.value.trim();
+            if (termo.length < 2) return;
+
+            try {
+                const res = await fetch(`http://localhost:3000/pesquisar?q=${encodeURIComponent(termo)}`);
+                const dados = await res.json();
+                const corpo = document.getElementById('corpo-conteudo');
+                corpo.innerHTML = `<h2 class="section-title">Resultados: ${termo}</h2><div id="grid-docs" class="grid-docs"></div>`;
+                renderizarCards(document.getElementById('grid-docs'), dados);
+                campo.value = "";
+            } catch (err) { console.error("Erro na busca"); }
+        }
+
+        function abrirPopupNovaFicha() { document.getElementById('modalNovaFicha').style.display = 'flex'; }
+        function fecharModalNovaFicha() { document.getElementById('modalNovaFicha').style.display = 'none'; }
+
+        function abrirEditorFicha(sistema, fichaId = null) {
+            fecharModalNovaFicha();
+            const modal = document.getElementById('modalLeitura');
+            const container = document.getElementById('conteudo-leitura-full');
+            document.getElementById('area-vinculo-item').style.display = 'none';
+            
+            let path = `fichas/${sistema}/index.html`;
+            container.innerHTML = `<iframe src="${path}?id=${fichaId || ''}" style="width:100%; height:80vh; border:none;"></iframe>`;
+            modal.style.display = 'flex';
+        }
+
+       async function carregarMinhasFichas() {
+    try {
+        const res = await fetch(`http://localhost:3000/minhas-fichas/${usuarioId}`);
+        const fichas = await res.json();
+        const grid = document.getElementById('grid-minhas-fichas');
+        
+        if (!fichas || fichas.length === 0) { 
+            grid.innerHTML = "<p>Nenhum herói forjado ainda.</p>"; 
+            return; 
+        }
+        
+        grid.innerHTML = fichas.map(f => {
+            // Garante que o caminho da pasta seja extraído do nome do sistema
+            const pastaSistema = f.sistema.toLowerCase().split(' ')[0]; 
+            return `
+                <div class="doc-card" onclick="abrirEditorFicha('${pastaSistema}', ${f.id})">
+                    <small style="color:var(--ds-gold)">${f.sistema}</small>
+                    <h3 style="margin-top:10px;">${f.nome_personagem}</h3>
+                </div>`;
+        }).join('');
+    } catch (err) { 
+        console.error("Erro ao carregar fichas:", err); 
+    }
+    grid.innerHTML = fichas.map(f => {
+    const pastaSistema = f.sistema.toLowerCase().split(' ')[0]; 
+    return `
+        <div class="doc-card" style="position:relative;" onclick="abrirEditorFicha('${pastaSistema}', ${f.id})">
+            <button onclick="deletarFicha(${f.id}, event)" 
+                    style="position:absolute; top:10px; right:10px; color:#800; border:none; background:none; cursor:pointer; font-weight:bold;">
+                [X]
+            </button>
+            <small style="color:var(--ds-gold)">${f.sistema}</small>
+            <h3>${f.nome_personagem}</h3>
+        </div>`;
+}).join('');
+}
+
+        const configsSistemas = {
+            "Decadência Cinza": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Veículos", "Magias/Rituais"],
+            "Oceano Estrelado": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Embarcações", "Magias/Rituais", "Tripulação"],
+            "Cavaleiros de Armadura": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Montaria", "Magias/Rituais"]
+        };
+
+        function abrirPopupSistema(nome) {
+            const modal = document.getElementById('meuModal');
+            const modalBox = document.getElementById('modal-box');
+            modalBox.className = 'modal-content'; 
+            if (nome === "Oceano Estrelado") modalBox.classList.add('tema-oceano');
+            else if (nome === "Cavaleiros de Armadura") modalBox.classList.add('tema-cavaleiros');
+            document.getElementById('modal-titulo').innerText = nome;
+            modal.style.display = "flex";
+            document.getElementById('botoes-modal').innerHTML = configsSistemas[nome].map(cat => 
+                `<div class="btn-categoria" onclick="irParaPagina('${nome}', '${cat}')">${cat}</div>`).join('');
+        }
+
+        function irParaPagina(sistema, categoria) {
+            fecharModal();
+            carregarEstiloSistema(sistema);
+            const corpo = document.getElementById('corpo-conteudo');
+            corpo.innerHTML = `
+                <div class="header-sistema" style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 class="section-title">${sistema} > ${categoria}</h2>
+                    <button onclick="mostrarSecao('sistemas')" style="background:none; border:1px solid var(--ds-gold); color:var(--ds-gold); cursor:pointer; padding:8px 20px; font-family:'Cinzel';">← Voltar</button>
+                </div>
+                <div id="grid-docs" class="grid-docs"><p>Buscando...</p></div>`;
+            
+            if (categoria === "Bestiário") carregarLivrosBestiario(sistema);
+            else carregarDocs(sistema, categoria);
+        }
+
+        async function deletarFicha(id, event) {
+    // Impede que o clique no botão abra a ficha por engano
+    event.stopPropagation(); 
+
+    if (!confirm("Tem certeza que deseja apagar esta ficha permanentemente?")) return;
+
+    try {
+        const res = await fetch(`http://localhost:3000/deletar-ficha/${id}`, {
+            method: 'DELETE'
+        });
+        const result = await res.json();
+        alert(result.message);
+        
+        // Atualiza a lista na tela para a ficha sumir na hora
+        carregarMinhasFichas(); 
+    } catch (err) {
+        console.error("Erro ao apagar ficha:", err);
+    }
+}
+       async function carregarDocs(sistema, categoria) {
+    try {
+        // ESSA LINHA PRECISA ENVIAR O SISTEMA E A CATEGORIA
+        const response = await fetch(`http://localhost:3000/buscar-documentacao/${encodeURIComponent(sistema)}/${encodeURIComponent(categoria)}`);
+        const dados = await response.json();
+        renderizarCards(document.getElementById('grid-docs'), dados);
+    } catch (err) { 
+        console.error("Erro na busca"); 
+    }
+}
+        async function carregarLivrosBestiario(sistema) {
+            try {
+                const response = await fetch(`http://localhost:3000/admin/listar-livros`);
+                const todosLivros = await response.json();
+                const filtrados = todosLivros.filter(l => l.sistema === sistema);
+                const grid = document.getElementById('grid-docs');
+                if (filtrados.length === 0) { grid.innerHTML = "<p>Nenhum volume forjado.</p>"; return; }
+                grid.innerHTML = filtrados.map(l => `<div class="card-sistema" onclick='abrirVolumeBestiario(${JSON.stringify(l).replace(/'/g, "&apos;")})'><h3>${l.titulo_livro}</h3><p style="font-size:0.8em; opacity:0.6;">Clique para ler</p></div>`).join('');
+            } catch (err) { console.error("Erro na biblioteca"); }
+        }
+
+        async function abrirVolumeBestiario(livro) {
+            itemAtualParaVinculo = null;
+            const modal = document.getElementById('modalLeitura');
+            document.getElementById('area-vinculo-item').style.display = 'none';
+            document.getElementById('conteudo-leitura-full').innerHTML = `
+                <h1 style="font-family: 'Cinzel'; color: var(--ds-gold);">${livro.titulo_livro}</h1>
+                <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
+                <div style="font-size:1.2em; line-height:1.8; white-space:pre-wrap;">${livro.conteudo}</div>`;
+            modal.style.display = "flex";
+        }
+
+        function renderizarCards(container, lista) {
+            if (!lista || lista.length === 0) { container.innerHTML = "<p>Nenhum registro encontrado.</p>"; return; }
+            container.innerHTML = lista.map(doc => {
+                let rankClass = doc.rank_item ? `rank-${doc.rank_item.toLowerCase().replace(/[+-]/g, '')}` : '';
+                return `
+                    <div class="doc-card" onclick='abrirPopupLeitura(${JSON.stringify(doc).replace(/'/g, "&apos;")})'>
+                        ${doc.imagem ? `<img src="http://localhost:3000${doc.imagem}" style="width:100%; margin-bottom:10px; border-radius: 4px;">` : ''}
+                        <h3 class="${rankClass}">${doc.titulo || 'Sem Título'}</h3>
+                        <p style="font-size: 0.9em; opacity: 0.7;">${doc.conteudo.substring(0, 80)}...</p>
+                    </div>`;
+            }).join('');
+        }
+
+        function abrirPopupLeitura(doc) {
+            itemAtualParaVinculo = doc;
+            const modal = document.getElementById('modalLeitura');
+            const container = document.getElementById('conteudo-leitura-full');
+            let rankClass = doc.rank_item ? `rank-${doc.rank_item.toLowerCase().replace(/[+-]/g, '')}` : '';
+
+            container.innerHTML = `
+                <h1 class="${rankClass}" style="font-family: 'Cinzel';">${doc.titulo}</h1>
+                <p style="color: #888;">${doc.sistema} | ${doc.categoria} ${doc.rank_item ? `| Rank ${doc.rank_item}` : ''}</p>
+                <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
+                ${doc.imagem ? `<img src="http://localhost:3000${doc.imagem}" style="width:100%; max-height:450px; object-fit:contain; margin-bottom:20px;">` : ''}
+                <div style="font-size:1.1em; line-height:1.8; white-space:pre-wrap;">${doc.conteudo}</div>`;
+            
+            const categoriasVinculaveis = ["Itens", "Armas Brancas", "Armas de Fogo", "Armaduras", "Magias/Rituais"];
+            document.getElementById('area-vinculo-item').style.display = categoriasVinculaveis.includes(doc.categoria) ? 'block' : 'none';
+            document.getElementById('seletor-ficha-vinculo').style.display = 'none';
+            modal.style.display = "flex";
+        }
+
+        async function mostrarSeletorFichas() {
+            const seletor = document.getElementById('seletor-ficha-vinculo');
+            seletor.style.display = 'block';
+            const res = await fetch(`http://localhost:3000/minhas-fichas/${usuarioId}`);
+            const fichas = await res.json();
+            document.getElementById('lista-fichas-vinculo').innerHTML = fichas.map(f => 
+                `<button class="btn-categoria" style="width:100%; margin-bottom:5px; padding:10px;" onclick="vincularAoPersonagem(${f.id})">${f.nome_personagem} (${f.sistema})</button>`
+            ).join('');
+        }
+
+        async function vincularAoPersonagem(fichaId) {
+            const res = await fetch('http://localhost:3000/fichas/adicionar-item', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ ficha_id: fichaId, item_json: itemAtualParaVinculo })
+            });
+            const data = await res.json();
+            alert(data.message);
+            document.getElementById('seletor-ficha-vinculo').style.display = 'none';
+        }
+
+        function fecharLeitura() { 
+            document.getElementById('modalLeitura').style.display = "none";
+            if(document.getElementById('grid-minhas-fichas')) carregarMinhasFichas();
+        }
+        function fecharModal() { document.getElementById('meuModal').style.display = "none"; }
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+        function carregarEstiloSistema(sistema) {
+            const antigo = document.getElementById('estilo-sistema');
+            if (antigo) antigo.remove();
+            const link = document.createElement('link');
+            link.id = 'estilo-sistema'; link.rel = 'stylesheet';
+            if (sistema === "Decadência Cinza") link.href = "css/decadencia.css";
+            else if (sistema === "Oceano Estrelado") link.href = "css/oceano.css";
+            else if (sistema === "Cavaleiros de Armadura") link.href = "css/cavaleiros.css";
+            document.head.appendChild(link);
+        }
+
+        function verificarCargoAdm() {
+            const cargo = localStorage.getItem('usuarioCargo');
+            if (cargo === "1") {
+                const li = document.createElement('li');
+                li.style.color = "#c1a35f"; li.style.borderLeft = "3px solid #800";
+                li.innerHTML = "⇳ Retornar à Forja";
+                li.onclick = () => window.location.href = 'admin.html';
+                document.getElementById('menu-nav').appendChild(li);
+            }
+        }
+
+        window.onclick = (e) => { 
+            if (e.target.classList.contains('modal')) { fecharModal(); fecharModalNovaFicha(); }
+            if (e.target.classList.contains('modal-leitura')) fecharLeitura();
+        }
+        verificarCargoAdm();
+        mostrarSecao('sistemas');
+    </script>
+</body>
+</html>

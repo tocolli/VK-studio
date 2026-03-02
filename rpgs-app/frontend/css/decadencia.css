@@ -1,0 +1,72 @@
+/* Estilo para o container de cards */
+#grid-docs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+    padding: 20px;
+}
+
+/* O Card de Documento (Monstro, Item, etc) */
+.doc-card {
+    background: #000;
+    border: 1px solid #333;
+    border-top: 4px solid #444; /* Detalhe cinza industrial */
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    transition: transform 0.3s ease;
+}
+
+.doc-card:hover {
+    transform: translateY(-5px);
+    border-color: #c1a35f; /* Realce em dourado ao passar o mouse */
+}
+
+.doc-card h3 {
+    font-family: 'Cinzel', serif;
+    color: #c1a35f;
+    text-transform: uppercase;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+}
+
+.doc-card p {
+    font-family: 'EB Garamond', serif;
+    line-height: 1.6;
+    color: #bbb;
+}
+
+.doc-card img {
+    width: 100%;
+    border: 1px solid #222;
+    margin-bottom: 15px;
+    image-rendering: pixelated; /* Crucial para seu estilo Pixel Art! */
+}
+
+/* Fundo da área de conteúdo */
+main {
+    background-color: #050505 !important;
+    background-image: radial-gradient(circle, #111 0%, #000 100%) !important;
+}
+
+/* Título da Seção */
+.section-title {
+    color: #666 !important;
+    border-color: #333 !important;
+    text-shadow: 2px 2px 5px #000;
+}
+
+/* Estilo dos Cards */
+.doc-card {
+    background: #0a0a0a !important;
+    border: 1px solid #222 !important;
+    border-top: 3px solid #c1a35f !important;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.doc-card h3 { color: #c1a35f !important; font-family: 'Cinzel', serif; }
+
+/* Efeito Pixel Art nas Imagens */
+.doc-card img {
+    image-rendering: pixelated;
+    border: 1px solid #1a1a1a;
+}
