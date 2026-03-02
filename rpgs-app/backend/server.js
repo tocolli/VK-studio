@@ -18,12 +18,11 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const path = require('path');
 
 // 1. Comando para o Node servir os arquivos da pasta 'frontend'
-// O '../frontend' sai da pasta 'backend' e entra na 'frontend'
-app.use(express.static(path.join(__dirname, '../frontend'))); 
+app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 2. Redirecionamento da página inicial para o login dentro de frontend
+// 2. Redirecionamento da página inicial
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/login.html')); 
+    res.sendFile(path.join(__dirname, '../frontend/login.html'));
 });
 
 // --- 2. CONFIGURAÇÃO DE UPLOADS ---
