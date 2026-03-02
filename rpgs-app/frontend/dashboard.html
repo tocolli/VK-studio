@@ -331,7 +331,7 @@
             if (termo.length < 2) return;
 
             try {
-                const res = await fetch(`http://localhost:3000/pesquisar?q=${encodeURIComponent(termo)}`);
+                const res = await fetch(`https://vk-studio.onrender.com/pesquisar?q=${encodeURIComponent(termo)}`);
                 const dados = await res.json();
                 const corpo = document.getElementById('corpo-conteudo');
                 corpo.innerHTML = `<h2 class="section-title">Resultados: ${termo}</h2><div id="grid-docs" class="grid-docs"></div>`;
@@ -356,7 +356,7 @@
 
        async function carregarMinhasFichas() {
     try {
-        const res = await fetch(`http://localhost:3000/minhas-fichas/${usuarioId}`);
+        const res = await fetch(`https://vk-studio.onrender.com/minhas-fichas/${usuarioId}`);
         const fichas = await res.json();
         const grid = document.getElementById('grid-minhas-fichas');
         
@@ -431,7 +431,7 @@
     if (!confirm("Tem certeza que deseja apagar esta ficha permanentemente?")) return;
 
     try {
-        const res = await fetch(`http://localhost:3000/deletar-ficha/${id}`, {
+        const res = await fetch(`https://vk-studio.onrender.com/deletar-ficha/${id}`, {
             method: 'DELETE'
         });
         const result = await res.json();
@@ -446,7 +446,7 @@
        async function carregarDocs(sistema, categoria) {
     try {
         // ESSA LINHA PRECISA ENVIAR O SISTEMA E A CATEGORIA
-        const response = await fetch(`http://localhost:3000/buscar-documentacao/${encodeURIComponent(sistema)}/${encodeURIComponent(categoria)}`);
+        const response = await fetch(`https://vk-studio.onrender.com/buscar-documentacao/${encodeURIComponent(sistema)}/${encodeURIComponent(categoria)}`);
         const dados = await response.json();
         renderizarCards(document.getElementById('grid-docs'), dados);
     } catch (err) { 
@@ -455,7 +455,7 @@
 }
         async function carregarLivrosBestiario(sistema) {
             try {
-                const response = await fetch(`http://localhost:3000/admin/listar-livros`);
+                const response = await fetch(`https://vk-studio.onrender.com/admin/listar-livros`);
                 const todosLivros = await response.json();
                 const filtrados = todosLivros.filter(l => l.sistema === sistema);
                 const grid = document.getElementById('grid-docs');
@@ -481,7 +481,7 @@
                 let rankClass = doc.rank_item ? `rank-${doc.rank_item.toLowerCase().replace(/[+-]/g, '')}` : '';
                 return `
                     <div class="doc-card" onclick='abrirPopupLeitura(${JSON.stringify(doc).replace(/'/g, "&apos;")})'>
-                        ${doc.imagem ? `<img src="http://localhost:3000${doc.imagem}" style="width:100%; margin-bottom:10px; border-radius: 4px;">` : ''}
+                        ${doc.imagem ? `<img src="https://vk-studio.onrender.com${doc.imagem}" style="width:100%; margin-bottom:10px; border-radius: 4px;">` : ''}
                         <h3 class="${rankClass}">${doc.titulo || 'Sem Título'}</h3>
                         <p style="font-size: 0.9em; opacity: 0.7;">${doc.conteudo.substring(0, 80)}...</p>
                     </div>`;
@@ -498,7 +498,7 @@
                 <h1 class="${rankClass}" style="font-family: 'Cinzel';">${doc.titulo}</h1>
                 <p style="color: #888;">${doc.sistema} | ${doc.categoria} ${doc.rank_item ? `| Rank ${doc.rank_item}` : ''}</p>
                 <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
-                ${doc.imagem ? `<img src="http://localhost:3000${doc.imagem}" style="width:100%; max-height:450px; object-fit:contain; margin-bottom:20px;">` : ''}
+                ${doc.imagem ? `<img src="https://vk-studio.onrender.com${doc.imagem}" style="width:100%; max-height:450px; object-fit:contain; margin-bottom:20px;">` : ''}
                 <div style="font-size:1.1em; line-height:1.8; white-space:pre-wrap;">${doc.conteudo}</div>`;
             
             const categoriasVinculaveis = ["Itens", "Armas Brancas", "Armas de Fogo", "Armaduras", "Magias/Rituais"];
@@ -510,7 +510,7 @@
         async function mostrarSeletorFichas() {
             const seletor = document.getElementById('seletor-ficha-vinculo');
             seletor.style.display = 'block';
-            const res = await fetch(`http://localhost:3000/minhas-fichas/${usuarioId}`);
+            const res = await fetch(`https://vk-studio.onrender.com/minhas-fichas/${usuarioId}`);
             const fichas = await res.json();
             document.getElementById('lista-fichas-vinculo').innerHTML = fichas.map(f => 
                 `<button class="btn-categoria" style="width:100%; margin-bottom:5px; padding:10px;" onclick="vincularAoPersonagem(${f.id})">${f.nome_personagem} (${f.sistema})</button>`
@@ -518,7 +518,7 @@
         }
 
         async function vincularAoPersonagem(fichaId) {
-            const res = await fetch('http://localhost:3000/fichas/adicionar-item', {
+            const res = await fetch('https://vk-studio.onrender.com/fichas/adicionar-item', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ ficha_id: fichaId, item_json: itemAtualParaVinculo })

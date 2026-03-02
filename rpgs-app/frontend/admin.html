@@ -193,7 +193,7 @@
 
                     try {
                         console.log("Tentando subir imagem para o servidor...");
-                        const res = await fetch('http://localhost:3000/admin/upload-galeria', { 
+                        const res = await fetch('https://vk-studio.onrender.com/admin/upload-galeria', { 
                             method: 'POST',
                             body: formData
                         });
@@ -233,7 +233,7 @@
             const container = document.getElementById('lista-itens-adm');
             container.innerHTML = "Consultando registros...";
             try {
-                const res = await fetch('http://localhost:3000/admin/todas-documentacoes');
+                const res = await fetch('https://vk-studio.onrender.com/admin/todas-documentacoes');
                 const docs = await res.json();
                 container.innerHTML = docs.map(i => `
                     <div class="forge-card">
@@ -274,7 +274,7 @@
 
         // --- VIGIA E HISTÓRICO ---
         async function listarUsuarios() {
-            const res = await fetch('http://localhost:3000/admin/listar-usuarios');
+            const res = await fetch('https://vk-studio.onrender.com/admin/listar-usuarios');
             const users = await res.json();
             document.getElementById('lista-usuarios-adm').innerHTML = users.map(u => `
                 <div class="forge-card" onclick="vigiarFichas(${u.id}, '${u.nome}')" style="cursor:pointer; border-left: 3px solid ${u.cargo==1?'#c1a35f':'#444'}">
@@ -286,7 +286,7 @@
         async function vigiarFichas(id, nome) {
             document.getElementById('nome-vigia').innerText = "Vigiando: " + nome;
             document.getElementById('painel-detalhes-usuario').style.display = "block";
-            const res = await fetch(`http://localhost:3000/admin/fichas-usuario/${id}`);
+            const res = await fetch(`https://vk-studio.onrender.com/admin/fichas-usuario/${id}`);
             const fichas = await res.json();
             
             document.getElementById('fichas-vigia').innerHTML = fichas.map(f => `
@@ -300,7 +300,7 @@
         }
 
         async function carregarLogsTerminal(fichaId) {
-            const res = await fetch(`http://localhost:3000/admin/logs/${fichaId}`);
+            const res = await fetch(`https://vk-studio.onrender.com/admin/logs/${fichaId}`);
             const logs = await res.json();
             const term = document.getElementById(`terminal-${fichaId}`);
             if(logs.length === 0) term.innerText = "> Nenhuma alteração registrada.";
@@ -320,14 +320,14 @@
             const file = document.getElementById('adm-file').files[0];
             if (file) formData.append('imagem', file);
 
-            const res = await fetch('http://localhost:3000/salvar-documentacao', { method: 'POST', body: formData });
+            const res = await fetch('https://vk-studio.onrender.com/salvar-documentacao', { method: 'POST', body: formData });
             const data = await res.json();
             alert(data.message);
             cancelarEdicao();
         }
 
         async function carregarLivrosParaSelect() {
-            const res = await fetch('http://localhost:3000/admin/listar-livros');
+            const res = await fetch('https://vk-studio.onrender.com/admin/listar-livros');
             const livros = await res.json();
             document.getElementById('adm-livro-id').innerHTML = '<option value="">Nenhum</option>' + 
                 livros.map(l => `<option value="${l.id}">${l.titulo_livro}</option>`).join('');
@@ -348,7 +348,7 @@
 
         async function deletarItem(id) {
             if(confirm("Banir registro?")) {
-                await fetch(`http://localhost:3000/documentacao/${id}`, { method: 'DELETE' });
+                await fetch(`https://vk-studio.onrender.com/documentacao/${id}`, { method: 'DELETE' });
                 mostrarGerenciar();
             }
         }
@@ -360,7 +360,7 @@
             formData.append('conteudo', document.getElementById('book-conteudo').value);
             const file = document.getElementById('book-file').files[0];
             if (file) formData.append('imagem', file);
-            await fetch('http://localhost:3000/admin/criar-livro', { method: 'POST', body: formData });
+            await fetch('https://vk-studio.onrender.com/admin/criar-livro', { method: 'POST', body: formData });
             alert("Volume Forjado!");
             carregarLivrosParaSelect();
         }

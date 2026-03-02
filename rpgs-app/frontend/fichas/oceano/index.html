@@ -278,7 +278,7 @@
             attrs.forEach(a => payload.dados_json.attrs[a] = document.getElementById(`attr-${a}`).value);
 
             try {
-                const res = await fetch('http://localhost:3000/salvar-ficha', {
+                const res = await fetch('https://vk-studio.onrender.com/salvar-ficha', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -291,7 +291,7 @@
 
         async function loadData() {
             try {
-                const res = await fetch(`http://localhost:3000/carregar-ficha/${fichaId}`);
+                const res = await fetch(`https://vk-studio.onrender.com/carregar-ficha/${fichaId}`);
                 const f = await res.json();
                 const d = JSON.parse(f.dados_json);
                 document.getElementById('char-name').value = f.nome_personagem;

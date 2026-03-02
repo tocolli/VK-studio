@@ -33,11 +33,14 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // --- 3. CONEXÃO COM O BANCO ---
+// --- 3. CONEXÃO COM O BANCO ---
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '@iNAZUMA18', 
-    database: 'vk_rpg_database'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT || 13039,
+    ssl: { rejectUnauthorized: false } // Obrigatório para o Aiven
 });
 
 db.connect((err) => {
