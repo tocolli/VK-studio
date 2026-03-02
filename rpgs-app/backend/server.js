@@ -15,7 +15,6 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-const path = require('path');
 
 // 1. Comando para o Node servir os arquivos da pasta 'frontend'
 app.use(express.static(path.join(__dirname, '../frontend')));
