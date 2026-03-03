@@ -30,3 +30,40 @@
     /* Botões grandes para facilitar o toque */
     button, .nav-item { padding: 12px !important; min-height: 44px; }
 }
+
+/* Estilo do Botão */
+.mobile-menu-btn {
+    display: none; /* Escondido no PC */
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 999;
+    background: #0d0d0d;
+    border: 1px solid #c1a35f;
+    color: #c1a35f;
+    padding: 8px 12px;
+    font-family: 'Cinzel', serif;
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-btn { display: block; } /* Aparece no celular */
+
+    aside {
+        position: fixed !important;
+        left: -280px; /* Joga o menu para fora da tela */
+        transition: 0.3s;
+        height: 100vh !important;
+        width: 280px !important;
+        z-index: 998;
+    }
+
+    /* Classe que o JS vai adicionar para mostrar o menu */
+    aside.menu-aberto {
+        left: 0 !important;
+        box-shadow: 10px 0 50px rgba(0,0,0,0.9);
+    }
+
+    main {
+        padding-top: 60px !important; /* Abre espaço para o botão no topo */
+    }
+}

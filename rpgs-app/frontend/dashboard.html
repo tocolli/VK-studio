@@ -241,6 +241,8 @@
 </head>
 <body>
 
+    <button id="menu-toggle" class="mobile-menu-btn" onclick="toggleMenu()">☰ Menu</button>
+
     <aside>
         <div class="user-profile">
             <small style="letter-spacing: 2px;">JOGADOR</small>
@@ -597,6 +599,18 @@
         }
         verificarCargoAdm();
         mostrarSecao('sistemas');
+
+        function toggleMenu() {
+    const menu = document.querySelector('aside');
+    menu.classList.toggle('menu-aberto');
+}
+
+// Opcional: Fechar o menu automaticamente ao clicar em uma opção
+document.querySelectorAll('nav li').forEach(item => {
+    item.addEventListener('click', () => {
+        if (window.innerWidth <= 768) toggleMenu();
+    });
+});
     </script>
 </body>
 </html>
