@@ -41,15 +41,27 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- 3. CONEXÃO COM O BANCO ---
-// --- 3. CONEXÃO COM O BANCO ---
-const db = mysql.createConnection({
+// Substitua o createConnection por createPool
+const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    port: process.env.DB_PORT || 13039,
-    ssl: { rejectUnauthorized: false } // Obrigatório para o Aiven
+    port: process.env.DB_PORT,
+    ssl: { rejectUnauthorized: false }, // Necessário para o Aiven
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+// Teste a conexão do Pool
+db.getConnection((err, connection) => {
+    if (err) {
+        console.error("Erro ao conectar no Pool do Aiven:", err);
+    } else {
+        console.log("Conectado ao Aiven via Pool de Conexões!");
+        connection.release(); // Devolve a conexão para o pool
+    }
 });
 
 db.connect((err) => {
