@@ -56,11 +56,14 @@
         .btn-delete { border-color: #800; color: #800; width: fit-content; padding: 8px 20px; font-size: 0.8em; margin-right: 10px; }
         .btn-edit { border-color: #3498db; color: #3498db; width: fit-content; padding: 8px 20px; font-size: 0.8em; }
 
+        /* ESTILO DO TERMINAL DE VIGILÂNCIA */
         .log-terminal {
             background: #000; border: 1px solid #1a1a1a; padding: 15px;
             font-family: monospace; font-size: 11px; color: #0f0;
             max-height: 200px; overflow-y: auto; margin-top: 10px;
+            line-height: 1.5;
         }
+        .log-date { color: #555; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -147,17 +150,16 @@
 
         <section id="aba-vigiar" class="secao-painel">
             <h1>Vigiar Usuários</h1>
-            <div id="lista-usuarios-adm"></div>
-            <div id="painel-detalhes-usuario" style="display:none; margin-top:40px; border-top: 1px solid #2c2c2c; padding-top:20px;">
-                <h2 id="nome-vigia" style="color:var(--ds-gold);">DETALHES DO JOGADOR</h2>
+            <div id="lista-usuarios-adm" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;"></div>
+            
+            <div id="painel-detalhes-usuario" style="display:none; margin-top:40px; border-top: 2px solid #c1a35f; padding-top:20px;">
+                <h2 id="nome-vigia" style="color:#c1a35f; font-family: 'Cinzel';">DETALHES DO JOGADOR</h2>
                 <div id="fichas-vigia" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;"></div>
             </div>
         </section>
     </main>
 
     <script>
-        window.onbeforeunload = () => "As alterações não salvas serão perdidas.";
-
         const categoriasOficiais = {
             "Decadência Cinza": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Veículos", "Magias/Rituais"],
             "Oceano Estrelado": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Embarcações", "Magias/Rituais"],
@@ -177,13 +179,12 @@
             if(idAba === 'aba-vigiar') listarUsuarios();
         }
 
-        // --- SISTEMA DE COLAGEM UNIVERSAL (CORRIGIDO) ---
+        // --- SISTEMA DE COLAGEM ---
         document.addEventListener('paste', async (e) => {
             const targetId = e.target.id;
             if (targetId !== 'adm-conteudo' && targetId !== 'book-conteudo') return;
 
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            
             for (let item of items) {
                 if (item.type.indexOf("image") !== -1) {
                     e.preventDefault();
@@ -192,46 +193,74 @@
                     formData.append('imagem', blob);
 
                     try {
-                        console.log("Tentando subir imagem para o servidor...");
                         const res = await fetch('https://vk-studio.onrender.com/admin/upload-galeria', { 
-                            method: 'POST',
-                            body: formData
+                            method: 'POST', body: formData
                         });
-                        
-                        if (!res.ok) {
-                            const errText = await res.text();
-                            throw new Error(`Servidor respondeu com erro: ${errText}`);
-                        }
-                        
                         const data = await res.json();
-                        console.log("Upload concluído:", data.url);
-                        
-                        const area = e.target;
                         const tag = `\n<img src="${data.url}" style="width:100%; max-height:450px; object-fit:contain; margin:20px 0; border:1px solid #c1a35f; border-radius:4px;">\n`;
-                        
+                        const area = e.target;
                         const pos = area.selectionStart;
                         area.value = area.value.substring(0, pos) + tag + area.value.substring(area.selectionEnd);
-                        
-                        area.focus();
-                        area.setSelectionRange(pos + tag.length, pos + tag.length);
-
-                    } catch (err) {
-                        console.error("ERRO NO CTRL+V:", err);
-                        alert("Falha no envio. Abra o console (F12) para ver o erro detalhado.");
-                    }
+                    } catch (err) { console.error("Falha no envio da imagem"); }
                 }
             }
         });
 
-        window.onload = () => {
-            atualizarCategorias();
-            carregarLivrosParaSelect();
-        };
+        // --- VIGIA E HISTÓRICO ATUALIZADO ---
+        async function listarUsuarios() {
+            try {
+                const res = await fetch('https://vk-studio.onrender.com/admin/listar-usuarios');
+                const users = await res.json();
+                document.getElementById('lista-usuarios-adm').innerHTML = users.map(u => `
+                    <div class="forge-card" onclick="vigiarFichas(${u.id}, '${u.nome}')" style="cursor:pointer; border-left: 3px solid ${u.cargo==='admin'?'#c1a35f':'#444'}">
+                        <p style="margin:0; font-family:'Cinzel';">JOGADOR: ${u.nome}</p>
+                        <small style="opacity:0.6;">${u.email}</small>
+                    </div>`).join('');
+            } catch (err) { console.error("Erro ao listar usuários"); }
+        }
 
-        // --- GERENCIAR E EDITAR ---
+        async function vigiarFichas(id, nome) {
+            document.getElementById('nome-vigia').innerText = "Vigiando: " + nome;
+            document.getElementById('painel-detalhes-usuario').style.display = "block";
+            
+            try {
+                const res = await fetch(`https://vk-studio.onrender.com/admin/fichas-usuario/${id}`);
+                const fichas = await res.json();
+                
+                document.getElementById('fichas-vigia').innerHTML = fichas.map(f => `
+                    <div class="forge-card" style="margin-bottom:0;">
+                        <p style="color:#c1a35f; margin:0; font-size: 0.8em;">[${f.sistema}]</p>
+                        <h3 style="margin: 5px 0 15px 0;">${f.nome_personagem}</h3>
+                        <div class="log-terminal" id="terminal-${f.id}">Buscando registros na névoa...</div>
+                    </div>`).join('');
+
+                fichas.forEach(f => carregarLogsTerminal(f.id));
+            } catch (err) { console.error("Erro ao buscar fichas"); }
+        }
+
+        async function carregarLogsTerminal(fichaId) {
+            try {
+                // Rota que você configurou para ler da tabela registros_vigiados ou logs_fichas
+                const res = await fetch(`https://vk-studio.onrender.com/admin/logs/${fichaId}`);
+                const logs = await res.json();
+                const term = document.getElementById(`terminal-${fichaId}`);
+                
+                if(!logs || logs.length === 0) {
+                    term.innerText = "> Nenhuma alteração registrada nesta ficha.";
+                } else {
+                    term.innerHTML = logs.map(l => `
+                        <div>
+                            <span class="log-date">[${new Date(l.data_registro).toLocaleTimeString()}]</span> 
+                            <span>${l.acao}: ${l.detalhes}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) { console.error("Erro ao carregar terminal"); }
+        }
+
+        // --- RESTANTE DAS FUNÇÕES (FORJA E BIBLIOTECA) ---
         async function mostrarGerenciar() {
             const container = document.getElementById('lista-itens-adm');
-            container.innerHTML = "Consultando registros...";
             try {
                 const res = await fetch('https://vk-studio.onrender.com/admin/todas-documentacoes');
                 const docs = await res.json();
@@ -272,42 +301,6 @@
             document.getElementById('adm-conteudo').value = "";
         }
 
-        // --- VIGIA E HISTÓRICO ---
-        async function listarUsuarios() {
-            const res = await fetch('https://vk-studio.onrender.com/admin/listar-usuarios');
-            const users = await res.json();
-            document.getElementById('lista-usuarios-adm').innerHTML = users.map(u => `
-                <div class="forge-card" onclick="vigiarFichas(${u.id}, '${u.nome}')" style="cursor:pointer; border-left: 3px solid ${u.cargo==1?'#c1a35f':'#444'}">
-                    <p style="margin:0; font-family:'Cinzel';">JOGADOR: ${u.nome}</p>
-                    <small>${u.email}</small>
-                </div>`).join('');
-        }
-
-        async function vigiarFichas(id, nome) {
-            document.getElementById('nome-vigia').innerText = "Vigiando: " + nome;
-            document.getElementById('painel-detalhes-usuario').style.display = "block";
-            const res = await fetch(`https://vk-studio.onrender.com/admin/fichas-usuario/${id}`);
-            const fichas = await res.json();
-            
-            document.getElementById('fichas-vigia').innerHTML = fichas.map(f => `
-                <div class="forge-card" style="margin-bottom:0;">
-                    <p style="color:#c1a35f; margin:0;">${f.sistema}</p>
-                    <h3 style="margin-bottom:10px;">${f.nome_personagem}</h3>
-                    <div class="log-terminal" id="terminal-${f.id}">Buscando histórico...</div>
-                </div>`).join('');
-
-            fichas.forEach(f => carregarLogsTerminal(f.id));
-        }
-
-        async function carregarLogsTerminal(fichaId) {
-            const res = await fetch(`https://vk-studio.onrender.com/admin/logs/${fichaId}`);
-            const logs = await res.json();
-            const term = document.getElementById(`terminal-${fichaId}`);
-            if(logs.length === 0) term.innerText = "> Nenhuma alteração registrada.";
-            else term.innerHTML = logs.map(l => `> [${new Date(l.data_hora).toLocaleTimeString()}] ${l.alteracao}`).join('<br>');
-        }
-
-        // --- SALVAMENTO ---
         async function salvarDoc() {
             const formData = new FormData();
             formData.append('id', document.getElementById('adm-id-edit').value);
@@ -324,13 +317,6 @@
             const data = await res.json();
             alert(data.message);
             cancelarEdicao();
-        }
-
-        async function carregarLivrosParaSelect() {
-            const res = await fetch('https://vk-studio.onrender.com/admin/listar-livros');
-            const livros = await res.json();
-            document.getElementById('adm-livro-id').innerHTML = '<option value="">Nenhum</option>' + 
-                livros.map(l => `<option value="${l.id}">${l.titulo_livro}</option>`).join('');
         }
 
         function atualizarCategorias() {
@@ -362,10 +348,14 @@
             if (file) formData.append('imagem', file);
             await fetch('https://vk-studio.onrender.com/admin/criar-livro', { method: 'POST', body: formData });
             alert("Volume Forjado!");
-            carregarLivrosParaSelect();
         }
 
         function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+        
+        window.onload = () => {
+            atualizarCategorias();
+            listarUsuarios();
+        };
     </script>
 </body>
 </html>

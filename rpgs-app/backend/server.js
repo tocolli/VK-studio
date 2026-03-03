@@ -157,6 +157,17 @@ app.post('/salvar-ficha', (req, res) => {
     }
 });
 
+// Exemplo de como registrar o log no backend
+app.post('/salvar-ficha', (req, res) => {
+    const { usuario_id, nome_personagem } = req.body;
+    
+    // Além de salvar a ficha, salve o log:
+    const sqlLog = "INSERT INTO logs_atividades (usuario_id, acao, detalhes) VALUES (?, ?, ?)";
+    db.query(sqlLog, [usuario_id, "Alteração de Ficha", `O usuário editou a ficha: ${nome_personagem}`]);
+    
+    // ... restante do seu código de salvar ficha
+});
+
 app.get('/minhas-fichas/:usuarioId', (req, res) => {
     const { usuarioId } = req.params;
     // Query limpa para buscar os dados básicos
@@ -178,6 +189,19 @@ app.get('/carregar-ficha/:id', (req, res) => {
         if (err) return res.status(500).json({ error: "Erro ao carregar." });
         if (results.length === 0) return res.status(404).json({ error: "Não encontrada." });
         res.json(results[0]);
+    });
+});
+
+// Rota para o Mestre vigiar os logs de uma ficha específica
+app.get('/admin/logs/:fichaId', (req, res) => {
+    const { fichaId } = req.params;
+    // Buscamos os logs ordenados do mais recente para o antigo
+    const sql = "SELECT * FROM registros_vigiados WHERE detalhes LIKE ? ORDER BY data_registro DESC LIMIT 50";
+    
+    // Filtramos os detalhes que mencionam o ID da ficha para ser preciso
+    db.query(sql, [`%Ficha ID: ${fichaId}%`], (err, results) => {
+        if (err) return res.status(500).json(err);
+        res.json(results);
     });
 });
 
