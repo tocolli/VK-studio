@@ -316,23 +316,56 @@
     }
 }
 
-        async function loadData() {
-            try {
-                const res = await fetch(`https://vk-studio.onrender.com/carregar-ficha/${fichaId}`);
-                const ficha = await res.json();
-                const d = JSON.parse(ficha.dados_json);
-                document.getElementById('char-name').value = ficha.nome_personagem;
-                inventoryData = d.inventory || {}; proficiencyData = d.proficiency || {}; skillsData = d.skills || [];
-                ['vit', 'imp', 'luc', 'arm'].forEach(s => {
-                    document.getElementById(`${s}-cur`).value = d.stats[s][0];
-                    document.getElementById(`${s}-max`).value = d.stats[s][1];
-                });
-                document.getElementById('arm-state').value = d.stats.armState;
-                document.getElementById('alforge-select').value = d.stats.alforge || "20";
-                attrs.forEach(a => setAttr(a, parseInt(d.attrs[a] || 0)));
-                refreshUI();
-            } catch (err) { console.error("Erro ao carregar"); }
+       async function loadData() {
+    try {
+        const res = await fetch(`https://vk-studio.onrender.com/carregar-ficha/${fichaId}`);
+        const ficha = await res.json();
+        
+        // CORREÇÃO 1: O Aiven já entrega o JSON como objeto, não precisa de JSON.parse se vier direto do banco
+        // Mas se vier como string, garantimos a conversão aqui:
+        const d = typeof ficha.dados_json === 'string' ? JSON.parse(ficha.dados_json) : ficha.dados_json;
+
+        // Atualiza o nome do personagem
+        document.getElementById('char-name').value = ficha.nome_personagem || "";
+
+        // CORREÇÃO 2: Garantir que os dados globais recebam os valores do banco
+        inventoryData = d.inventory || {}; 
+        proficiencyData = d.proficiency || {}; 
+        skillsData = d.skills || [];
+
+        // Carregar status (Vida, Ímpeto, etc)
+        ['vit', 'imp', 'luc', 'arm'].forEach(s => {
+            if (d.stats && d.stats[s]) {
+                document.getElementById(`${s}-cur`).value = d.stats[s][0];
+                document.getElementById(`${s}-max`).value = d.stats[s][1];
+            }
+        });
+
+        // Carregar estados e alforge
+        if (d.stats) {
+            document.getElementById('arm-state').value = d.stats.armState || "Impecável";
+            document.getElementById('alforge-select').value = d.stats.alforge || "20";
         }
+
+        // Carregar atributos (as bolinhas douradas)
+        if (d.attrs) {
+            attrs.forEach(a => {
+                const val = parseInt(d.attrs[a] || 0);
+                // Preenche as bolinhas visualmente
+                document.querySelectorAll(`[data-attr="${a}"]`).forEach(d => 
+                    d.classList.toggle('filled', parseInt(d.dataset.value) <= val)
+                );
+                document.getElementById(`num-${a}`).innerText = val;
+            });
+        }
+
+        // CORREÇÃO 3: Atualiza a interface toda após carregar os dados
+        refreshUI();
+
+    } catch (err) { 
+        console.error("Erro ao carregar os registros da Forja:", err); 
+    }
+}
         init();
     </script>
 </body>

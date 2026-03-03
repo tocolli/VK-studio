@@ -289,26 +289,55 @@
             } catch (err) { console.error("Erro ao salvar"); }
         }
 
-        async function loadData() {
-            try {
-                const res = await fetch(`https://vk-studio.onrender.com/carregar-ficha/${fichaId}`);
-                const f = await res.json();
-                const d = JSON.parse(f.dados_json);
-                document.getElementById('char-name').value = f.nome_personagem;
-                document.getElementById('char-alcunha').value = d.nickname || "";
-                document.getElementById('char-origem').value = d.origem || "";
-                document.getElementById('char-cargo').value = d.cargo || "";
-                document.getElementById('char-idade').value = d.idade || "";
-                document.getElementById('char-bounty').value = d.bounty || "0";
-                document.getElementById('vit-cur').value = d.stats.vit[0]; document.getElementById('vit-max').value = d.stats.vit[1];
-                document.getElementById('vig-cur').value = d.stats.vig[0]; document.getElementById('vig-max').value = d.stats.vig[1];
-                document.getElementById('marca-cargas').value = d.stats.marca_cargas || 0;
-                document.getElementById('coin-b').value = d.coins[0]; document.getElementById('coin-s').value = d.coins[1]; document.getElementById('coin-g').value = d.coins[2];
-                attrs.forEach(a => document.getElementById(`attr-${a}`).value = d.attrs[a] || 0);
-                skillsData = d.skills || { destreza: [], armas: [], inv: [], vestes: [], marca: [{name: "", desc: ""}] };
-                refreshUI();
-            } catch (err) { console.error("Erro ao carregar"); }
+       async function loadData() {
+    try {
+        const res = await fetch(`https://vk-studio.onrender.com/carregar-ficha/${fichaId}`);
+        const f = await res.json();
+        
+        // Garante que o JSON seja tratado corretamente, seja como objeto ou string
+        const d = typeof f.dados_json === 'string' ? JSON.parse(f.dados_json) : f.dados_json;
+
+        // Preenche os dados básicos do Capitão
+        document.getElementById('char-name').value = f.nome_personagem || "";
+        document.getElementById('char-alcunha').value = d.nickname || "";
+        document.getElementById('char-origem').value = d.origem || "";
+        document.getElementById('char-cargo').value = d.cargo || "";
+        document.getElementById('char-idade').value = d.idade || "";
+        document.getElementById('char-bounty').value = d.bounty || "0";
+
+        // Sincroniza Vida e Vigor
+        if (d.stats) {
+            document.getElementById('vit-cur').value = d.stats.vit ? d.stats.vit[0] : 10;
+            document.getElementById('vit-max').value = d.stats.vit ? d.stats.vit[1] : 10;
+            document.getElementById('vig-cur').value = d.stats.vig ? d.stats.vig[0] : 12;
+            document.getElementById('vig-max').value = d.stats.vig ? d.stats.vig[1] : 12;
+            document.getElementById('marca-cargas').value = d.stats.marca_cargas || 0;
         }
+
+        // Sincroniza as Moedas (Gaivotas, Serpentes e Krakens)
+        if (d.coins) {
+            document.getElementById('coin-b').value = d.coins[0] || 0;
+            document.getElementById('coin-s').value = d.coins[1] || 0;
+            document.getElementById('coin-g').value = d.coins[2] || 0;
+        }
+
+        // Sincroniza os Atributos
+        if (d.attrs) {
+            attrs.forEach(a => {
+                document.getElementById(`attr-${a}`).value = d.attrs[a] || 0;
+            });
+        }
+
+        // CORREÇÃO CRÍTICA: Atualiza o objeto global de skills antes de atualizar a tela
+        skillsData = d.skills || { destreza: [], armas: [], inv: [], vestes: [], marca: [{name: "", desc: ""}] };
+
+        // Atualiza toda a interface visual (barras, listas de armas, etc)
+        refreshUI();
+
+    } catch (err) { 
+        console.error("Erro ao ler o Diário de Bordo na Forja:", err); 
+    }
+}
         init();
     </script>
 </body>
