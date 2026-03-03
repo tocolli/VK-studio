@@ -1,0 +1,32 @@
+/* Ajustes Globais de Responsividade */
+@media (max-width: 768px) {
+    /* Ajusta o tamanho das fontes para leitura no celular */
+    body { font-size: 16px !important; overflow-x: hidden; }
+    
+    /* Faz as grids (Sistemas, Inventário, Atributos) ficarem em 1 ou 2 colunas */
+    .grid-sistemas, .grid-docs, .inventory-grid, .grid-categorias { 
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important; 
+        gap: 10px !important;
+    }
+
+    /* Ajusta o Menu Lateral (Sidebar) para não sumir ou esmagar */
+    aside, .sidebar { 
+        width: 100% !important; 
+        height: auto !important; 
+        position: relative !important;
+        border-right: none !important;
+        border-bottom: 2px solid #c1a35f !important;
+    }
+
+    /* Garante que o conteúdo principal use a tela toda */
+    main, .main { padding: 15px !important; width: 100% !important; }
+
+    /* Ajusta modais e iframes para não estourarem a tela */
+    .modal-content, .modal-leitura-content, iframe { 
+        width: 95% !important; 
+        margin: 5px auto !important;
+    }
+    
+    /* Botões grandes para facilitar o toque */
+    button, .nav-item { padding: 12px !important; min-height: 44px; }
+}
