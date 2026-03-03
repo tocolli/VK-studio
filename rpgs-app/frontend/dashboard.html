@@ -546,16 +546,47 @@
             document.head.appendChild(link);
         }
 
-        function verificarCargoAdm() {
-            const cargo = localStorage.getItem('usuarioCargo');
-            if (cargo === "1") {
-                const li = document.createElement('li');
-                li.style.color = "#c1a35f"; li.style.borderLeft = "3px solid #800";
-                li.innerHTML = "⇳ Retornar à Forja";
-                li.onclick = () => window.location.href = 'admin.html';
-                document.getElementById('menu-nav').appendChild(li);
-            }
-        }
+      function verificarCargoAdm() {
+
+    // 1. Pegamos o valor da chave correta que apareceu no seu console
+
+    const cargo = localStorage.getItem('usuarioCargo');
+
+    
+
+    // 2. Comparamos com 'admin', que é o valor real no seu banco de dados
+
+    if (cargo === "admin") {
+
+        const menu = document.getElementById('menu-nav');
+
+        const li = document.createElement('li');
+
+        
+
+        // Estilização para o botão de mestre aparecer no menu lateral
+
+        li.style.color = "#c1a35f"; 
+
+        li.style.borderLeft = "3px solid #800";
+
+        li.style.fontWeight = "bold";
+
+        li.innerHTML = "⇳ Retornar à Forja";
+
+        
+
+        // Redireciona para sua página de admin.html
+
+        li.onclick = () => window.location.href = 'admin.html';
+
+        
+
+        menu.appendChild(li);
+
+    }
+
+}
 
         window.onclick = (e) => { 
             if (e.target.classList.contains('modal')) { fecharModal(); fecharModalNovaFicha(); }
