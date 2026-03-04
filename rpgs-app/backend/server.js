@@ -116,10 +116,32 @@ app.post('/register', async (req, res) => {
 });
 
 // --- 6. GESTÃO DE DOCUMENTAÇÃO E GALERIA ---
-app.post('/admin/upload-galeria', upload.single('imagem'), (req, res) => {
-    if (!req.file) return res.status(400).send("Nenhuma imagem enviada.");
-    const urlCompleta = `http://localhost:3000/uploads/${req.file.filename}`;
-    res.json({ url: urlCompleta });
+const axios = require('axios'); // Você vai precisar instalar: npm install axios
+const formData = require('form-data'); // Você vai precisar instalar: npm install form-data
+
+app.post('/admin/upload-galeria', upload.single('imagem'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).send('Nenhuma imagem enviada.');
+
+        // 1. Prepara a imagem para o ImgBB
+        const form = new formData();
+        form.append('image', req.file.buffer.toString('base64'));
+
+        // 2. Envia para a API externa (Use sua chave aqui)
+        const response = await axios.post(`https://api.imgbb.com/1/upload?key=55d7945a791ea89702154b56707720b2`, form, {
+            headers: form.getHeaders()
+        });
+
+        // 3. Pega o link permanente que eles geraram
+        const linkPermanente = response.data.data.url;
+
+        // 4. Devolve o link para o seu site usar
+        res.json({ url: linkPermanente });
+
+    } catch (error) {
+        console.error("Erro ao subir para nuvem:", error);
+        res.status(500).send("Erro no processamento da imagem.");
+    }
 });
 
 app.post('/salvar-documentacao', upload.single('imagem'), (req, res) => {
