@@ -115,23 +115,30 @@ app.post('/admin/upload-galeria', upload.single('imagem'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).send('Nenhuma imagem enviada.');
 
-        // 1. Prepara a imagem para o ImgBB
-        const form = new formData();
-        form.append('image', req.file.buffer.toString('base64'));
+        // 1. Lê o arquivo que o Multer acabou de salvar na pasta uploads
+        const imagemFisica = fs.readFileSync(req.file.path);
+        
+        // 2. Transforma em Base64 para o ImgBB entender
+        const base64Image = imagemFisica.toString('base64');
 
-        // 2. Envia para a API externa (Use sua chave aqui)
+        const form = new formData();
+        form.append('image', base64Image);
+
+        // 3. Envia para a API externa
         const response = await axios.post(`https://api.imgbb.com/1/upload?key=55d7945a791ea89702154b56707720b2`, form, {
             headers: form.getHeaders()
         });
 
-        // 3. Pega o link permanente que eles geraram
+        // 4. Pega o link permanente
         const linkPermanente = response.data.data.url;
 
-        // 4. Devolve o link para o seu site usar
+        // 5. OPCIONAL: Deleta o arquivo local para não sujar o Render
+        fs.unlinkSync(req.file.path);
+
         res.json({ url: linkPermanente });
 
     } catch (error) {
-        console.error("Erro ao subir para nuvem:", error);
+        console.error("Erro ao subir para nuvem:", error.message);
         res.status(500).send("Erro no processamento da imagem.");
     }
 });
