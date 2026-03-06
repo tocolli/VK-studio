@@ -148,42 +148,46 @@ app.post('/salvar-documentacao', upload.single('imagem'), async (req, res) => {
     let imagemFinal = null;
 
     try {
-        // Se houver um arquivo, enviamos para o ImgBB primeiro
+        // 1. Se o usuário enviou uma nova imagem
         if (req.file) {
-            const form = new formData();
-            // Usamos buffer porque o multer não salvou o arquivo fisicamente ainda se usarmos memoryStorage, 
-            // mas como você usa diskStorage, vamos ler o arquivo criado:
-            const imageData = fs.readFileSync(req.file.path).toString('base64');
-            form.append('image', imageData);
+            // Lemos o arquivo físico que o Multer acabou de colocar na pasta /uploads
+            const imagemFisica = fs.readFileSync(req.file.path);
+            const base64Image = imagemFisica.toString('base64');
 
+            const form = new formData();
+            form.append('image', base64Image);
+
+            // 2. Enviamos para o ImgBB
             const response = await axios.post(`https://api.imgbb.com/1/upload?key=55d7945a791ea89702154b56707720b2`, form, {
                 headers: form.getHeaders()
             });
             
-            imagemFinal = response.data.data.url; // URL ETERNA DO IMGBB
-            
-            // Opcional: Deleta o arquivo temporário da pasta uploads do servidor para não encher o Render
+            // 3. Pegamos a URL ETERNA
+            imagemFinal = response.data.data.url;
+
+            // 4. Limpeza: Deletamos o arquivo temporário do Render para não ocupar espaço
             fs.unlinkSync(req.file.path);
         }
 
         const idDoLivro = (livro_id === "" || livro_id === "null" || !livro_id) ? null : livro_id;
 
+        // 5. Salva ou Atualiza no Banco do Aiven
         if (id && id !== "null" && id !== "") {
             const sql = "UPDATE documentacoes SET titulo=?, sistema=?, categoria=?, subcategoria=?, rank_item=?, livro_id=?, conteudo=?, imagem=COALESCE(?, imagem), link=? WHERE id=?";
             db.query(sql, [titulo, sistema, categoria, subcategoria || '', rank_item || '', idDoLivro, conteudo, imagemFinal, link || '', id], (err) => {
                 if (err) return res.status(500).json({ error: "Erro ao atualizar." });
-                res.json({ message: "Registro Reforjado!", id: id });
+                res.json({ message: "Registro Reforjado!", url: imagemFinal });
             });
         } else {
             const sql = "INSERT INTO documentacoes (titulo, sistema, categoria, subcategoria, rank_item, livro_id, conteudo, imagem, link) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             db.query(sql, [titulo, sistema, categoria, subcategoria || '', rank_item || '', idDoLivro, conteudo, imagemFinal, link || ''], (err, result) => {
                 if (err) return res.status(500).json({ error: "Erro ao salvar." });
-                res.status(201).json({ message: "Sucesso!", id: result.insertId });
+                res.status(201).json({ message: "Sucesso!", id: result.insertId, url: imagemFinal });
             });
         }
     } catch (error) {
-        console.error("Erro no upload para ImgBB:", error);
-        res.status(500).json({ error: "Erro ao processar imagem na nuvem." });
+        console.error("Erro fatal no upload:", error.message);
+        res.status(500).json({ error: "Falha ao processar imagem na nuvem." });
     }
 });
 
