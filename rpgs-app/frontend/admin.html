@@ -316,8 +316,12 @@
             const file = document.getElementById('adm-file').files[0];
             if (file) formData.append('imagem', file);
 
-            const res = await fetch('https://vk-studio.onrender.com/salvar-documentacao', { method: 'POST', body: formData });
-            const data = await res.json();
+         // Exemplo de como a função deve tratar o retorno
+const res = await fetch('https://vk-studio.onrender.com/admin/upload-galeria', { 
+    method: 'POST', body: formData 
+});
+const data = await res.json();
+// O data.url agora é o link eterno: https://i.ibb.co/xxxx/foto.jpg
             alert(data.message);
             cancelarEdicao();
         }

@@ -64,14 +64,6 @@ db.getConnection((err, connection) => {
     }
 });
 
-db.connect((err) => {
-    if (err) {
-        console.error('❌ ERRO NO MYSQL:', err.message);
-        return;
-    }
-    console.log('✅ VK.ENGINE ONLINE: Banco e Rotas de Salvamento ativos.');
-});
-
 // --- 4. ROTA DE BUSCA POR CATEGORIA ---
 app.get('/buscar-documentacao/:sistema/:categoria', (req, res) => {
     const { sistema, categoria } = req.params;
@@ -144,23 +136,47 @@ app.post('/admin/upload-galeria', upload.single('imagem'), async (req, res) => {
     }
 });
 
-app.post('/salvar-documentacao', upload.single('imagem'), (req, res) => {
+app.post('/salvar-documentacao', upload.single('imagem'), async (req, res) => {
     const { id, titulo, sistema, categoria, subcategoria, rank_item, livro_id, conteudo, link } = req.body; 
-    const imagemPath = req.file ? `/uploads/${req.file.filename}` : null;
-    const idDoLivro = (livro_id === "" || livro_id === "null" || !livro_id) ? null : livro_id;
+    let imagemFinal = null;
 
-    if (id && id !== "null" && id !== "") {
-        const sql = "UPDATE documentacoes SET titulo=?, sistema=?, categoria=?, subcategoria=?, rank_item=?, livro_id=?, conteudo=?, imagem=COALESCE(?, imagem), link=? WHERE id=?";
-        db.query(sql, [titulo, sistema, categoria, subcategoria || '', rank_item || '', idDoLivro, conteudo, imagemPath, link || '', id], (err) => {
-            if (err) return res.status(500).json({ error: "Erro ao atualizar." });
-            res.json({ message: "Registro Reforjado!", id: id });
-        });
-    } else {
-        const sql = "INSERT INTO documentacoes (titulo, sistema, categoria, subcategoria, rank_item, livro_id, conteudo, imagem, link) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        db.query(sql, [titulo, sistema, categoria, subcategoria || '', rank_item || '', idDoLivro, conteudo, imagemPath, link || ''], (err, result) => {
-            if (err) return res.status(500).json({ error: "Erro ao salvar." });
-            res.status(201).json({ message: "Sucesso!", id: result.insertId });
-        });
+    try {
+        // Se houver um arquivo, enviamos para o ImgBB primeiro
+        if (req.file) {
+            const form = new formData();
+            // Usamos buffer porque o multer não salvou o arquivo fisicamente ainda se usarmos memoryStorage, 
+            // mas como você usa diskStorage, vamos ler o arquivo criado:
+            const imageData = fs.readFileSync(req.file.path).toString('base64');
+            form.append('image', imageData);
+
+            const response = await axios.post(`https://api.imgbb.com/1/upload?key=55d7945a791ea89702154b56707720b2`, form, {
+                headers: form.getHeaders()
+            });
+            
+            imagemFinal = response.data.data.url; // URL ETERNA DO IMGBB
+            
+            // Opcional: Deleta o arquivo temporário da pasta uploads do servidor para não encher o Render
+            fs.unlinkSync(req.file.path);
+        }
+
+        const idDoLivro = (livro_id === "" || livro_id === "null" || !livro_id) ? null : livro_id;
+
+        if (id && id !== "null" && id !== "") {
+            const sql = "UPDATE documentacoes SET titulo=?, sistema=?, categoria=?, subcategoria=?, rank_item=?, livro_id=?, conteudo=?, imagem=COALESCE(?, imagem), link=? WHERE id=?";
+            db.query(sql, [titulo, sistema, categoria, subcategoria || '', rank_item || '', idDoLivro, conteudo, imagemFinal, link || '', id], (err) => {
+                if (err) return res.status(500).json({ error: "Erro ao atualizar." });
+                res.json({ message: "Registro Reforjado!", id: id });
+            });
+        } else {
+            const sql = "INSERT INTO documentacoes (titulo, sistema, categoria, subcategoria, rank_item, livro_id, conteudo, imagem, link) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            db.query(sql, [titulo, sistema, categoria, subcategoria || '', rank_item || '', idDoLivro, conteudo, imagemFinal, link || ''], (err, result) => {
+                if (err) return res.status(500).json({ error: "Erro ao salvar." });
+                res.status(201).json({ message: "Sucesso!", id: result.insertId });
+            });
+        }
+    } catch (error) {
+        console.error("Erro no upload para ImgBB:", error);
+        res.status(500).json({ error: "Erro ao processar imagem na nuvem." });
     }
 });
 
