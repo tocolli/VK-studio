@@ -7,7 +7,15 @@ const authRoutes = require('./routes/authRoutes');
 const documentoRoutes = require('./routes/documentoRoutes');
 
 const app = express();
+const path = require('path');
 
+// Diz ao Express para servir os arquivos da pasta frontend (ajuste o nome se for 'public' ou outro)
+app.use(express.static(path.join(__dirname, '../frontend'))); 
+
+// Faz com que qualquer rota que não seja da API mande o dashboard.html
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dashboard.html'));
+});
 // MIDDLEWARES (A ordem importa!)
 app.use(cors()); 
 app.use(express.json()); // <--- SEU ERRO ESTÁ AQUI
