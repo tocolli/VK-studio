@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const db = require('./config/db');
+const path = require('path');
+const fs = require('fs');
 
 const authRoutes = require('./routes/authRoutes');
 const documentoRoutes = require('./routes/documentoRoutes');
@@ -9,8 +11,7 @@ const documentoRoutes = require('./routes/documentoRoutes');
 const app = express();
 const path = require('path');
 
-// Diz ao Express para servir os arquivos da pasta frontend (ajuste o nome se for 'public' ou outro)
-app.use(express.static(path.join(__dirname, '../frontend'))); 
+app.use(express.static(path.join(__dirname, '../../frontend'))); 
 
 // Faz com que qualquer rota que não seja da API mande o dashboard.html
 app.get('*', (req, res) => {
