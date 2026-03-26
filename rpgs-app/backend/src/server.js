@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Faz com que qualquer rota que não seja da API mande o dashboard.html
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dashboard.html'));
+    res.sendFile(path.join(__dirname, '../../frontend/dashboard.html'));
 });
 // MIDDLEWARES (A ordem importa!)
 app.use(cors()); 
