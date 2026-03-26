@@ -1,0 +1,378 @@
+:root {
+    --gold: #c5a059;
+    --dark-bg: #000;
+    --side-bg: #0a0a0a;
+    --input-bg: #0d0d0d;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: var(--dark-bg);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+    overflow: hidden; /* Evita scroll duplo com a sidebar */
+}
+
+.admin-layout {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* --- Menu Lateral --- */
+.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background-color: var(--side-bg);
+    border-right: 1px solid #222;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.gold-text { 
+    color: var(--gold); 
+    letter-spacing: 2px; 
+    margin-bottom: 5px;
+}
+
+.mestre-name {
+    font-size: 0.85em;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.menu {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.menu button, .logout-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #aaa;
+    text-align: left;
+    padding: 14px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 600;
+    transition: 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.menu button:hover {
+    color: var(--gold);
+    border-left: 3px solid var(--gold);
+    background: rgba(197, 160, 89, 0.05);
+    padding-left: 18px;
+}
+
+.logout-btn { 
+    color: #833; 
+    margin-top: auto; 
+    border-top: 1px solid #222;
+    padding-top: 20px;
+}
+
+.logout-btn:hover { color: #f44; }
+
+.menu-divider {
+    border: 0;
+    border-top: 1px solid #222;
+    margin: 15px 0;
+}
+
+/* --- Área de Conteúdo Principal --- */
+.content {
+    flex-grow: 1;
+    padding: 60px;
+    overflow-y: auto;
+    background: radial-gradient(circle at top left, #050505, #000);
+}
+
+#page-title {
+    font-size: 2.2em;
+    font-weight: 300;
+    margin-bottom: 10px;
+}
+
+.gold-line { 
+    border: 0; 
+    border-top: 2px solid var(--gold); 
+    width: 60px; 
+    margin: 20px 0 40px 0; 
+}
+
+/* --- Área de Conteúdo Principal (Ajuste Final de Espaço) --- */
+.content {
+    flex-grow: 1;
+    padding: 60px; /* Mantém o recuo das bordas */
+    overflow-y: auto;
+    background: radial-gradient(circle at top left, #050505, #000);
+}
+
+/* --- Container Mágico (Onde o JS joga o conteúdo) --- */
+#main-container {
+    display: flex; /* Faz os filhos (formulário) se comportarem */
+    flex-direction: column;
+    width: 100%; /* Ocupa toda a largura do .content */
+    align-items: center; /* Centraliza o formulário na tela */
+    justify-content: flex-start;
+}
+
+/* --- Grid de Usuários/Cards (Se você for listar usuários) --- */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    width: 100%; /* Ocupa a largura total */
+}
+
+/* --- FORMULÁRIO PROFISSIONAL (Ajuste de Margem e Alinhamento) --- */
+.form-master {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    width: 100%; /* Tenta ocupar a largura total */
+    max-width: 900px; /* Mas limita para não ficar esticado demais */
+    animation: fadeIn 0.5s ease;
+    margin: 0 auto; /* Reforça a centralização */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-row {
+    display: flex;
+    gap: 25px;
+}
+
+.form-row .form-group { flex: 1; }
+
+.form-master label {
+    color: var(--gold);
+    font-size: 0.75em;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.form-master input, 
+.form-master select, 
+.form-master textarea {
+    background: var(--input-bg);
+    border: 1px solid #222;
+    color: #eee;
+    padding: 15px;
+    border-radius: 4px;
+    outline: none;
+    font-size: 1em;
+    transition: 0.3s;
+}
+
+.form-master input:focus, 
+.form-master select:focus, 
+.form-master textarea:focus { 
+    border-color: var(--gold);
+    background: #151515;
+    box-shadow: 0 0 10px rgba(197, 160, 89, 0.1);
+}
+
+/* Estilo para o campo de arquivo */
+.form-master input[type="file"] {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.form-master input[type="file"]::file-selector-button {
+    background: #222;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 5px 15px;
+    margin-right: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.form-master input[type="file"]::file-selector-button:hover {
+    background: var(--gold);
+    color: #000;
+}
+
+.btn-forjar {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 18px 40px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1em;
+    letter-spacing: 3px;
+    transition: 0.4s;
+    margin-top: 10px;
+    width: fit-content;
+    text-transform: uppercase;
+}
+
+.btn-forjar:hover {
+    background: var(--gold);
+    color: #000;
+    box-shadow: 0 0 20px rgba(197, 160, 89, 0.3);
+}
+
+/* Mobile basic fix */
+@media (max-width: 768px) {
+    .form-row { flex-direction: column; }
+    .sidebar { width: 80px; min-width: 80px; padding: 20px 10px; }
+    .sidebar .gold-text, .sidebar .mestre-name, .sidebar span { display: none; }
+    .content { padding: 20px; }
+}
+
+/* --- MODAL DE HISTÓRICO --- */
+.modal {
+    display: none; /* Escondido por padrão */
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9); /* Fundo preto transparente */
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: #111;
+    margin: 5% auto;
+    padding: 30px;
+    border: 1px solid var(--gold);
+    width: 80%;
+    max-width: 800px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.close-modal {
+    color: var(--gold);
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.historico-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.historico-table th, .historico-table td {
+    border-bottom: 1px solid #222;
+    padding: 12px;
+    text-align: left;
+}
+
+.historico-table th { color: var(--gold); }
+
+/* --- ESTILO GERENCIAR ACERVO (VISÃO FOTO 2) --- */
+
+/* Container que segura os blocos */
+.admin-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Espaço entre os blocos */
+    padding-bottom: 50px;
+}
+
+/* O Bloco Dourado Brilhante */
+.card-admin-gerenciar {
+    background: rgba(0, 0, 0, 0.7); /* Fundo preto semi-transparente */
+    border: 2px solid var(--gold); /* Borda Dourada Base */
+    border-radius: 8px; /* Bordas levemente arredondadas */
+    padding: 30px; /* Espaço interno maior (igual foto 2) */
+    position: relative;
+    
+    /* Efeito de Brilho Dourado (Glow) */
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+/* Efeito ao passar o mouse */
+.card-admin-gerenciar:hover {
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.6);
+    transform: translateY(-3px); /* Levanta levemente */
+}
+
+/* Tipografia dentro do Bloco */
+.card-admin-info p {
+    font-size: 0.9em;
+    color: #888; /* Cinza para [Sistema] - Categoria */
+    margin-bottom: 5px;
+}
+
+.card-admin-info h3 {
+    font-size: 1.5em; /* Título maior (igual foto 2) */
+    color: #fff;
+    font-weight: normal;
+    margin-bottom: 20px;
+}
+
+/* --- ESTILO DOS BOTÕES (Quadrado Preto com Borda Colorida) --- */
+
+/* Container que segura os botões (posicionado abaixo da info) */
+.card-admin-actions {
+    display: flex;
+    gap: 15px; /* Espaço entre Banir e Editar */
+}
+
+/* Base do botão quadrado (preto) */
+.card-admin-actions button {
+    background: #000; /* Fundo Preto */
+    padding: 10px 20px;
+    border-radius: 2px;
+    font-family: inherit;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+/* Botão BANIR (Vermelho) */
+.btn-banir {
+    border: 1px solid #600; /* Borda Vermelho Escuro */
+    color: #c00; /* Escrita Vermelho Vivo */
+}
+
+.btn-banir:hover {
+    background: #600; /* Fundo Vermelho ao passar o mouse */
+    color: #fff;
+}
+
+/* Botão REFORJAR (Azul) */
+.btn-reforjar {
+    border: 1px solid #004d80; /* Borda Azul Escuro */
+    color: #00aaff; /* Escrita Azul Vivo */
+}
+
+.btn-reforjar:hover {
+    background: #004d80; /* Fundo Azul ao passar o mouse */
+    color: #fff;
+}

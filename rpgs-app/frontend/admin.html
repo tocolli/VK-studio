@@ -120,7 +120,7 @@
                     <textarea id="adm-conteudo" style="height: 250px;"></textarea>
                 </div>
                 
-                <button type="button" id="btn-salvar-geral" onclick="salvarDoc()">SELAR NO BANCO</button>
+                <button type="button" id="btn-salvar-geral" onclick="salvarDoc()">SALVAR</button>
                 <button type="button" id="btn-cancelar-edit" style="display:none; border-color:#666; color:#666; margin-top:5px;" onclick="cancelarEdicao()">CANCELAR EDIÇÃO</button>
             </div>
         </section>
@@ -304,27 +304,67 @@
             document.getElementById('adm-conteudo').value = "";
         }
 
-        async function salvarDoc() {
-            const formData = new FormData();
-            formData.append('id', document.getElementById('adm-id-edit').value);
-            formData.append('titulo', document.getElementById('adm-titulo').value);
-            formData.append('sistema', document.getElementById('adm-sistema').value);
-            formData.append('categoria', document.getElementById('adm-categoria').value);
-            formData.append('rank_item', document.getElementById('adm-rank').value);
-            formData.append('livro_id', document.getElementById('adm-livro-id').value);
-            formData.append('conteudo', document.getElementById('adm-conteudo').value);
-            const file = document.getElementById('adm-file').files[0];
-            if (file) formData.append('imagem', file);
+ async function salvarDoc() {
+    // 1. Pegando os IDs do seu formulário (prefixo adm-)
+    const idEdit = document.getElementById('adm-id-edit').value;
+    const titulo = document.getElementById('adm-titulo').value;
+    const sistema = document.getElementById('adm-sistema').value;
+    const categoria = document.getElementById('adm-categoria').value;
+    const rank = document.getElementById('adm-rank').value;
+    const conteudo = document.getElementById('adm-conteudo').value;
+    const arquivo = document.getElementById('adm-file').files[0];
 
-         // Exemplo de como a função deve tratar o retorno
-const res = await fetch('https://vk-studio.onrender.com/admin/upload-galeria', { 
-    method: 'POST', body: formData 
-});
-const data = await res.json();
-// O data.url agora é o link eterno: https://i.ibb.co/xxxx/foto.jpg
-            alert(data.message);
-            cancelarEdicao();
+    if (!titulo || !conteudo) {
+        alert("O Título e o Conteúdo são obrigatórios!");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('titulo', titulo);
+    formData.append('conteudo', conteudo);
+    formData.append('sistema', sistema);
+    formData.append('categoria', categoria);
+    formData.append('rank_item', rank);
+    
+    // AQUI ESTÁ A MUDANÇA: O Back espera 'ilustracao'
+    if (arquivo) {
+        formData.append('ilustracao', arquivo); 
+    }
+
+    // AQUI ESTÁ A MUDANÇA: A rota correta do seu server é /api/documentos
+   let url = 'https://vk-studio.onrender.com/api';
+    let metodo = 'POST';
+
+    // Se estiver editando, muda a URL e o Método para PUT
+    if (idEdit) {
+        url = `https://vk-studio.onrender.com/api/documentos/${idEdit}`;
+        metodo = 'PUT';
+    }
+
+    try {
+        const res = await fetch(url, {
+            method: metodo,
+            body: formData 
+        });
+
+        const dados = await res.json();
+        
+        if (res.ok) {
+            alert(idEdit ? "Reforjado com sucesso!" : "Selado no Banco!");
+            if (!idEdit) {
+                document.getElementById('adm-titulo').value = "";
+                document.getElementById('adm-conteudo').value = "";
+            } else {
+                cancelarEdicao();
+            }
+        } else {
+            alert("Erro: " + (dados.error || "Erro desconhecido"));
         }
+    } catch (err) {
+        console.error("Erro na conexão:", err);
+        alert("Falha ao conectar com a Forja.");
+    }
+}
 
         function atualizarCategorias() {
             const sis = document.getElementById('adm-sistema').value;

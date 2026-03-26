@@ -1,0 +1,173 @@
+/* Cores e Estilo VK.Studio (Estilo Gold Ornamental) */
+:root {
+    --gold: #c5a059; /* Ouro principal */
+    --dark-bg: #000000; /* Fundo absoluto */
+    --card-bg: #111111; /* Fundo do card ligeiramente mais claro */
+    --gold-dim: rgba(197, 160, 89, 0.5); /* Ouro suave para bordas internas */
+    --gold-bright: #f0c674; /* Ouro brilhante para hover */
+}
+
+/* Reset básico e Centralização total na tela */
+body {
+    background-color: var(--dark-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Cinzel', serif; /* Fonte mais 'RPG' que combina com o dourado, senão tiver use 'Segoe UI' */
+    color: #fff;
+    overflow: hidden; /* Evita rolagem durante a animação */
+}
+
+/* Container do Efeito 3D */
+.auth-container {
+    perspective: 1500px;
+    width: 100%;
+    max-width: 440px;
+    padding: 20px;
+}
+
+/* A "Carta" (que gira) */
+.auth-card {
+    width: 100%;
+    height: 620px; /* Altura fixa para caber o cadastro todo dentro da borda */
+    position: relative;
+    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1); /* Animação mais lenta para ser mais imersiva */
+    transform-style: preserve-3d;
+}
+
+/* Classe ativada via JS para girar */
+.auth-card.flipped {
+    transform: rotateY(180deg);
+}
+
+/* Estilo comum para as duas faces (Frente e Verso) */
+.auth-face {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    background: var(--card-bg);
+    border: 3px solid var(--gold); /* Borda Dourada Grossa */
+    border-radius: 12px;
+    padding: 40px;
+    box-sizing: border-box; /* Fundamental para o alinhamento */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centraliza o formulário na carta */
+    box-shadow: 0 10px 40px rgba(197, 160, 89, 0.2); /* Sombra dourada suave */
+}
+
+/* Adiciona um efeito de textura/borda ornamental (Opcional, mas dá o estilo) */
+.auth-face::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    border: 1px solid var(--gold-dim); /* Borda interna fina */
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+/* Face de Trás (Cadastro) */
+.auth-back {
+    transform: rotateY(180deg);
+}
+
+/* Estilização dos Textos e Títulos */
+.gold-text {
+    color: var(--gold);
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.subtitle {
+    color: #aaa;
+    font-size: 0.9em;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+/* Formulário e Inputs (Estilo Dourado) */
+.input-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.input-group label {
+    color: var(--gold-dim);
+    font-size: 0.8em;
+    display: block;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+input {
+    width: 100%;
+    background: transparent; /* Fundo transparente para usar o do card */
+    border: 1px solid #333; /* Borda escura suave */
+    border-bottom: 2px solid var(--gold-dim); /* Linha inferior dourada */
+    padding: 12px 5px;
+    color: #fff;
+    border-radius: 0; /* Estilo mais linear */
+    box-sizing: border-box;
+    outline: none;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-color: var(--gold);
+    border-bottom: 2px solid var(--gold-bright);
+    background: rgba(197, 160, 89, 0.05); /* Fundo dourado muito suave */
+}
+
+/* Botão Gold Ornamental */
+.btn-gold {
+    width: 100%;
+    background: transparent;
+    border: 2px solid var(--gold);
+    color: var(--gold);
+    padding: 15px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Cinzel', serif; /* Mesma fonte do RPG */
+    margin-top: 30px;
+    transition: 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.btn-gold:hover {
+    background: var(--gold);
+    color: #000;
+    box-shadow: 0 0 15px rgba(197, 160, 89, 0.5); /* Brilho dourado no hover */
+}
+
+/* Texto de Alternância (Virar Carta) */
+.toggle-text {
+    margin-top: 25px;
+    color: #888;
+    font-size: 0.9em;
+    text-align: center;
+}
+
+.toggle-text span {
+    color: var(--gold);
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.toggle-text span:hover {
+    color: var(--gold-bright);
+    text-decoration: underline;
+}
