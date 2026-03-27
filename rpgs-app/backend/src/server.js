@@ -4,45 +4,49 @@ require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
 
-// 1. IMPORTANTE: Comente o DB temporariamente se o erro persistir
-// const db = require('./config/db'); 
-
+// Importação das rotas
 const authRoutes = require('./routes/authRoutes');
 const documentoRoutes = require('./routes/documentoRoutes');
 
 const app = express();
 
+// MIDDLEWARES
 app.use(cors()); 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
 
-// Caminho absoluto para evitar Status 11
-const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
-
-// LOG DE DEBUG PARA O RENDER (Olhe isso no painel!)
-console.log("--- INICIANDO VK.STUDIO ---");
-console.log("Diretório atual (__dirname):", __dirname);
-console.log("Pasta Frontend calculada:", frontendPath);
-
-app.use(express.static(frontendPath));
-
+// 1. ROTAS DA API (Sempre no topo)
 app.use('/api', authRoutes);
 app.use('/api', documentoRoutes); 
 
 app.get('/api/status', (req, res) => {
-    res.json({ status: 'Online', info: 'Se voce ve isso, o server NAO morreu.' });
+    res.json({ status: 'Online', info: 'VK.Studio API ativa!' });
 });
 
+// 2. CONFIGURAÇÃO DO FRONTEND
+// Se o Root Directory no Render for 'backend', o caminho é esse:
+const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
+
+// Servir arquivos estáticos (CSS, JS, Imagens)
+app.use(express.static(frontendPath));
+
+// 3. ROTA CORINGA
 app.get('*', (req, res) => {
+    // Se for uma tentativa errada de acessar API, retorna erro JSON
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ error: 'Rota de API nao encontrada' });
+    }
+
     const indexPath = path.join(frontendPath, 'dashboard.html');
+    
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
-        res.status(404).send(`Servidor ON, mas nao achou o HTML em: ${indexPath}`);
+        res.status(404).send(`O servidor ligou, mas nao achou o HTML em: ${indexPath}`);
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`--- SERVIDOR RODANDO NA PORTA ${PORT} ---`);
+    console.log(`--- VK.STUDIO ONLINE NA PORTA ${PORT} ---`);
 });
