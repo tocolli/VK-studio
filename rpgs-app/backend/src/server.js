@@ -1,54 +1,48 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const db = require('./config/db'); 
 const path = require('path');
 const fs = require('fs');
+
+// 1. IMPORTANTE: Comente o DB temporariamente se o erro persistir
+// const db = require('./config/db'); 
 
 const authRoutes = require('./routes/authRoutes');
 const documentoRoutes = require('./routes/documentoRoutes');
 
 const app = express();
 
-// MIDDLEWARES
 app.use(cors()); 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
 
-// 1. ROTAS DA API
-app.use('/api', authRoutes);
-app.use('/api', documentoRoutes); 
+// Caminho absoluto para evitar Status 11
+const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 
-app.get('/api/status', async (req, res) => {
-    res.json({ status: 'Online', database: 'Conectado ao Aiven!' });
-});
-
-// 2. SERVIR ARQUIVOS ESTÁTICOS
-// Se o Root Directory no Render for 'backend', subimos 1 nível (..) para a raiz e entramos em /frontend
-const frontendPath = path.resolve(process.cwd(), '..', 'frontend');
-
-console.log("--- DEBUG DE CAMINHO ---");
-console.log("Pasta de execução (CWD):", process.cwd());
-console.log("Caminho Frontend:", frontendPath);
+// LOG DE DEBUG PARA O RENDER (Olhe isso no painel!)
+console.log("--- INICIANDO VK.STUDIO ---");
+console.log("Diretório atual (__dirname):", __dirname);
+console.log("Pasta Frontend calculada:", frontendPath);
 
 app.use(express.static(frontendPath));
 
-// 3. ROTA CORINGA
-app.get('*', (req, res) => {
-    if (req.path.startsWith('/api')) {
-        return res.status(404).json({ error: 'Rota de API inexistente' });
-    }
+app.use('/api', authRoutes);
+app.use('/api', documentoRoutes); 
 
+app.get('/api/status', (req, res) => {
+    res.json({ status: 'Online', info: 'Se voce ve isso, o server NAO morreu.' });
+});
+
+app.get('*', (req, res) => {
     const indexPath = path.join(frontendPath, 'dashboard.html');
-    
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
-        res.status(404).send(`O servidor ligou! Mas nao achou o HTML em: ${indexPath}`);
+        res.status(404).send(`Servidor ON, mas nao achou o HTML em: ${indexPath}`);
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`--- VK.STUDIO ATIVO ---`);
+    console.log(`--- SERVIDOR RODANDO NA PORTA ${PORT} ---`);
 });
