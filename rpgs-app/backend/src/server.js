@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const db = require('./db'); // Ajuste se o caminho do seu db mudou
+const db = require('./config/db'); // Mantive o caminho padrao do seu config
 const path = require('path');
 const fs = require('fs');
 
@@ -23,13 +23,12 @@ app.get('/api/status', async (req, res) => {
     res.json({ status: 'Online', database: 'Conectado ao Aiven!' });
 });
 
-// 2. SERVIR ARQUIVOS ESTÁTICOS (Ajuste para matar o Status 11)
-// process.cwd() pega a raiz do projeto (onde está o seu .git e a pasta frontend)
-const frontendPath = path.join(process.cwd(), 'frontend');
+// 2. SERVIR ARQUIVOS ESTÁTICOS
+// Ajustado para subir ate a raiz e entrar na frontend sem erro de memoria
+const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 
 console.log("--- DEBUG DE CAMINHO ---");
-console.log("Servidor rodando em:", process.cwd());
-console.log("Buscando frontend em:", frontendPath);
+console.log("Caminho resolvido para Frontend:", frontendPath);
 
 app.use(express.static(frontendPath));
 
@@ -44,11 +43,12 @@ app.get('*', (req, res) => {
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
-        res.status(404).send(`Servidor ON, mas nao achou o HTML em: ${indexPath}`);
+        res.status(404).send(`O servidor ligou! Mas nao achou o HTML em: ${indexPath}`);
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`--- VK.STUDIO ATIVO ---`);
+    console.log(`Buscando frontend em: ${frontendPath}`);
 });
