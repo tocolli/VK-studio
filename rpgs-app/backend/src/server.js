@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const db = require('./config/db');
+const db = require('./db'); // Ajuste se o caminho do seu db mudou
 const path = require('path');
 const fs = require('fs');
 
@@ -10,7 +10,7 @@ const documentoRoutes = require('./routes/documentoRoutes');
 
 const app = express();
 
-// MIDDLEWARES (A ordem importa!)
+// MIDDLEWARES
 app.use(cors()); 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
@@ -23,17 +23,20 @@ app.get('/api/status', async (req, res) => {
     res.json({ status: 'Online', database: 'Conectado ao Aiven!' });
 });
 
-// 2. SERVIR ARQUIVOS ESTÁTICOS
-// Usando path.resolve para criar um caminho absoluto e evitar o Status 11
-const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
+// 2. SERVIR ARQUIVOS ESTÁTICOS (Ajuste para matar o Status 11)
+// process.cwd() pega a raiz do projeto (onde está o seu .git e a pasta frontend)
+const frontendPath = path.join(process.cwd(), 'frontend');
+
+console.log("--- DEBUG DE CAMINHO ---");
+console.log("Servidor rodando em:", process.cwd());
+console.log("Buscando frontend em:", frontendPath);
 
 app.use(express.static(frontendPath));
 
 // 3. ROTA CORINGA
 app.get('*', (req, res) => {
-    // Se for uma tentativa de acessar API que não existe, retorna 404 JSON
     if (req.path.startsWith('/api')) {
-        return res.status(404).json({ error: 'Rota de API não encontrada' });
+        return res.status(404).json({ error: 'Rota de API inexistente' });
     }
 
     const indexPath = path.join(frontendPath, 'dashboard.html');
@@ -41,13 +44,11 @@ app.get('*', (req, res) => {
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
-        // Mensagem de debug para sabermos onde ele está procurando no Render
-        res.status(404).send(`Visual 10/10 nao encontrado em: ${frontendPath}`);
+        res.status(404).send(`Servidor ON, mas nao achou o HTML em: ${indexPath}`);
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`--- VK.STUDIO ATIVO ---`);
-    console.log(`Servidor rodando em: http://localhost:${PORT}`);
 });
