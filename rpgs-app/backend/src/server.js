@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const db = require('./config/db'); // Mantive o caminho padrao do seu config
+const db = require('./config/db'); 
 const path = require('path');
 const fs = require('fs');
 
@@ -24,11 +24,12 @@ app.get('/api/status', async (req, res) => {
 });
 
 // 2. SERVIR ARQUIVOS ESTÁTICOS
-// Ajustado para subir ate a raiz e entrar na frontend sem erro de memoria
-const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
+// Se o Root Directory no Render for 'backend', subimos 1 nível (..) para a raiz e entramos em /frontend
+const frontendPath = path.resolve(process.cwd(), '..', 'frontend');
 
 console.log("--- DEBUG DE CAMINHO ---");
-console.log("Caminho resolvido para Frontend:", frontendPath);
+console.log("Pasta de execução (CWD):", process.cwd());
+console.log("Caminho Frontend:", frontendPath);
 
 app.use(express.static(frontendPath));
 
@@ -50,5 +51,4 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`--- VK.STUDIO ATIVO ---`);
-    console.log(`Buscando frontend em: ${frontendPath}`);
 });
