@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-// Se o DB estiver dando erro, deixe comentado até o site abrir
+// Se o seu DB estiver em backend/src/config/db.js, use este caminho:
 // const db = require('./config/db'); 
 
 const authRoutes = require('./routes/authRoutes');
@@ -22,19 +22,19 @@ app.use('/api', authRoutes);
 app.use('/api', documentoRoutes); 
 
 app.get('/api/status', (req, res) => {
-    res.json({ status: 'Online', info: 'VK.Studio API ativa!' });
+    res.json({ status: 'Online', info: 'API VK.Studio Ativa' });
 });
 
-// 2. CONFIGURAÇÃO DO FRONTEND (O segredo está aqui)
-// Considerando Root Directory: backend
-const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
+// 2. CONFIGURAÇÃO DO FRONTEND
+// process.cwd() pega a pasta raiz (rpgs-app) se o Root Directory for vazio
+// Se o Root Directory for 'backend', ele pega a pasta backend.
+const rootDir = process.cwd();
+const frontendPath = path.resolve(rootDir, '..', 'frontend');
 
-// Servir arquivos estáticos (CSS, JS, Imagens)
 app.use(express.static(frontendPath));
 
-// 3. ROTA CORINGA (Linha 34 aproximada)
+// 3. ROTA CORINGA
 app.get('*', (req, res) => {
-    // Evita loop infinito se a API falhar
     if (req.path.startsWith('/api')) {
         return res.status(404).json({ error: 'Rota de API nao encontrada' });
     }
@@ -44,12 +44,13 @@ app.get('*', (req, res) => {
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
-        res.status(404).send("Visual 10/10 nao encontrado. Verifique a pasta frontend.");
+        res.status(404).send("Visual 10/10 nao encontrado. Verifique a pasta frontend na raiz.");
     }
 });
 
-// O RENDER DEFINE A PORTA AUTOMATICAMENTE
+// ESCUTANDO A PORTA
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`--- VK.STUDIO ONLINE NA PORTA ${PORT} ---`);
+    console.log(`Localizando Frontend em: ${frontendPath}`);
 });
