@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-// Se o seu db.js está em backend/src/config/db.js
+// Configurações e rotas
 const db = require('./config/db'); 
 const authRoutes = require('./routes/authRoutes');
 const documentoRoutes = require('./routes/documentoRoutes');
@@ -29,19 +29,17 @@ app.get('/api/status', async (req, res) => {
 });
 
 // 2. CONFIGURAÇÃO DO FRONTEND
-// Se o Root Directory é 'rpgs-app/backend', o process.cwd() é essa pasta.
-// A pasta frontend está no mesmo nível que a backend (dentro de rpgs-app).
-// Então subimos 1 nível (..) e entramos em frontend.
-const frontendPath = path.resolve(process.cwd(), '..', 'frontend');
+// __dirname é /backend/src. Subimos 2 níveis para chegar na raiz 'rpgs-app' e entrar em 'frontend'
+const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 
 console.log("--- DEBUG RENDER ---");
-console.log("Caminho atual de execução:", process.cwd());
+console.log("Local do Script (src):", __dirname);
 console.log("Buscando frontend em:", frontendPath);
 
 app.use(express.static(frontendPath));
 
-// 3. ROTA CORINGA
-app.get('*', (req, res) => {
+// 3. ROTA CORINGA (Ajustada para Express 5)
+app.get('/*', (req, res) => {
     if (req.path.startsWith('/api')) {
         return res.status(404).json({ error: 'Rota de API inexistente' });
     }
