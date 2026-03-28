@@ -39,7 +39,7 @@ console.log("Buscando frontend em:", frontendPath);
 app.use(express.static(frontendPath));
 
 // 3. ROTA CORINGA (Ajustada para Express 5)
-app.get('/*', (req, res) => {
+app.get('/:splat*', (req, res) => {
     if (req.path.startsWith('/api')) {
         return res.status(404).json({ error: 'Rota de API inexistente' });
     }
@@ -51,11 +51,4 @@ app.get('/*', (req, res) => {
     } else {
         res.status(404).send(`VK.Studio: Servidor ON, mas não localizou o HTML em: ${indexPath}`);
     }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`--- VK.STUDIO ATIVO ---`);
-    console.log(`Porta: ${PORT}`);
-    console.log(`Frontend resolvida em: ${frontendPath}`);
 });
