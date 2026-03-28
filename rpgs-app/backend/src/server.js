@@ -29,9 +29,14 @@ app.get('/api/status', async (req, res) => {
 });
 
 // 2. CONFIGURAÇÃO DO FRONTEND
-// Se o Render "entra" em rpgs-app/backend, o __dirname (src) está 2 níveis abaixo da frontend.
-// 1º nível: sai de src -> backend | 2º nível: sai de backend -> rpgs-app (onde mora a frontend)
-const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
+// Se o Root Directory é 'rpgs-app/backend', o process.cwd() é essa pasta.
+// A pasta frontend está no mesmo nível que a backend (dentro de rpgs-app).
+// Então subimos 1 nível (..) e entramos em frontend.
+const frontendPath = path.resolve(process.cwd(), '..', 'frontend');
+
+console.log("--- DEBUG RENDER ---");
+console.log("Caminho atual de execução:", process.cwd());
+console.log("Buscando frontend em:", frontendPath);
 
 app.use(express.static(frontendPath));
 
@@ -54,5 +59,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`--- VK.STUDIO ATIVO ---`);
     console.log(`Porta: ${PORT}`);
-    console.log(`Frontend em: ${frontendPath}`);
+    console.log(`Frontend resolvida em: ${frontendPath}`);
 });
