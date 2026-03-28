@@ -4,20 +4,19 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-// Importação das suas configurações e rotas
-// Certifique-se de que o caminho do db.js está correto (./config/db ou ./db)
+// Se o seu db.js está em backend/src/config/db.js
 const db = require('./config/db'); 
 const authRoutes = require('./routes/authRoutes');
 const documentoRoutes = require('./routes/documentoRoutes');
 
 const app = express();
 
-// MIDDLEWARES (Essenciais para o funcionamento da API e do CORS)
+// MIDDLEWARES
 app.use(cors()); 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
 
-// 1. ROTAS DA API (Devem vir antes de servir o Frontend)
+// 1. ROTAS DA API
 app.use('/api', authRoutes);
 app.use('/api', documentoRoutes); 
 
@@ -30,23 +29,20 @@ app.get('/api/status', async (req, res) => {
 });
 
 // 2. CONFIGURAÇÃO DO FRONTEND
-// __dirname está em backend/src. 
-// '../../' sobe para backend e depois para a raiz (rpgs-app), onde está a pasta frontend.
+// Se o Render "entra" em rpgs-app/backend, o __dirname (src) está 2 níveis abaixo da frontend.
+// 1º nível: sai de src -> backend | 2º nível: sai de backend -> rpgs-app (onde mora a frontend)
 const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 
-// Servir arquivos estáticos (CSS, JS, Imagens da pasta frontend)
 app.use(express.static(frontendPath));
 
-// 3. ROTA CORINGA (Para o Dashboard e navegação SPA)
+// 3. ROTA CORINGA
 app.get('*', (req, res) => {
-    // Evita que erros em chamadas de API tentem carregar o HTML
     if (req.path.startsWith('/api')) {
         return res.status(404).json({ error: 'Rota de API inexistente' });
     }
 
     const indexPath = path.join(frontendPath, 'dashboard.html');
     
-    // Verificação de segurança para o Render não dar Status 1/11
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
@@ -54,10 +50,9 @@ app.get('*', (req, res) => {
     }
 });
 
-// CONFIGURAÇÃO DA PORTA PARA O RENDER
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`--- VK.STUDIO ATIVO ---`);
-    console.log(`Servidor rodando na porta: ${PORT}`);
-    console.log(`Caminho do Frontend: ${frontendPath}`);
+    console.log(`Porta: ${PORT}`);
+    console.log(`Frontend em: ${frontendPath}`);
 });
