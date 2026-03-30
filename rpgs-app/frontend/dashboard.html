@@ -250,7 +250,6 @@
         </div>
         <nav><ul id="menu-nav">
             <li onclick="mostrarSecao('sistemas')">Sistemas</li>
-            <li onclick="mostrarSecao('minhas-fichas')">Minhas Fichas</li>
         </ul></nav>
         <div class="logout" onclick="logout()">Abandonar Vínculo</div>
     </aside>
@@ -318,13 +317,6 @@
                         <div class="card-sistema" onclick="abrirPopupSistema('Cavaleiros de Armadura')"><h3>Cavaleiros de Armadura</h3><p>Por Valtharia</p></div>
                     </div>
                 `;
-            } else if (secao === 'minhas-fichas') {
-                corpo.innerHTML = `
-                    <h2 class="section-title">Meus Personagens</h2>
-                    <button class="btn-nova-ficha" onclick="abrirPopupNovaFicha()">+ Nova Ficha</button>
-                    <div id="grid-minhas-fichas" class="grid-docs"><p>Invocando registros...</p></div>
-                `;
-                carregarMinhasFichas();
             } else {
                 corpo.innerHTML = `<h2 class="section-title">${secao}</h2><p>Buscando no abismo...</p>`;
             }
@@ -344,57 +336,6 @@
                 campo.value = "";
             } catch (err) { console.error("Erro na busca"); }
         }
-
-        function abrirPopupNovaFicha() { document.getElementById('modalNovaFicha').style.display = 'flex'; }
-        function fecharModalNovaFicha() { document.getElementById('modalNovaFicha').style.display = 'none'; }
-
-        function abrirEditorFicha(sistema, fichaId = null) {
-            fecharModalNovaFicha();
-            const modal = document.getElementById('modalLeitura');
-            const container = document.getElementById('conteudo-leitura-full');
-            document.getElementById('area-vinculo-item').style.display = 'none';
-            
-            let path = `fichas/${sistema}/index.html`;
-            container.innerHTML = `<iframe src="${path}?id=${fichaId || ''}" style="width:100%; height:80vh; border:none;"></iframe>`;
-            modal.style.display = 'flex';
-        }
-
-       async function carregarMinhasFichas() {
-    try {
-        const res = await fetch(`https://vk-studio.onrender.com/minhas-fichas/${usuarioId}`);
-        const fichas = await res.json();
-        const grid = document.getElementById('grid-minhas-fichas');
-        
-        if (!fichas || fichas.length === 0) { 
-            grid.innerHTML = "<p>Nenhum herói forjado ainda.</p>"; 
-            return; 
-        }
-        
-        grid.innerHTML = fichas.map(f => {
-            // Garante que o caminho da pasta seja extraído do nome do sistema
-            const pastaSistema = f.sistema.toLowerCase().split(' ')[0]; 
-            return `
-                <div class="doc-card" onclick="abrirEditorFicha('${pastaSistema}', ${f.id})">
-                    <small style="color:var(--ds-gold)">${f.sistema}</small>
-                    <h3 style="margin-top:10px;">${f.nome_personagem}</h3>
-                </div>`;
-        }).join('');
-    } catch (err) { 
-        console.error("Erro ao carregar fichas:", err); 
-    }
-    grid.innerHTML = fichas.map(f => {
-    const pastaSistema = f.sistema.toLowerCase().split(' ')[0]; 
-    return `
-        <div class="doc-card" style="position:relative;" onclick="abrirEditorFicha('${pastaSistema}', ${f.id})">
-            <button onclick="deletarFicha(${f.id}, event)" 
-                    style="position:absolute; top:10px; right:10px; color:#800; border:none; background:none; cursor:pointer; font-weight:bold;">
-                [X]
-            </button>
-            <small style="color:var(--ds-gold)">${f.sistema}</small>
-            <h3>${f.nome_personagem}</h3>
-        </div>`;
-}).join('');
-}
 
         const configsSistemas = {
             "Decadência Cinza": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Veículos", "Magias/Rituais"],
@@ -429,25 +370,6 @@
             else carregarDocs(sistema, categoria);
         }
 
-        async function deletarFicha(id, event) {
-    // Impede que o clique no botão abra a ficha por engano
-    event.stopPropagation(); 
-
-    if (!confirm("Tem certeza que deseja apagar esta ficha permanentemente?")) return;
-
-    try {
-        const res = await fetch(`https://vk-studio.onrender.com/deletar-ficha/${id}`, {
-            method: 'DELETE'
-        });
-        const result = await res.json();
-        alert(result.message);
-        
-        // Atualiza a lista na tela para a ficha sumir na hora
-        carregarMinhasFichas(); 
-    } catch (err) {
-        console.error("Erro ao apagar ficha:", err);
-    }
-}
     async function carregarDocs(sistema, categoria) {
     const grid = document.getElementById('grid-docs');
     try {
@@ -529,26 +451,6 @@
             modal.style.display = "flex";
         }
 
-        async function mostrarSeletorFichas() {
-            const seletor = document.getElementById('seletor-ficha-vinculo');
-            seletor.style.display = 'block';
-            const res = await fetch(`https://vk-studio.onrender.com/minhas-fichas/${usuarioId}`);
-            const fichas = await res.json();
-            document.getElementById('lista-fichas-vinculo').innerHTML = fichas.map(f => 
-                `<button class="btn-categoria" style="width:100%; margin-bottom:5px; padding:10px;" onclick="vincularAoPersonagem(${f.id})">${f.nome_personagem} (${f.sistema})</button>`
-            ).join('');
-        }
-
-        async function vincularAoPersonagem(fichaId) {
-            const res = await fetch('https://vk-studio.onrender.com/fichas/adicionar-item', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ ficha_id: fichaId, item_json: itemAtualParaVinculo })
-            });
-            const data = await res.json();
-            alert(data.message);
-            document.getElementById('seletor-ficha-vinculo').style.display = 'none';
-        }
 
         function fecharLeitura() { 
             document.getElementById('modalLeitura').style.display = "none";
