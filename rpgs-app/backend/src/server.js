@@ -39,11 +39,7 @@ console.log("Buscando frontend em:", frontendPath);
 app.use(express.static(frontendPath));
 
 // 3. ROTA CORINGA (Ajustada para Express 5)
-app.get('/:splat*', (req, res) => {
-    if (req.path.startsWith('/api')) {
-        return res.status(404).json({ error: 'Rota de API inexistente' });
-    }
-
+app.get(/^(?!\/api).+/, (req, res) => {
     const indexPath = path.join(frontendPath, 'dashboard.html');
     
     if (fs.existsSync(indexPath)) {
