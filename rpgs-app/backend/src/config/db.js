@@ -1,4 +1,4 @@
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
@@ -11,4 +11,15 @@ const pool = mysql.createPool({
     ssl: { rejectUnauthorized: false } // Aiven exige SSL
 });
 
-module.exports = pool;
+// Teste de conexão para o log do Render
+pool.getConnection((err, connection) => {
+    if (err) {
+        console.error("❌ ERRO NO BANCO:", err.message);
+    } else {
+        console.log("✅ CONECTADO AO AIVEN COM SUCESSO!");
+        connection.release();
+    }
+});
+
+// CRITICAL: Exportar com .promise() para o Express 5/Async-Await funcionar
+module.exports = pool.promise();
