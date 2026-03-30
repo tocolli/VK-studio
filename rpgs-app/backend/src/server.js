@@ -29,7 +29,6 @@ app.get('/api/status', async (req, res) => {
 });
 
 // 2. CONFIGURAÇÃO DO FRONTEND
-// __dirname é /backend/src. Subimos 2 níveis para chegar na raiz 'rpgs-app' e entrar em 'frontend'
 const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 
 console.log("--- DEBUG RENDER ---");
@@ -38,7 +37,7 @@ console.log("Buscando frontend em:", frontendPath);
 
 app.use(express.static(frontendPath));
 
-// 3. ROTA CORINGA (Ajustada para Express 5)
+// 3. ROTA CORINGA (RegExp para Express 5)
 app.get(/^(?!\/api).+/, (req, res) => {
     const indexPath = path.join(frontendPath, 'dashboard.html');
     
@@ -48,3 +47,24 @@ app.get(/^(?!\/api).+/, (req, res) => {
         res.status(404).send(`VK.Studio: Servidor ON, mas não localizou o HTML em: ${indexPath}`);
     }
 });
+
+// --- AJUSTE FINAL DE INICIALIZAÇÃO ---
+const PORT = process.env.PORT || 3000;
+
+// Função para ligar o servidor sem crashar por causa do banco
+const start = async () => {
+    try {
+        console.log("Tentando inicializar motor VK.Studio...");
+        
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`--- VK.STUDIO ATIVO ---`);
+            console.log(`Porta: ${PORT}`);
+            console.log(`Frontend: ${frontendPath}`);
+        });
+    } catch (err) {
+        console.error("ERRO FATAL NA INICIALIZAÇÃO:", err.message);
+        process.exit(1); // Só fecha se o erro for no Express
+    }
+};
+
+start();
