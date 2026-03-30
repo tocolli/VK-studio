@@ -17,9 +17,9 @@ function carregarEstiloSistema(sistema) {
 
     // Se o seu dashboard.html está na pasta frontend e os css na frontend/css:
     let arquivo = '';
-    if (sistema === "Cavaleiros de Armadura") arquivo = 'css/cavaleiros.css';
-    else if (sistema === "Oceano Estrelado") arquivo = 'css/oceano.css';
-    else if (sistema === "Decadência Cinza") arquivo = 'css/decadencia.css';
+    if (sistema === "Cavaleiros de Armadura") arquivo = '/css/cavaleiros.css';
+    else if (sistema === "Oceano Estrelado") arquivo = '/css/oceano.css';
+    else if (sistema === "Decadência Cinza") arquivo = '/css/decadencia.css';
 
     if (arquivo) {
         link.href = arquivo + '?v=' + new Date().getTime();
