@@ -16,11 +16,11 @@ app.use(cors());
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
 
-// 1. ROTAS DA API
+// 1. ROTAS DA API (Sempre vêm primeiro)
 app.use('/api', authRoutes);
 app.use('/api', documentoRoutes); 
 
-app.get('/api/status', async (req, res) => {
+app.get('/api/status', (req, res) => {
     res.json({ 
         status: 'Online', 
         database: 'Conectado ao Aiven!',
@@ -30,54 +30,36 @@ app.get('/api/status', async (req, res) => {
 
 // 2. CONFIGURAÇÃO DO FRONTEND
 const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
-
-console.log("--- DEBUG RENDER ---");
-console.log("Local do Script (src):", __dirname);
-console.log("Buscando frontend em:", frontendPath);
-
 app.use(express.static(frontendPath));
 
-// 3. ROTA CORINGA (RegExp para Express 5)
-app.get(/^(?!\/api).+/, (req, res) => {
-    const indexPath = path.join(frontendPath, 'dashboard.html');
-    
-    if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-    } else {
-        res.status(404).send(`VK.Studio: Servidor ON, mas não localizou o HTML em: ${indexPath}`);
-    }
-});
+// 3. ROTAS DE PÁGINAS (Definidas explicitamente para não dar erro)
 
-// Rota específica para o login (A primeira que você deve acessar)
-app.get('/login', (req, res) => {
+// Se acessar a raiz ou /login, manda pro login.html
+app.get(['/', '/login'], (req, res) => {
     res.sendFile(path.join(frontendPath, 'login.html'));
 });
 
-// Se o cara acessar a raiz (/), manda pro login também
-app.get('/', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'login.html'));
-});
-
-// Rota para o dashboard
+// Rota específica para o dashboard
 app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(frontendPath, 'dashboard.html'));
 });
 
-// Rota coringa (manda pro login por segurança se não for API)
+// 4. ROTA CORINGA (Fallback final)
+// Se não for API e não for uma das rotas acima, manda pro login por segurança
 app.get('*', (req, res) => {
     if (!req.path.startsWith('/api')) {
         res.sendFile(path.join(frontendPath, 'login.html'));
+    } else {
+        res.status(404).json({ erro: 'Rota de API inexistente' });
     }
 });
 
 // --- AJUSTE FINAL DE INICIALIZAÇÃO ---
 const PORT = process.env.PORT || 3000;
 
-// Função para ligar o servidor sem crashar por causa do banco
 const start = async () => {
     try {
         console.log("Tentando inicializar motor VK.Studio...");
-        
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`--- VK.STUDIO ATIVO ---`);
             console.log(`Porta: ${PORT}`);
@@ -85,10 +67,8 @@ const start = async () => {
         });
     } catch (err) {
         console.error("ERRO FATAL NA INICIALIZAÇÃO:", err.message);
-        process.exit(1); // Só fecha se o erro for no Express
+        process.exit(1);
     }
 };
 
-
 start();
-
