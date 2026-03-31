@@ -46,11 +46,9 @@ app.get('/dashboard', (req, res) => {
 
 // 4. ROTA CORINGA (Fallback final)
 // Se não for API e não for uma das rotas acima, manda pro login por segurança
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
     if (!req.path.startsWith('/api')) {
         res.sendFile(path.join(frontendPath, 'login.html'));
-    } else {
-        res.status(404).json({ erro: 'Rota de API inexistente' });
     }
 });
 
