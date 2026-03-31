@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
+// Rotas
 const authRoutes = require('./routes/authRoutes');
 const documentoRoutes = require('./routes/documentoRoutes');
 
@@ -13,37 +14,43 @@ app.use(cors());
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 
-// --- DIAGNÓSTICO DE PASTAS (O SEGREDO ESTÁ AQUI) ---
-const raiz = process.cwd();
-console.log("--- VK.STUDIO EXPLORER ---");
-console.log("ONDE ESTOU (Raiz):", raiz);
+// --- CONFIGURAÇÃO DE CAMINHOS (ESTRUTURA: rpgs-app/backend/src/server.js) ---
+// Subimos dois níveis (.. e ..) para sair de 'src' e 'backend', chegando na raiz 'rpgs-app'
+const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 
-// Função para tentar achar a pasta frontend em qualquer lugar
-let frontendPath = "";
-if (fs.existsSync(path.join(raiz, 'frontend'))) {
-    frontendPath = path.join(raiz, 'frontend');
-} else if (fs.existsSync(path.join(raiz, 'rpgs-app', 'frontend'))) {
-    frontendPath = path.join(raiz, 'rpgs-app', 'frontend');
-} else {
-    // Se não achou em nenhum, lista tudo para a gente ver o erro no log
-    console.log("ERRO: Pasta 'frontend' sumiu! Conteúdo da raiz:", fs.readdirSync(raiz));
-    frontendPath = path.join(raiz, 'frontend'); // Fallback
+// LOG DE PRECISÃO PARA O RENDER
+console.log("--- VK.STUDIO PATH FINDER ---");
+console.log("Onde o server.js está:", __dirname);
+console.log("Caminho calculado para o Frontend:", frontendPath);
+
+try {
+    const arquivos = fs.readdirSync(frontendPath);
+    console.log("✅ SUCESSO! Arquivos encontrados:", arquivos);
+} catch (e) {
+    console.error("❌ ERRO: O caminho calculado está errado.");
+    console.log("Conteúdo da pasta atual:", fs.readdirSync(path.join(__dirname, '..', '..')));
 }
 
-console.log("CAMINHO DEFINIDO:", frontendPath);
+// Libera os arquivos estáticos (CSS, JS)
 app.use(express.static(frontendPath));
 
 // --- ROTAS API ---
 app.use('/api', authRoutes);
 app.use('/api', documentoRoutes);
 
-// --- ENTREGA DE ARQUIVOS (BLINDADA) ---
+// --- ENTREGA DE ARQUIVOS ---
 const serveFile = (res, file) => {
     const target = path.join(frontendPath, file);
+    
+    // Forçamos o navegador a ler como HTML para evitar tela branca "vazia"
+    res.setHeader('Content-Type', 'text/html');
+    
     res.sendFile(target, (err) => {
         if (err) {
             console.error(`FALHA AO ENVIAR ${file}:`, err.path);
-            res.status(404).send(`VK.Studio: Arquivo ${file} nao encontrado no servidor.`);
+            if (!res.headersSent) {
+                res.status(404).send("VK.Studio: Erro ao localizar arquivo HTML.");
+            }
         }
     });
 };
@@ -51,8 +58,11 @@ const serveFile = (res, file) => {
 app.get(['/', '/login'], (req, res) => serveFile(res, 'login.html'));
 app.get('/dashboard', (req, res) => serveFile(res, 'dashboard.html'));
 
+// Rota Coringa (Fallback)
 app.get(/.*/, (req, res) => {
-    if (!req.path.startsWith('/api')) serveFile(res, 'login.html');
+    if (!req.path.startsWith('/api') && !req.path.includes('.')) {
+        serveFile(res, 'login.html');
+    }
 });
 
 const PORT = process.env.PORT || 10000;
