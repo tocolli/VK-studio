@@ -29,9 +29,14 @@ app.get('/api/status', (req, res) => {
 });
 
 // 2. CONFIGURAÇÃO DO FRONTEND (Caminho absoluto seguro para o Render)
-const frontendPath = path.resolve(__dirname, '../../frontend');
-app.use(express.static(frontendPath));
+// Tente estas duas linhas no lugar da antiga:
+const rootPath = path.resolve(__dirname, '../../'); // Sobe para a raiz do projeto
+const frontendPath = path.join(rootPath, 'frontend'); 
 
+// LOG DE VERIFICAÇÃO (Olhe isso no terminal do Render após o push)
+console.log("--- SCAN DE DIRETÓRIO ---");
+console.log("Raiz do projeto:", rootPath);
+console.log("Conteúdo da raiz:", fs.readdirSync(rootPath)); // Isso vai listar as pastas no log
 // 3. ROTAS DE PÁGINAS EXPLÍCITAS
 app.get(['/', '/login'], (req, res) => {
     const filePath = path.join(frontendPath, 'login.html');
