@@ -13,62 +13,54 @@ app.use(cors());
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 
-// --- O ALVO REAL (Baseado na árvore de pastas da imagem) ---
-// Saindo de: rpgs-app/backend/src/server.js
-// Subindo 2 níveis para chegar na raiz da rpgs-app
+// --- CAMINHO CALCULADO (O ALVO QUE O LOG CONFIRMOU) ---
 const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 
-console.log("--- VK.STUDIO AUTO-SCAN ---");
-console.log("Server.js em:", __dirname);
-console.log("Buscando Frontend em:", frontendPath);
+// LOG DE INICIALIZAÇÃO
+console.log("--- VK.STUDIO MOTOR START ---");
+console.log("Pasta Frontend:", frontendPath);
 
-// Verificação física imediata
-if (fs.existsSync(frontendPath)) {
-    console.log("✅ PASTA LOCALIZADA! Conteúdo:", fs.readdirSync(frontendPath));
-} else {
-    console.error("❌ PASTA NÃO LOCALIZADA. Verifique a estrutura no Git.");
-}
+// ROTA DE TESTE (Pra gente saber se o servidor está respondendo QUALQUER COISA)
+app.get('/api/status', (req, res) => {
+    res.json({ msg: "Motor vivo!", db: "Conectado" });
+});
 
-// Middleware para servir CSS, JS e Imagens
-app.use(express.static(frontendPath));
-
-// Rotas API
-app.use('/api', authRoutes);
-app.use('/api', documentoRoutes);
-
-// --- FUNÇÃO DE ENTREGA (SEM FALHAS) ---
-const entregarPagina = (res, arquivo) => {
-    const caminhoArquivo = path.join(frontendPath, arquivo);
+// --- FUNÇÃO DE ENTREGA MANUAL (SEM INTERMEDIÁRIOS) ---
+const serveHTML = (res, fileName) => {
+    const filePath = path.join(frontendPath, fileName);
     
-    if (fs.existsSync(caminhoArquivo)) {
-        const buffer = fs.readFileSync(caminhoArquivo);
-        console.log(`Enviando ${arquivo} - ${buffer.length} bytes`);
-        
-        res.writeHead(200, {
-            'Content-Type': 'text/html; charset=utf-8',
-            'Content-Length': buffer.length,
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-            'Pragma': 'no-cache'
-        });
-        return res.end(buffer);
-    } else {
-        console.error(`ERRO: ${arquivo} não encontrado em ${caminhoArquivo}`);
-        return res.status(404).send("VK.Studio: Arquivo HTML não encontrado.");
+    try {
+        if (fs.existsSync(filePath)) {
+            const content = fs.readFileSync(filePath, 'utf8');
+            console.log(`Lendo ${fileName}: ${content.length} caracteres.`);
+            
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.setHeader('Content-Length', Buffer.byteLength(content));
+            return res.status(200).send(content);
+        } else {
+            console.error(`ERRO: ${fileName} não existe.`);
+            return res.status(404).send("Arquivo nao encontrado no servidor.");
+        }
+    } catch (e) {
+        console.error("ERRO DE LEITURA:", e);
+        return res.status(500).send("Erro interno de leitura.");
     }
 };
 
-// Rotas de Páginas
-app.get(['/', '/login'], (req, res) => entregarPagina(res, 'login.html'));
-app.get('/dashboard', (req, res) => entregarPagina(res, 'dashboard.html'));
+// ROTAS DE PÁGINAS
+app.get(['/', '/login'], (req, res) => serveHTML(res, 'login.html'));
+app.get('/dashboard', (req, res) => serveHTML(res, 'dashboard.html'));
 
-// Rota Coringa para arquivos não encontrados (SPA fallback)
-app.get(/.*/, (req, res) => {
-    if (!req.path.startsWith('/api') && !req.path.includes('.')) {
-        return entregarPagina(res, 'login.html');
-    }
-});
+// SERVIR CSS/JS MANUALMENTE (Se o express.static falhar, isso aqui salva)
+app.use('/css', express.static(path.join(frontendPath, 'css')));
+app.use('/js', express.static(path.join(frontendPath, 'js')));
+app.use('/img', express.static(path.join(frontendPath, 'img')));
+
+// ROTAS API
+app.use('/api', authRoutes);
+app.use('/api', documentoRoutes);
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`--- MOTOR VK.STUDIO OPERACIONAL NA PORTA ${PORT} ---`);
+    console.log(`--- VK.STUDIO ONLINE NA PORTA ${PORT} ---`);
 });
