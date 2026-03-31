@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
 
-// 1. ROTAS DA API (Sempre vêm primeiro)
+// 1. ROTAS DA API
 app.use('/api', authRoutes);
 app.use('/api', documentoRoutes); 
 
@@ -28,27 +28,41 @@ app.get('/api/status', (req, res) => {
     });
 });
 
-// 2. CONFIGURAÇÃO DO FRONTEND
-const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
+// 2. CONFIGURAÇÃO DO FRONTEND (Caminho absoluto seguro para o Render)
+const frontendPath = path.resolve(__dirname, '../../frontend');
 app.use(express.static(frontendPath));
 
-// 3. ROTAS DE PÁGINAS (Definidas explicitamente para não dar erro)
-
-// Se acessar a raiz ou /login, manda pro login.html
+// 3. ROTAS DE PÁGINAS EXPLÍCITAS
 app.get(['/', '/login'], (req, res) => {
-    res.sendFile(path.join(frontendPath, 'login.html'));
+    const filePath = path.join(frontendPath, 'login.html');
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            console.error("ERRO AO ENVIAR LOGIN:", err.path);
+            res.status(404).send("VK.Studio: Arquivo de Login não encontrado.");
+        }
+    });
 });
 
-// Rota específica para o dashboard
 app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'dashboard.html'));
+    const filePath = path.join(frontendPath, 'dashboard.html');
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            console.error("ERRO AO ENVIAR DASHBOARD:", err.path);
+            res.status(404).send("VK.Studio: Arquivo de Dashboard não encontrado.");
+        }
+    });
 });
 
-// 4. ROTA CORINGA (Fallback final)
-// Se não for API e não for uma das rotas acima, manda pro login por segurança
+// 4. ROTA CORINGA (RegExp para Node 22)
 app.get(/.*/, (req, res) => {
+    // Se não for API, tenta entregar o login.html
     if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(frontendPath, 'login.html'));
+        const filePath = path.join(frontendPath, 'login.html');
+        res.sendFile(filePath, (err) => {
+            if (err && !res.headersSent) {
+                res.status(404).send("VK.Studio: Página não encontrada.");
+            }
+        });
     }
 });
 
@@ -61,7 +75,7 @@ const start = async () => {
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`--- VK.STUDIO ATIVO ---`);
             console.log(`Porta: ${PORT}`);
-            console.log(`Frontend: ${frontendPath}`);
+            console.log(`Caminho Front: ${frontendPath}`);
         });
     } catch (err) {
         console.error("ERRO FATAL NA INICIALIZAÇÃO:", err.message);
