@@ -48,6 +48,28 @@ app.get(/^(?!\/api).+/, (req, res) => {
     }
 });
 
+// Rota específica para o login (A primeira que você deve acessar)
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'login.html'));
+});
+
+// Se o cara acessar a raiz (/), manda pro login também
+app.get('/', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'login.html'));
+});
+
+// Rota para o dashboard
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'dashboard.html'));
+});
+
+// Rota coringa (manda pro login por segurança se não for API)
+app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+        res.sendFile(path.join(frontendPath, 'login.html'));
+    }
+});
+
 // --- AJUSTE FINAL DE INICIALIZAÇÃO ---
 const PORT = process.env.PORT || 3000;
 
@@ -67,4 +89,6 @@ const start = async () => {
     }
 };
 
+
 start();
+

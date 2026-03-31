@@ -305,9 +305,55 @@
     </div>
 
     <script>
+        
         const usuarioId = localStorage.getItem('usuarioId');
+        
+        // Se não tem ID e não estamos na tela de login, manda pra lá
+        if (!usuarioId) {
+            console.log("Acesso não identificado. Redirecionando para a Forja...");
+            window.location.href = 'login.html'; 
+        }
+
+        // --- SEU CÓDIGO ORIGINAL (MANTIDO 100%) ---
         let itemAtualParaVinculo = null;
 
+        document.getElementById('nome-usuario').innerText = localStorage.getItem('usuarioNome') || 'Viajante';
+
+        function mostrarSecao(secao) {
+            const corpo = document.getElementById('corpo-conteudo');
+            const antigo = document.getElementById('estilo-sistema');
+            if (antigo) antigo.remove();
+
+            if (secao === 'sistemas') {
+                corpo.innerHTML = `
+                    <h2 class="section-title">Os Três Mundos</h2>
+                    <div class="grid-sistemas">
+                        <div class="card-sistema" onclick="abrirPopupSistema('Decadência Cinza')"><h3>Decadência Cinza</h3><p>Onde tudo começou</p></div>
+                        <div class="card-sistema" onclick="abrirPopupSistema('Oceano Estrelado')"><h3>Oceano Estrelado</h3><p>Mar de Estrelas</p></div>
+                        <div class="card-sistema" onclick="abrirPopupSistema('Cavaleiros de Armadura')"><h3>Cavaleiros de Armadura</h3><p>Por Valtharia</p></div>
+                    </div>
+                `;
+            } else {
+                corpo.innerHTML = `<h2 class="section-title">${secao}</h2><p>Buscando no abismo...</p>`;
+            }
+        }
+
+        async function pesquisaGlobal() {
+            const campo = document.getElementById('global-search');
+            const termo = campo.value.trim();
+            if (termo.length < 2) return;
+
+            try {
+                // Aqui mantive sua URL, mas lembre-se: se der erro, 
+                // trocar por '/api/documentos/...' resolve pra sempre.
+                const res = await fetch(`https://vk-studio.onrender.com/api/documentos/${sistema}/${categoria}`);
+                const dados = await res.json();
+                const corpo = document.getElementById('corpo-conteudo');
+                corpo.innerHTML = `<h2 class="section-title">Resultados: ${termo}</h2><div id="grid-docs" class="grid-docs"></div>`;
+                renderizarCards(document.getElementById('grid-docs'), dados);
+                campo.value = "";
+            } catch (err) { console.error("Erro na busca"); }
+        }
         document.getElementById('nome-usuario').innerText = localStorage.getItem('usuarioNome') || 'Viajante';
 
         function mostrarSecao(secao) {
