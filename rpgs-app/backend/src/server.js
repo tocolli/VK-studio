@@ -50,6 +50,8 @@ const serveHTML = (res, fileName) => {
 // ROTAS DE PÁGINAS
 app.get(['/', '/login'], (req, res) => serveHTML(res, 'login.html'));
 app.get('/dashboard', (req, res) => serveHTML(res, 'dashboard.html'));
+app.get('/admin', (req, res) => entregarPagina(res, 'admin.html'));
+app.get('/admin.html', (req, res) => entregarPagina(res, 'admin.html'));
 
 // SERVIR CSS/JS MANUALMENTE (Se o express.static falhar, isso aqui salva)
 app.use('/css', express.static(path.join(frontendPath, 'css')));
@@ -68,6 +70,14 @@ app.use((err, req, res, next) => {
     console.error("Stack:", err.stack);
     res.status(500).json({ error: "Erro interno", detalhes: err.message });
 });
+// Captura erros de rotas que não aparecem no log
+app.use((err, req, res, next) => {
+    console.error("!!! ERRO NO BACKEND DETECTADO !!!");
+    console.error("Mensagem:", err.message);
+    console.error("Stack:", err.stack);
+    res.status(500).json({ error: "Erro interno no servidor", detalhes: err.message });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`--- VK.STUDIO ONLINE NA PORTA ${PORT} ---`);
 });
