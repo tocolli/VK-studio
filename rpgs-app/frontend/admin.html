@@ -341,25 +341,46 @@
         metodo = 'PUT';
     }
 
-    try {
+   try {
+        // Pega o token que você salvou no login
+        const token = localStorage.getItem('token');
+
         const res = await fetch(url, {
             method: metodo,
-            body: formData 
+            headers: {
+                // ESSA LINHA É O QUE FALTA PARA O SERVIDOR TE RECONHECER:
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData // Mantém o formData se você estiver enviando imagem
         });
+
+        // Se o servidor retornar erro, a gente pega o texto antes de tentar virar JSON
+        if (!res.ok) {
+            const erroTexto = await res.text();
+            console.error("Erro do Servidor:", erroTexto);
+            try {
+                const erroJson = JSON.parse(erroTexto);
+                alert("Erro: " + (erroJson.error || "Falha na Forja"));
+            } catch(e) {
+                alert("Erro no servidor (verifique o token ou permissão)");
+            }
+            return;
+        }
 
         const dados = await res.json();
         
-        if (res.ok) {
-            alert(idEdit ? "Reforjado com sucesso!" : "Selado no Banco!");
-            if (!idEdit) {
-                document.getElementById('adm-titulo').value = "";
-                document.getElementById('adm-conteudo').value = "";
-            } else {
-                cancelarEdicao();
-            }
+        alert(idEdit ? "Reforjado com sucesso!" : "Selado no Banco!");
+        
+        if (!idEdit) {
+            document.getElementById('adm-titulo').value = "";
+            document.getElementById('adm-conteudo').value = "";
+            // Se tiver campo de arquivo, limpa ele também:
+            const fileInput = document.querySelector('input[type="file"]');
+            if (fileInput) fileInput.value = "";
         } else {
-            alert("Erro: " + (dados.error || "Erro desconhecido"));
+            cancelarEdicao();
         }
+
     } catch (err) {
         console.error("Erro na conexão:", err);
         alert("Falha ao conectar com a Forja.");
