@@ -61,6 +61,13 @@ app.use('/api', authRoutes);
 app.use('/api', documentoRoutes);
 
 const PORT = process.env.PORT || 10000;
+
+app.use((err, req, res, next) => {
+    console.error("!!! ERRO CRÍTICO NO BACKEND !!!");
+    console.error("Mensagem:", err.message);
+    console.error("Stack:", err.stack);
+    res.status(500).json({ error: "Erro interno", detalhes: err.message });
+});
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`--- VK.STUDIO ONLINE NA PORTA ${PORT} ---`);
 });
