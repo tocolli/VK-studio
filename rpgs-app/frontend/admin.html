@@ -332,27 +332,58 @@
     }
 
     // AQUI ESTÁ A MUDANÇA: A rota correta do seu server é /api/documentos
-   let url = 'https://vk-studio.onrender.com/api';
+   // --- AJUSTE DE URL E MÉTODO ---
+    let url = '/api/documentos'; // Usar caminho relativo é melhor no Render
     let metodo = 'POST';
 
-    // Se estiver editando, muda a URL e o Método para PUT
+    // Se estiver editando, ajusta a URL com o ID
     if (idEdit) {
-        url = `https://vk-studio.onrender.com/api/documentos/${idEdit}`;
+        url = `/api/documentos/${idEdit}`;
         metodo = 'PUT';
     }
 
-   try {
-        // Pega o token que você salvou no login
+    try {
         const token = localStorage.getItem('token');
+
+        // LOG DE DEPURAÇÃO (Aparece no F12)
+        console.log(`Enviando ${metodo} para ${url}...`);
 
         const res = await fetch(url, {
             method: metodo,
             headers: {
-                // ESSA LINHA É O QUE FALTA PARA O SERVIDOR TE RECONHECER:
+                // TOKEN OBRIGATÓRIO PARA O RENDER NÃO BARRAR
                 'Authorization': `Bearer ${token}`
             },
-            body: formData // Mantém o formData se você estiver enviando imagem
+            body: formData 
         });
+
+        // 🔍 NOVO: Se não for OK, vamos ler o que o servidor disse antes de quebrar o JSON
+        if (!res.ok) {
+            const textoErro = await res.text();
+            console.error("Resposta do servidor:", textoErro);
+            
+            if (res.status === 401) {
+                alert("Erro: Você não está autorizado. Faça login novamente.");
+                window.location.href = '/login.html';
+            } else {
+                alert(`Erro na Forja (Status ${res.status}). Verifique o console.`);
+            }
+            return;
+        }
+
+        const dados = await res.json();
+        alert(idEdit ? "Reforjado com sucesso!" : "Selado no Banco!");
+        
+        // Limpa o formulário após o sucesso
+        document.getElementById('adm-titulo').value = '';
+        document.getElementById('adm-conteudo').value = '';
+        document.getElementById('adm-file').value = '';
+        if (idEdit) document.getElementById('adm-id-edit').value = '';
+
+    } catch (err) {
+        console.error("Erro catastrófico na conexão:", err);
+        alert("Falha ao conectar com a Forja.");
+    }
 
         // Se o servidor retornar erro, a gente pega o texto antes de tentar virar JSON
         if (!res.ok) {
