@@ -182,3 +182,66 @@ function carregarTema(sistema) {
     }
    
 }
+
+// --- MOTOR DE LOGIN (VK.STUDIO) ---
+const formLogin = document.getElementById('formLogin');
+
+if (formLogin) {
+    formLogin.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Impede a página de recarregar
+
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('senha').value;
+
+        console.log("Tentando logar com:", email);
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Se deu certo, salva o token e vai pra dashboard
+                localStorage.setItem('token', data.token);
+                window.location.href = '/dashboard';
+            } else {
+                alert(data.error || 'Falha no login');
+            }
+        } catch (err) {
+            console.error("Erro ao conectar na API:", err);
+            alert("Erro no servidor do Render. Tente novamente.");
+        }
+    });
+}
+
+const formRegistro = document.getElementById('formRegistro');
+if (formRegistro) {
+    formRegistro.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nome = document.getElementById('nomeReg').value;
+        const email = document.getElementById('emailReg').value;
+        const senha = document.getElementById('senhaReg').value;
+
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, email, senha })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert("Cadastro realizado! Agora faça login.");
+                // Opcional: alternar para o form de login aqui
+            } else {
+                alert(data.error || 'Erro no cadastro');
+            }
+        } catch (err) {
+            console.error("Erro na API de Registro:", err);
+        }
+    });
+}
