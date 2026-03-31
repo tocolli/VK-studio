@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/global.css">
     <title>VK.Studio - Dashboard</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=EB+Garamond&display=swap');
@@ -119,7 +118,6 @@
             color: var(--ds-gold);
         }
 
-        /* ESTILO DOS BOTÕES DE SISTEMA */
         .grid-sistemas {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -143,7 +141,6 @@
 
         .card-sistema h3 { font-family: 'Cinzel', serif; color: var(--ds-gold); margin-bottom: 10px; }
 
-        /* GRID DE DOCUMENTOS */
         .grid-docs {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -160,7 +157,6 @@
 
         .doc-card:hover { border-color: var(--ds-gold); box-shadow: 0 0 15px rgba(193, 163, 95, 0.2); }
 
-        /* CORES DOS RANKS NOS CARDS E POPUP */
         h3.rank-d, h3.rank-c { color: #888 !important; }
         h3.rank-b { color: #3498db !important; text-shadow: 0 0 8px rgba(52, 152, 219, 0.5); }
         h3.rank-a { color: #f1c40f !important; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
@@ -169,7 +165,6 @@
 
         @keyframes perigo { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
-        /* --- MODAIS --- */
         .modal, .modal-leitura {
             display: none;
             position: fixed;
@@ -228,32 +223,28 @@
         .logout { margin-top: auto; color: #555; cursor: pointer; text-align: center; font-size: 0.8em; font-family: 'Cinzel'; }
         .logout:hover { color: #800; }
 
-        .btn-nova-ficha {
-            background: var(--ds-gold); color: black; font-family: 'Cinzel'; 
-            padding: 10px 20px; border: none; cursor: pointer; font-weight: bold; margin-bottom: 20px;
-        }
-
         #seletor-ficha-vinculo {
             display: none; background: #111; border: 1px solid var(--ds-gold);
             padding: 20px; margin-top: 15px;
+        }
+        
+        /* Mobile adjustment */
+        .mobile-menu-btn { display: none; }
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: block; position: fixed; top: 10px; left: 10px; z-index: 100; }
+            aside { position: fixed; left: -260px; height: 100%; transition: 0.3s; }
+            aside.menu-aberto { left: 0; }
         }
     </style>
 </head>
 
 <body>
-
-    <main id="content">
-        <div id="corpo-conteudo">
-            </div> 
-    </main>
-
-</body>
     <button id="menu-toggle" class="mobile-menu-btn" onclick="toggleMenu()">☰ Menu</button>
 
     <aside>
         <div class="user-profile">
             <small style="letter-spacing: 2px;">JOGADOR</small>
-            <h3 id="nome-usuario">Viajante</h3>
+            <h3 id="nome-usuario-perfil">Viajante</h3>
         </div>
         <nav><ul id="menu-nav">
             <li onclick="mostrarSecao('sistemas')">Sistemas</li>
@@ -277,23 +268,10 @@
         </div>
     </div>
 
-    <div id="modalNovaFicha" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
-            <span class="close-modal" onclick="fecharModalNovaFicha()">&times;</span>
-            <h2 class="section-title" style="text-align: center;">Escolha o Destino</h2>
-            <div class="grid-sistemas">
-                <div class="card-sistema" onclick="abrirEditorFicha('cavaleiros')"><h3>Cavaleiros de Armadura</h3></div>
-                <div class="card-sistema" onclick="abrirEditorFicha('decadencia')"><h3>Decadência Cinza</h3></div>
-                <div class="card-sistema" onclick="abrirEditorFicha('oceano')"><h3>Oceano Estrelado</h3></div>
-            </div>
-        </div>
-    </div>
-
     <div id="modalLeitura" class="modal-leitura">
         <div class="modal-leitura-content">
             <span class="close-leitura" onclick="fecharLeitura()">&times;</span>
             <div id="conteudo-leitura-full"></div>
-            
             <div id="area-vinculo-item" style="display:none; border-top:1px solid #333; margin-top:30px; padding-top:20px;">
                 <button class="btn-vinculo" onclick="mostrarSeletorFichas()">VINCULAR ESTE ITEM À UMA FICHA</button>
                 <div id="seletor-ficha-vinculo">
@@ -305,103 +283,66 @@
     </div>
 
     <script>
-        
-        const usuarioId = localStorage.getItem('usuarioId');
-        
-        // Se não tem ID e não estamos na tela de login, manda pra lá
-        if (!usuarioId) {
-            console.log("Acesso não identificado. Redirecionando para a Forja...");
-            window.location.href = 'login.html'; 
-        }
-
-        // --- SEU CÓDIGO ORIGINAL (MANTIDO 100%) ---
+        // --- CONFIGURAÇÕES INICIAIS ---
         let itemAtualParaVinculo = null;
-
-        document.getElementById('nome-usuario').innerText = localStorage.getItem('usuarioNome') || 'Viajante';
-
-        function mostrarSecao(secao) {
-            const corpo = document.getElementById('corpo-conteudo');
-            const antigo = document.getElementById('estilo-sistema');
-            if (antigo) antigo.remove();
-
-            if (secao === 'sistemas') {
-                corpo.innerHTML = `
-                    <h2 class="section-title">Os Três Mundos</h2>
-                    <div class="grid-sistemas">
-                        <div class="card-sistema" onclick="abrirPopupSistema('Decadência Cinza')"><h3>Decadência Cinza</h3><p>Onde tudo começou</p></div>
-                        <div class="card-sistema" onclick="abrirPopupSistema('Oceano Estrelado')"><h3>Oceano Estrelado</h3><p>Mar de Estrelas</p></div>
-                        <div class="card-sistema" onclick="abrirPopupSistema('Cavaleiros de Armadura')"><h3>Cavaleiros de Armadura</h3><p>Por Valtharia</p></div>
-                    </div>
-                `;
-            } else {
-                corpo.innerHTML = `<h2 class="section-title">${secao}</h2><p>Buscando no abismo...</p>`;
-            }
-        }
-
-        async function pesquisaGlobal() {
-            const campo = document.getElementById('global-search');
-            const termo = campo.value.trim();
-            if (termo.length < 2) return;
-
-            try {
-                // Aqui mantive sua URL, mas lembre-se: se der erro, 
-                // trocar por '/api/documentos/...' resolve pra sempre.
-                const res = await fetch(`https://vk-studio.onrender.com/api/documentos/${sistema}/${categoria}`);
-                const dados = await res.json();
-                const corpo = document.getElementById('corpo-conteudo');
-                corpo.innerHTML = `<h2 class="section-title">Resultados: ${termo}</h2><div id="grid-docs" class="grid-docs"></div>`;
-                renderizarCards(document.getElementById('grid-docs'), dados);
-                campo.value = "";
-            } catch (err) { console.error("Erro na busca"); }
-        }
-        document.getElementById('nome-usuario').innerText = localStorage.getItem('usuarioNome') || 'Viajante';
-
-        function mostrarSecao(secao) {
-            const corpo = document.getElementById('corpo-conteudo');
-            const antigo = document.getElementById('estilo-sistema');
-            if (antigo) antigo.remove();
-
-            if (secao === 'sistemas') {
-                corpo.innerHTML = `
-                    <h2 class="section-title">Os Três Mundos</h2>
-                    <div class="grid-sistemas">
-                        <div class="card-sistema" onclick="abrirPopupSistema('Decadência Cinza')"><h3>Decadência Cinza</h3><p>Onde tudo começou</p></div>
-                        <div class="card-sistema" onclick="abrirPopupSistema('Oceano Estrelado')"><h3>Oceano Estrelado</h3><p>Mar de Estrelas</p></div>
-                        <div class="card-sistema" onclick="abrirPopupSistema('Cavaleiros de Armadura')"><h3>Cavaleiros de Armadura</h3><p>Por Valtharia</p></div>
-                    </div>
-                `;
-            } else {
-                corpo.innerHTML = `<h2 class="section-title">${secao}</h2><p>Buscando no abismo...</p>`;
-            }
-        }
-
-        async function pesquisaGlobal() {
-            const campo = document.getElementById('global-search');
-            const termo = campo.value.trim();
-            if (termo.length < 2) return;
-
-            try {
-                const res = await fetch(`https://vk-studio.onrender.com/api/documentos/${sistema}/${categoria}`);
-                const dados = await res.json();
-                const corpo = document.getElementById('corpo-conteudo');
-                corpo.innerHTML = `<h2 class="section-title">Resultados: ${termo}</h2><div id="grid-docs" class="grid-docs"></div>`;
-                renderizarCards(document.getElementById('grid-docs'), dados);
-                campo.value = "";
-            } catch (err) { console.error("Erro na busca"); }
-        }
-
         const configsSistemas = {
             "Decadência Cinza": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Veículos", "Magias/Rituais"],
             "Oceano Estrelado": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Embarcações", "Magias/Rituais", "Tripulação"],
             "Cavaleiros de Armadura": ["Livro de Regras", "Itens", "Bestiário", "Armas Brancas", "Armas de Fogo", "Armaduras", "Classes", "Montaria", "Magias/Rituais"]
         };
 
+        // --- BLINDAGEM DE CARREGAMENTO (IMPORTANTE) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const usuarioId = localStorage.getItem('usuarioId');
+            
+            // Se não tem ID, redireciona pro login antes de crashar o resto
+            if (!usuarioId) {
+                console.log("Sem ID detectado. Redirecionando...");
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Define o nome no perfil se o elemento existir
+            const elNome = document.getElementById('nome-usuario-perfil');
+            if (elNome) {
+                elNome.innerText = localStorage.getItem('usuarioNome') || 'Viajante';
+            }
+
+            verificarCargoAdm();
+            mostrarSecao('sistemas');
+        });
+
+        // --- FUNÇÕES DE NAVEGAÇÃO ---
+        function mostrarSecao(secao) {
+            const corpo = document.getElementById('corpo-conteudo');
+            if (!corpo) return;
+
+            const antigo = document.getElementById('estilo-sistema');
+            if (antigo) antigo.remove();
+
+            if (secao === 'sistemas') {
+                corpo.innerHTML = `
+                    <h2 class="section-title">Os Três Mundos</h2>
+                    <div class="grid-sistemas">
+                        <div class="card-sistema" onclick="abrirPopupSistema('Decadência Cinza')"><h3>Decadência Cinza</h3><p>Onde tudo começou</p></div>
+                        <div class="card-sistema" onclick="abrirPopupSistema('Oceano Estrelado')"><h3>Oceano Estrelado</h3><p>Mar de Estrelas</p></div>
+                        <div class="card-sistema" onclick="abrirPopupSistema('Cavaleiros de Armadura')"><h3>Cavaleiros de Armadura</h3><p>Por Valtharia</p></div>
+                    </div>
+                `;
+            } else {
+                corpo.innerHTML = `<h2 class="section-title">${secao}</h2><p>Buscando no abismo...</p>`;
+            }
+        }
+
         function abrirPopupSistema(nome) {
             const modal = document.getElementById('meuModal');
             const modalBox = document.getElementById('modal-box');
+            if (!modal || !modalBox) return;
+
             modalBox.className = 'modal-content'; 
             if (nome === "Oceano Estrelado") modalBox.classList.add('tema-oceano');
             else if (nome === "Cavaleiros de Armadura") modalBox.classList.add('tema-cavaleiros');
+            
             document.getElementById('modal-titulo').innerText = nome;
             modal.style.display = "flex";
             document.getElementById('botoes-modal').innerHTML = configsSistemas[nome].map(cat => 
@@ -423,53 +364,17 @@
             else carregarDocs(sistema, categoria);
         }
 
-    async function carregarDocs(sistema, categoria) {
-    const grid = document.getElementById('grid-docs');
-    try {
-        // Use a URL direta. Se estiver testando local, use localhost:3000
-        // Se estiver no Render, use a URL do Render.
-        const url = `https://vk-studio.onrender.com/api/documentos/${sistema}/${categoria}`;
-        
-        console.log("Invocando dados de:", url);
-
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            console.error("Servidor respondeu com erro:", response.status);
-            grid.innerHTML = `<p>Erro ${response.status}: A névoa não encontrou este registro.</p>`;
-            return;
-        }
-
-        const dados = await response.json();
-        
-        // Chamando a função que desenha os cards (visual 10/10)
-        renderizarCards(grid, dados);
-
-    } catch (err) { 
-        console.error("Erro na conexão:", err);
-        grid.innerHTML = "<p>Falha ao conectar com o servidor.</p>";
-    }
-}
-        async function carregarLivrosBestiario(sistema) {
+        async function carregarDocs(sistema, categoria) {
+            const grid = document.getElementById('grid-docs');
             try {
-                const response = await fetch(`https://vk-studio.onrender.com/admin/listar-livros`);
-                const todosLivros = await response.json();
-                const filtrados = todosLivros.filter(l => l.sistema === sistema);
-                const grid = document.getElementById('grid-docs');
-                if (filtrados.length === 0) { grid.innerHTML = "<p>Nenhum volume forjado.</p>"; return; }
-                grid.innerHTML = filtrados.map(l => `<div class="card-sistema" onclick='abrirVolumeBestiario(${JSON.stringify(l).replace(/'/g, "&apos;")})'><h3>${l.titulo_livro}</h3><p style="font-size:0.8em; opacity:0.6;">Clique para ler</p></div>`).join('');
-            } catch (err) { console.error("Erro na biblioteca"); }
-        }
-
-        async function abrirVolumeBestiario(livro) {
-            itemAtualParaVinculo = null;
-            const modal = document.getElementById('modalLeitura');
-            document.getElementById('area-vinculo-item').style.display = 'none';
-            document.getElementById('conteudo-leitura-full').innerHTML = `
-                <h1 style="font-family: 'Cinzel'; color: var(--ds-gold);">${livro.titulo_livro}</h1>
-                <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
-                <div style="font-size:1.2em; line-height:1.8; white-space:pre-wrap;">${livro.conteudo}</div>`;
-            modal.style.display = "flex";
+                const response = await fetch(`/api/documentos/${sistema}/${categoria}`);
+                if (!response.ok) throw new Error("Falha no acervo");
+                const dados = await response.json();
+                renderizarCards(grid, dados);
+            } catch (err) { 
+                console.error(err);
+                grid.innerHTML = "<p>A névoa impediu a leitura deste registro.</p>";
+            }
         }
 
         function renderizarCards(container, lista) {
@@ -478,7 +383,7 @@
                 let rankClass = doc.rank_item ? `rank-${doc.rank_item.toLowerCase().replace(/[+-]/g, '')}` : '';
                 return `
                     <div class="doc-card" onclick='abrirPopupLeitura(${JSON.stringify(doc).replace(/'/g, "&apos;")})'>
-                        ${doc.imagem ? `<img src="https://vk-studio.onrender.com${doc.imagem}" style="width:100%; margin-bottom:10px; border-radius: 4px;">` : ''}
+                        ${doc.imagem ? `<img src="${doc.imagem}" style="width:100%; margin-bottom:10px; border-radius: 4px;">` : ''}
                         <h3 class="${rankClass}">${doc.titulo || 'Sem Título'}</h3>
                         <p style="font-size: 0.9em; opacity: 0.7;">${doc.conteudo.substring(0, 80)}...</p>
                     </div>`;
@@ -495,22 +400,24 @@
                 <h1 class="${rankClass}" style="font-family: 'Cinzel';">${doc.titulo}</h1>
                 <p style="color: #888;">${doc.sistema} | ${doc.categoria} ${doc.rank_item ? `| Rank ${doc.rank_item}` : ''}</p>
                 <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
-                ${doc.imagem ? `<img src="https://vk-studio.onrender.com${doc.imagem}" style="width:100%; max-height:450px; object-fit:contain; margin-bottom:20px;">` : ''}
+                ${doc.imagem ? `<img src="${doc.imagem}" style="width:100%; max-height:450px; object-fit:contain; margin-bottom:20px;">` : ''}
                 <div style="font-size:1.1em; line-height:1.8; white-space:pre-wrap;">${doc.conteudo}</div>`;
             
-            const categoriasVinculaveis = ["Itens", "Armas Brancas", "Armas de Fogo", "Armaduras", "Magias/Rituais"];
-            document.getElementById('area-vinculo-item').style.display = categoriasVinculaveis.includes(doc.categoria) ? 'block' : 'none';
-            document.getElementById('seletor-ficha-vinculo').style.display = 'none';
+            const cats = ["Itens", "Armas Brancas", "Armas de Fogo", "Armaduras", "Magias/Rituais"];
+            document.getElementById('area-vinculo-item').style.display = cats.includes(doc.categoria) ? 'block' : 'none';
             modal.style.display = "flex";
         }
 
-
-        function fecharLeitura() { 
-            document.getElementById('modalLeitura').style.display = "none";
-            if(document.getElementById('grid-minhas-fichas')) carregarMinhasFichas();
+        async function carregarLivrosBestiario(sistema) {
+            try {
+                const response = await fetch(`/admin/listar-livros`);
+                const todosLivros = await response.json();
+                const filtrados = todosLivros.filter(l => l.sistema === sistema);
+                const grid = document.getElementById('grid-docs');
+                if (filtrados.length === 0) { grid.innerHTML = "<p>Nenhum volume forjado.</p>"; return; }
+                grid.innerHTML = filtrados.map(l => `<div class="card-sistema" onclick='abrirVolumeBestiario(${JSON.stringify(l).replace(/'/g, "&apos;")})'><h3>${l.titulo_livro}</h3><p style="font-size:0.8em; opacity:0.6;">Clique para ler</p></div>`).join('');
+            } catch (err) { console.error(err); }
         }
-        function fecharModal() { document.getElementById('meuModal').style.display = "none"; }
-        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
 
         function carregarEstiloSistema(sistema) {
             const antigo = document.getElementById('estilo-sistema');
@@ -523,66 +430,43 @@
             document.head.appendChild(link);
         }
 
-      function verificarCargoAdm() {
+        function verificarCargoAdm() {
+            if (localStorage.getItem('usuarioCargo') === "admin") {
+                const menu = document.getElementById('menu-nav');
+                if (!menu) return;
+                const li = document.createElement('li');
+                li.style.color = "#c1a35f"; 
+                li.style.borderLeft = "3px solid #800";
+                li.style.fontWeight = "bold";
+                li.innerHTML = "⇳ Retornar à Forja";
+                li.onclick = () => window.location.href = 'admin.html';
+                menu.appendChild(li);
+            }
+        }
 
-    // 1. Pegamos o valor da chave correta que apareceu no seu console
+        async function pesquisaGlobal() {
+            const campo = document.getElementById('global-search');
+            const termo = campo.value.trim();
+            if (termo.length < 2) return;
+            try {
+                const res = await fetch(`/api/documentos/busca?termo=${termo}`); // Ajustado para rota relativa
+                const dados = await res.json();
+                const corpo = document.getElementById('corpo-conteudo');
+                corpo.innerHTML = `<h2 class="section-title">Resultados: ${termo}</h2><div id="grid-docs" class="grid-docs"></div>`;
+                renderizarCards(document.getElementById('grid-docs'), dados);
+                campo.value = "";
+            } catch (err) { console.error("Erro na busca"); }
+        }
 
-    const cargo = localStorage.getItem('usuarioCargo');
-
-    
-
-    // 2. Comparamos com 'admin', que é o valor real no seu banco de dados
-
-    if (cargo === "admin") {
-
-        const menu = document.getElementById('menu-nav');
-
-        const li = document.createElement('li');
-
-        
-
-        // Estilização para o botão de mestre aparecer no menu lateral
-
-        li.style.color = "#c1a35f"; 
-
-        li.style.borderLeft = "3px solid #800";
-
-        li.style.fontWeight = "bold";
-
-        li.innerHTML = "⇳ Retornar à Forja";
-
-        
-
-        // Redireciona para sua página de admin.html
-
-        li.onclick = () => window.location.href = 'admin.html';
-
-        
-
-        menu.appendChild(li);
-
-    }
-
-}
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+        function fecharModal() { document.getElementById('meuModal').style.display = "none"; }
+        function fecharLeitura() { document.getElementById('modalLeitura').style.display = "none"; }
+        function toggleMenu() { document.querySelector('aside').classList.toggle('menu-aberto'); }
 
         window.onclick = (e) => { 
-            if (e.target.classList.contains('modal')) { fecharModal(); fecharModalNovaFicha(); }
+            if (e.target.classList.contains('modal')) fecharModal();
             if (e.target.classList.contains('modal-leitura')) fecharLeitura();
         }
-        verificarCargoAdm();
-        mostrarSecao('sistemas');
-
-        function toggleMenu() {
-    const menu = document.querySelector('aside');
-    menu.classList.toggle('menu-aberto');
-}
-
-// Opcional: Fechar o menu automaticamente ao clicar em uma opção
-document.querySelectorAll('nav li').forEach(item => {
-    item.addEventListener('click', () => {
-        if (window.innerWidth <= 768) toggleMenu();
-    });
-});
     </script>
 </body>
 </html>
