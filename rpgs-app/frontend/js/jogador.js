@@ -157,7 +157,7 @@ window.onload = function() {
             console.error("Erro ao processar dados do usuário:", e);
         }
     } else {
-        console.warn("Usuário deslogado. Botão da forja oculto por segurança.");
+        console.warn("Usuário deslogado.");
         if (btnForja) btnForja.style.display = 'none';
     }
 },
@@ -183,17 +183,15 @@ function carregarTema(sistema) {
    
 }
 
-// --- MOTOR DE LOGIN (VK.STUDIO) ---
-const formLogin = document.getElementById('formLogin');
+// --- MOTOR DE LOGIN E REGISTRO ---
 
+// 1. Função de Login
+const formLogin = document.getElementById('loginForm'); // O ID do <form> de login no seu HTML
 if (formLogin) {
     formLogin.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Impede a página de recarregar
-
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('senha').value;
-
-        console.log("Tentando logar com:", email);
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value; // ID do campo email
+        const senha = document.getElementById('loginSenha').value; // ID do campo senha
 
         try {
             const response = await fetch('/api/login', {
@@ -203,28 +201,28 @@ if (formLogin) {
             });
 
             const data = await response.json();
-
             if (response.ok) {
-                // Se deu certo, salva o token e vai pra dashboard
+                // Salva o usuário no localStorage para a linha 160 achar ele depois
+                localStorage.setItem('user', JSON.stringify(data.user));
                 localStorage.setItem('token', data.token);
                 window.location.href = '/dashboard';
             } else {
-                alert(data.error || 'Falha no login');
+                alert(data.error || 'Erro no login');
             }
         } catch (err) {
             console.error("Erro ao conectar na API:", err);
-            alert("Erro no servidor do Render. Tente novamente.");
         }
     });
 }
 
-const formRegistro = document.getElementById('formRegistro');
+// 2. Função de Registro
+const formRegistro = document.getElementById('registerForm'); // O ID do <form> de registro
 if (formRegistro) {
     formRegistro.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const nome = document.getElementById('nomeReg').value;
-        const email = document.getElementById('emailReg').value;
-        const senha = document.getElementById('senhaReg').value;
+        const nome = document.getElementById('regNome').value;
+        const email = document.getElementById('regEmail').value;
+        const senha = document.getElementById('regSenha').value;
 
         try {
             const response = await fetch('/api/register', {
@@ -233,15 +231,15 @@ if (formRegistro) {
                 body: JSON.stringify({ nome, email, senha })
             });
 
-            const data = await response.json();
             if (response.ok) {
-                alert("Cadastro realizado! Agora faça login.");
-                // Opcional: alternar para o form de login aqui
+                alert("Cadastro realizado! Agora entre com sua conta.");
+                location.reload(); // Recarrega para você logar
             } else {
-                alert(data.error || 'Erro no cadastro');
+                const data = await response.json();
+                alert(data.error || 'Erro no registro');
             }
         } catch (err) {
-            console.error("Erro na API de Registro:", err);
+            console.error("Erro ao registrar:", err);
         }
     });
 }
