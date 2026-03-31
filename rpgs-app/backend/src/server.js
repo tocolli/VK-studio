@@ -14,7 +14,8 @@ const app = express();
 // MIDDLEWARES
 app.use(cors()); 
 app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(frontendPath));
 
 // 1. ROTAS DA API
 app.use('/api', authRoutes);
