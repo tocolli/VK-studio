@@ -15,12 +15,12 @@ const app = express();
 app.use(cors()); 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(frontendPath));
 
 // 1. ROTAS DA API
 app.use('/api', authRoutes);
 app.use('/api', documentoRoutes); 
 
+app.use(express.static(frontendPath));
 app.get('/api/status', (req, res) => {
     res.json({ 
         status: 'Online', 
