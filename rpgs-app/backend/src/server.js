@@ -11,16 +11,32 @@ const documentoRoutes = require('./routes/documentoRoutes');
 
 const app = express();
 
-// MIDDLEWARES
+// MIDDLEWARES BASE
 app.use(cors()); 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 
-// 1. ROTAS DA API
+// --- 1. CONFIGURAÇÃO DE CAMINHOS (ORDEM CRÍTICA) ---
+// Primeiro definimos onde os arquivos estão
+const rootPath = path.resolve(__dirname, '../../'); 
+const frontendPath = path.join(rootPath, 'frontend'); 
+
+// Agora liberamos o acesso à pasta para o CSS e JS funcionarem
+app.use(express.static(frontendPath));
+
+// Logs para o seu terminal do Render
+console.log("--- VK.STUDIO ENGINE SCAN ---");
+console.log("Raiz detectada:", rootPath);
+try {
+    console.log("Conteúdo da raiz:", fs.readdirSync(rootPath));
+} catch(e) {
+    console.log("Erro ao listar diretório raiz");
+}
+
+// --- 2. ROTAS DA API ---
 app.use('/api', authRoutes);
 app.use('/api', documentoRoutes); 
 
-app.use(express.static(frontendPath));
 app.get('/api/status', (req, res) => {
     res.json({ 
         status: 'Online', 
@@ -29,16 +45,7 @@ app.get('/api/status', (req, res) => {
     });
 });
 
-// 2. CONFIGURAÇÃO DO FRONTEND (Caminho absoluto seguro para o Render)
-// Tente estas duas linhas no lugar da antiga:
-const rootPath = path.resolve(__dirname, '../../'); // Sobe para a raiz do projeto
-const frontendPath = path.join(rootPath, 'frontend'); 
-
-// LOG DE VERIFICAÇÃO (Olhe isso no terminal do Render após o push)
-console.log("--- SCAN DE DIRETÓRIO ---");
-console.log("Raiz do projeto:", rootPath);
-console.log("Conteúdo da raiz:", fs.readdirSync(rootPath)); // Isso vai listar as pastas no log
-// 3. ROTAS DE PÁGINAS EXPLÍCITAS
+// --- 3. ROTAS DE PÁGINAS ---
 app.get(['/', '/login'], (req, res) => {
     const filePath = path.join(frontendPath, 'login.html');
     res.sendFile(filePath, (err) => {
@@ -59,9 +66,8 @@ app.get('/dashboard', (req, res) => {
     });
 });
 
-// 4. ROTA CORINGA (RegExp para Node 22)
+// --- 4. ROTA CORINGA (RegExp para Node 22 / Express 5) ---
 app.get(/.*/, (req, res) => {
-    // Se não for API, tenta entregar o login.html
     if (!req.path.startsWith('/api')) {
         const filePath = path.join(frontendPath, 'login.html');
         res.sendFile(filePath, (err) => {
@@ -72,8 +78,8 @@ app.get(/.*/, (req, res) => {
     }
 });
 
-// --- AJUSTE FINAL DE INICIALIZAÇÃO ---
-const PORT = process.env.PORT || 3000;
+// --- INICIALIZAÇÃO ---
+const PORT = process.env.PORT || 10000; // Porta padrão do Render
 
 const start = async () => {
     try {
