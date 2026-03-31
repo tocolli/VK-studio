@@ -16,23 +16,25 @@ app.use(cors());
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 
-// --- 1. CONFIGURAÇÃO DE CAMINHOS (ESTRUTURA RENDER) ---
-// No Render, process.cwd() é a raiz do seu repositório (/opt/render/project/src)
-const frontendPath = path.join(process.cwd(), 'frontend'); 
+// --- 1. CONFIGURAÇÃO DE CAMINHOS (ESTRUTURA RPG-APP) ---
+// Como as pastas estão dentro de rpgs-app, precisamos incluir isso no caminho
+const frontendPath = path.join(process.cwd(), 'rpgs-app', 'frontend'); 
 
-// Libera arquivos estáticos (CSS, JS, Imagens) ANTES das rotas de página
+// Libera arquivos estáticos (CSS, JS, Imagens)
 app.use(express.static(frontendPath));
 
-// Log de diagnóstico para o terminal
-console.log("--- VK.STUDIO DIAGNÓSTICO ---");
-console.log("Pasta Raiz (CWD):", process.cwd());
-console.log("Pasta Frontend:", frontendPath);
+// Log de diagnóstico para o terminal do Render
+console.log("--- VK.STUDIO DIAGNÓSTICO FINAL ---");
+console.log("Raiz (CWD):", process.cwd());
+console.log("Buscando Frontend em:", frontendPath);
 
 try {
     const arquivos = fs.readdirSync(frontendPath);
-    console.log("Arquivos detectados no Frontend:", arquivos);
+    console.log("Arquivos detectados:", arquivos);
 } catch (e) {
-    console.error("ERRO: Pasta 'frontend' não localizada no caminho acima!");
+    console.error("ERRO: Ainda não encontrei a pasta no caminho:", frontendPath);
+    // Tenta listar a raiz para a gente ver o que tem lá
+    console.log("Conteúdo da raiz do projeto:", fs.readdirSync(process.cwd()));
 }
 
 // --- 2. ROTAS DA API ---
@@ -48,14 +50,13 @@ app.get('/api/status', (req, res) => {
 });
 
 // --- 3. ROTAS DE PÁGINAS EXPLÍCITAS ---
-// Função auxiliar para enviar arquivos com segurança
 const enviarArquivo = (res, nomeArquivo) => {
     const filePath = path.join(frontendPath, nomeArquivo);
     res.sendFile(filePath, (err) => {
         if (err) {
             console.error(`ERRO AO ENVIAR ${nomeArquivo}:`, err.path);
             if (!res.headersSent) {
-                res.status(404).send(`VK.Studio: Arquivo ${nomeArquivo} não encontrado.`);
+                res.status(404).send(`VK.Studio: Arquivo ${nomeArquivo} não encontrado no caminho: ${filePath}`);
             }
         }
     });
@@ -80,7 +81,7 @@ const start = async () => {
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`--- VK.STUDIO ATIVO ---`);
             console.log(`Porta: ${PORT}`);
-            console.log(`URL: https://vk-studio.onrender.com`);
+            console.log(`Caminho Front definido: ${frontendPath}`);
         });
     } catch (err) {
         console.error("ERRO FATAL NA INICIALIZAÇÃO:", err.message);
