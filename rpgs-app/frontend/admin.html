@@ -260,23 +260,55 @@
         }
 
         async function mostrarGerenciar() {
-            const container = document.getElementById('lista-itens-adm');
-            try {
-                const res = await fetch('/api/todas-documentacoes', {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-                const docs = await res.json();
-                container.innerHTML = docs.map(i => `
-                    <div class="forge-card">
-                        <p style="color:#c1a35f; margin:0;">[${i.sistema}] - ${i.categoria}</p>
-                        <h3 style="margin: 10px 0;">${i.titulo}</h3>
-                        <div style="display:flex; gap:10px;">
-                            <button class="btn-delete" onclick="deletarItem(${i.id})">Banir</button>
-                            <button class="btn-edit" onclick='prepararEdicao(${JSON.stringify(i).replace(/'/g, "&apos;")})'>Reforjar</button>
-                        </div>
-                    </div>`).join('');
-            } catch (e) { container.innerHTML = "Erro de conexão."; }
+    const container = document.getElementById('lista-itens-adm');
+    container.innerHTML = "<p style='color: #c1a35f;'>Buscando registros no acervo...</p>";
+
+    try {
+        const token = localStorage.getItem('token');
+
+        // IMPORTANTE: A rota correta que definimos no backend é /api/documentos/todos
+        const res = await fetch('/api/documentos/todos', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!res.ok) {
+            const erroTexto = await res.text();
+            console.error("Erro ao listar:", erroTexto);
+            container.innerHTML = "Erro ao acessar o banco (Sessão expirada?).";
+            return;
         }
+
+        const docs = await res.json();
+
+        if (docs.length === 0) {
+            container.innerHTML = "<p>O acervo está vazio.</p>";
+            return;
+        }
+
+        container.innerHTML = docs.map(i => `
+            <div class="forge-card" style="margin-bottom: 15px; border-left: 4px solid #c1a35f;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <p style="color:#c1a35f; margin:0; font-size: 0.8em;">[${i.sistema}] - ${i.categoria}</p>
+                        <h3 style="margin: 5px 0;">${i.titulo}</h3>
+                    </div>
+                    ${i.ilustracao_url ? `<img src="${i.ilustracao_url}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #333;">` : ''}
+                </div>
+                
+                <div style="display:flex; gap:10px; margin-top: 15px;">
+                    <button class="btn-delete" onclick="deletarItem(${i.id})" style="padding: 5px 15px;">Banir</button>
+                    <button class="btn-edit" onclick='prepararEdicao(${JSON.stringify(i).replace(/'/g, "&apos;")})' style="padding: 5px 15px;">Reforjar</button>
+                </div>
+            </div>`).join('');
+
+    } catch (e) {
+        console.error("Erro de conexão:", e);
+        container.innerHTML = "Erro de conexão com a Forja.";
+    }
+}
 
         async function deletarItem(id) {
             if(confirm("Banir registro?")) {
