@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/global.css">
     <title>VK.Studio - Master Forge</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=EB+Garamond&display=swap');
@@ -59,7 +58,6 @@
         .btn-delete { border-color: #800; color: #800; width: fit-content; padding: 8px 20px; font-size: 0.8em; margin-right: 10px; }
         .btn-edit { border-color: #3498db; color: #3498db; width: fit-content; padding: 8px 20px; font-size: 0.8em; }
 
-        /* ESTILO DO TERMINAL DE VIGILÂNCIA */
         .log-terminal {
             background: #000; border: 1px solid #1a1a1a; padding: 15px;
             font-family: monospace; font-size: 11px; color: #0f0;
@@ -120,7 +118,7 @@
                     <textarea id="adm-conteudo" style="height: 250px;"></textarea>
                 </div>
                 
-                <button type="button" id="btn-salvar-geral" onclick="salvarDoc()">SALVAR</button>
+                <button type="button" id="btn-salvar-geral" onclick="salvarDoc()">SELAR NO BANCO</button>
                 <button type="button" id="btn-cancelar-edit" style="display:none; border-color:#666; color:#666; margin-top:5px;" onclick="cancelarEdicao()">CANCELAR EDIÇÃO</button>
             </div>
         </section>
@@ -182,90 +180,91 @@
             if(idAba === 'aba-vigiar') listarUsuarios();
         }
 
-        // --- SISTEMA DE COLAGEM ---
-        document.addEventListener('paste', async (e) => {
-            const targetId = e.target.id;
-            if (targetId !== 'adm-conteudo' && targetId !== 'book-conteudo') return;
+        function atualizarCategorias() {
+            const sis = document.getElementById('adm-sistema').value;
+            const selectCat = document.getElementById('adm-categoria');
+            const cats = categoriasOficiais[sis] || [];
+            selectCat.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+            verificarCamposEspeciais();
+        }
 
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            for (let item of items) {
-                if (item.type.indexOf("image") !== -1) {
-                    e.preventDefault();
-                    const blob = item.getAsFile();
-                    const formData = new FormData();
-                    formData.append('imagem', blob);
+        function verificarCamposEspeciais() {
+            const cat = document.getElementById('adm-categoria').value;
+            const sis = document.getElementById('adm-sistema').value;
+            document.getElementById('campo-livro').style.display = (cat === "Bestiário") ? "flex" : "none";
+            document.getElementById('campo-rank').style.display = (sis === "Cavaleiros de Armadura" && cat !== "Bestiário") ? "flex" : "none";
+        }
 
-                    try {
-                        const res = await fetch('https://vk-studio.onrender.com/admin/upload-galeria', { 
-                            method: 'POST', body: formData
-                        });
-                        const data = await res.json();
-                        const tag = `\n<img src="${data.url}" style="width:100%; max-height:450px; object-fit:contain; margin:20px 0; border:1px solid #c1a35f; border-radius:4px;">\n`;
-                        const area = e.target;
-                        const pos = area.selectionStart;
-                        area.value = area.value.substring(0, pos) + tag + area.value.substring(area.selectionEnd);
-                    } catch (err) { console.error("Falha no envio da imagem"); }
-                }
+        async function salvarDoc() {
+            const idEdit = document.getElementById('adm-id-edit').value;
+            const titulo = document.getElementById('adm-titulo').value;
+            const sistema = document.getElementById('adm-sistema').value;
+            const categoria = document.getElementById('adm-categoria').value;
+            const rank = document.getElementById('adm-rank').value;
+            const conteudo = document.getElementById('adm-conteudo').value;
+            const arquivo = document.getElementById('adm-file').files[0];
+
+            if (!titulo || !conteudo) {
+                alert("O Título e o Conteúdo são obrigatórios!");
+                return;
             }
-        });
 
-        // --- VIGIA E HISTÓRICO ATUALIZADO ---
-        async function listarUsuarios() {
+            const formData = new FormData();
+            formData.append('titulo', titulo);
+            formData.append('conteudo', conteudo);
+            formData.append('sistema', sistema);
+            formData.append('categoria', categoria);
+            formData.append('rank_item', rank);
+            if (arquivo) formData.append('ilustracao', arquivo);
+
+            let url = idEdit ? `/api/documentos/${idEdit}` : '/api/documentos';
+            let metodo = idEdit ? 'PUT' : 'POST';
+
             try {
-                const res = await fetch('https://vk-studio.onrender.com/admin/listar-usuarios');
-                const users = await res.json();
-                document.getElementById('lista-usuarios-adm').innerHTML = users.map(u => `
-                    <div class="forge-card" onclick="vigiarFichas(${u.id}, '${u.nome}')" style="cursor:pointer; border-left: 3px solid ${u.cargo==='admin'?'#c1a35f':'#444'}">
-                        <p style="margin:0; font-family:'Cinzel';">JOGADOR: ${u.nome}</p>
-                        <small style="opacity:0.6;">${u.email}</small>
-                    </div>`).join('');
-            } catch (err) { console.error("Erro ao listar usuários"); }
-        }
+                const token = localStorage.getItem('token');
+                const res = await fetch(url, {
+                    method: metodo,
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData 
+                });
 
-        async function vigiarFichas(id, nome) {
-            document.getElementById('nome-vigia').innerText = "Vigiando: " + nome;
-            document.getElementById('painel-detalhes-usuario').style.display = "block";
-            
-            try {
-                const res = await fetch(`https://vk-studio.onrender.com/admin/fichas-usuario/${id}`);
-                const fichas = await res.json();
-                
-                document.getElementById('fichas-vigia').innerHTML = fichas.map(f => `
-                    <div class="forge-card" style="margin-bottom:0;">
-                        <p style="color:#c1a35f; margin:0; font-size: 0.8em;">[${f.sistema}]</p>
-                        <h3 style="margin: 5px 0 15px 0;">${f.nome_personagem}</h3>
-                        <div class="log-terminal" id="terminal-${f.id}">Buscando registros na névoa...</div>
-                    </div>`).join('');
-
-                fichas.forEach(f => carregarLogsTerminal(f.id));
-            } catch (err) { console.error("Erro ao buscar fichas"); }
-        }
-
-        async function carregarLogsTerminal(fichaId) {
-            try {
-                // Rota que você configurou para ler da tabela registros_vigiados ou logs_fichas
-                const res = await fetch(`https://vk-studio.onrender.com/admin/logs/${fichaId}`);
-                const logs = await res.json();
-                const term = document.getElementById(`terminal-${fichaId}`);
-                
-                if(!logs || logs.length === 0) {
-                    term.innerText = "> Nenhuma alteração registrada nesta ficha.";
-                } else {
-                    term.innerHTML = logs.map(l => `
-                        <div>
-                            <span class="log-date">[${new Date(l.data_registro).toLocaleTimeString()}]</span> 
-                            <span>${l.acao}: ${l.detalhes}</span>
-                        </div>
-                    `).join('');
+                if (!res.ok) {
+                    const textoErro = await res.text();
+                    console.error("Erro no servidor:", textoErro);
+                    alert("Erro ao salvar. Verifique se você está logado.");
+                    return;
                 }
-            } catch (err) { console.error("Erro ao carregar terminal"); }
+
+                const dados = await res.json();
+                alert(idEdit ? "Reforjado com sucesso!" : "Selado no Banco!");
+                
+                // Limpeza
+                document.getElementById('adm-titulo').value = '';
+                document.getElementById('adm-conteudo').value = '';
+                document.getElementById('adm-file').value = '';
+                if (idEdit) cancelarEdicao();
+                
+            } catch (err) {
+                console.error("Erro na conexão:", err);
+                alert("Falha ao conectar com a Forja.");
+            }
         }
 
-        // --- RESTANTE DAS FUNÇÕES (FORJA E BIBLIOTECA) ---
+        function cancelarEdicao() {
+            document.getElementById('adm-id-edit').value = "";
+            document.getElementById('forja-titulo-secao').innerText = "Forjar Novo Conhecimento";
+            document.getElementById('btn-salvar-geral').innerText = "SELAR NO BANCO";
+            document.getElementById('btn-cancelar-edit').style.display = "none";
+            document.getElementById('adm-titulo').value = "";
+            document.getElementById('adm-conteudo').value = "";
+        }
+
         async function mostrarGerenciar() {
             const container = document.getElementById('lista-itens-adm');
             try {
-                const res = await fetch('https://vk-studio.onrender.com/admin/todas-documentacoes');
+                const res = await fetch('/api/todas-documentacoes', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
                 const docs = await res.json();
                 container.innerHTML = docs.map(i => `
                     <div class="forge-card">
@@ -279,181 +278,20 @@
             } catch (e) { container.innerHTML = "Erro de conexão."; }
         }
 
-        function prepararEdicao(item) {
-            trocarAbaVisual('aba-forja', document.querySelector('[onclick*="aba-forja"]'));
-            document.getElementById('forja-titulo-secao').innerText = "Reforjando: " + item.titulo;
-            document.getElementById('adm-id-edit').value = item.id;
-            document.getElementById('adm-titulo').value = item.titulo;
-            document.getElementById('adm-sistema').value = item.sistema;
-            atualizarCategorias();
-            document.getElementById('adm-categoria').value = item.categoria;
-            document.getElementById('adm-rank').value = item.rank_item || "";
-            document.getElementById('adm-livro-id').value = item.livro_id || "";
-            document.getElementById('adm-conteudo').value = item.conteudo;
-            document.getElementById('btn-salvar-geral').innerText = "SALVAR ALTERAÇÕES";
-            document.getElementById('btn-cancelar-edit').style.display = "block";
-            verificarCamposEspeciais();
-        }
-
-        function cancelarEdicao() {
-            document.getElementById('adm-id-edit').value = "";
-            document.getElementById('forja-titulo-secao').innerText = "Forjar Novo Conhecimento";
-            document.getElementById('btn-salvar-geral').innerText = "SELAR NO BANCO";
-            document.getElementById('btn-cancelar-edit').style.display = "none";
-            document.getElementById('adm-titulo').value = "";
-            document.getElementById('adm-conteudo').value = "";
-        }
-
- async function salvarDoc() {
-    // 1. Pegando os IDs do seu formulário (prefixo adm-)
-    const idEdit = document.getElementById('adm-id-edit').value;
-    const titulo = document.getElementById('adm-titulo').value;
-    const sistema = document.getElementById('adm-sistema').value;
-    const categoria = document.getElementById('adm-categoria').value;
-    const rank = document.getElementById('adm-rank').value;
-    const conteudo = document.getElementById('adm-conteudo').value;
-    const arquivo = document.getElementById('adm-file').files[0];
-
-    if (!titulo || !conteudo) {
-        alert("O Título e o Conteúdo são obrigatórios!");
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('titulo', titulo);
-    formData.append('conteudo', conteudo);
-    formData.append('sistema', sistema);
-    formData.append('categoria', categoria);
-    formData.append('rank_item', rank);
-    
-    // AQUI ESTÁ A MUDANÇA: O Back espera 'ilustracao'
-    if (arquivo) {
-        formData.append('ilustracao', arquivo); 
-    }
-
-    // AQUI ESTÁ A MUDANÇA: A rota correta do seu server é /api/documentos
-   // --- AJUSTE DE URL E MÉTODO ---
-    let url = '/api/documentos'; // Usar caminho relativo é melhor no Render
-    let metodo = 'POST';
-
-    // Se estiver editando, ajusta a URL com o ID
-    if (idEdit) {
-        url = `/api/documentos/${idEdit}`;
-        metodo = 'PUT';
-    }
-
-    try {
-        const token = localStorage.getItem('token');
-
-        // LOG DE DEPURAÇÃO (Aparece no F12)
-        console.log(`Enviando ${metodo} para ${url}...`);
-
-        const res = await fetch(url, {
-            method: metodo,
-            headers: {
-                // TOKEN OBRIGATÓRIO PARA O RENDER NÃO BARRAR
-                'Authorization': `Bearer ${token}`
-            },
-            body: formData 
-        });
-
-        // 🔍 NOVO: Se não for OK, vamos ler o que o servidor disse antes de quebrar o JSON
-        if (!res.ok) {
-            const textoErro = await res.text();
-            console.error("Resposta do servidor:", textoErro);
-            
-            if (res.status === 401) {
-                alert("Erro: Você não está autorizado. Faça login novamente.");
-                window.location.href = '/login.html';
-            } else {
-                alert(`Erro na Forja (Status ${res.status}). Verifique o console.`);
-            }
-            return;
-        }
-
-        const dados = await res.json();
-        alert(idEdit ? "Reforjado com sucesso!" : "Selado no Banco!");
-        
-        // Limpa o formulário após o sucesso
-        document.getElementById('adm-titulo').value = '';
-        document.getElementById('adm-conteudo').value = '';
-        document.getElementById('adm-file').value = '';
-        if (idEdit) document.getElementById('adm-id-edit').value = '';
-
-    } catch (err) {
-        console.error("Erro catastrófico na conexão:", err);
-        alert("Falha ao conectar com a Forja.");
-    }
-
-        // Se o servidor retornar erro, a gente pega o texto antes de tentar virar JSON
-        if (!res.ok) {
-            const erroTexto = await res.text();
-            console.error("Erro do Servidor:", erroTexto);
-            try {
-                const erroJson = JSON.parse(erroTexto);
-                alert("Erro: " + (erroJson.error || "Falha na Forja"));
-            } catch(e) {
-                alert("Erro no servidor (verifique o token ou permissão)");
-            }
-            return;
-        }
-
-        const dados = await res.json();
-        
-        alert(idEdit ? "Reforjado com sucesso!" : "Selado no Banco!");
-        
-        if (!idEdit) {
-            document.getElementById('adm-titulo').value = "";
-            document.getElementById('adm-conteudo').value = "";
-            // Se tiver campo de arquivo, limpa ele também:
-            const fileInput = document.querySelector('input[type="file"]');
-            if (fileInput) fileInput.value = "";
-        } else {
-            cancelarEdicao();
-        }
-
-    } catch (err) {
-        console.error("Erro na conexão:", err);
-        alert("Falha ao conectar com a Forja.");
-    }
-}
-
-        function atualizarCategorias() {
-            const sis = document.getElementById('adm-sistema').value;
-            document.getElementById('adm-categoria').innerHTML = (categoriasOficiais[sis] || []).map(c => `<option value="${c}">${c}</option>`).join('');
-            verificarCamposEspeciais();
-        }
-
-        function verificarCamposEspeciais() {
-            const cat = document.getElementById('adm-categoria').value;
-            const sis = document.getElementById('adm-sistema').value;
-            document.getElementById('campo-livro').style.display = (cat === "Bestiário") ? "flex" : "none";
-            document.getElementById('campo-rank').style.display = (sis === "Cavaleiros de Armadura" && cat !== "Bestiário") ? "flex" : "none";
-        }
-
         async function deletarItem(id) {
             if(confirm("Banir registro?")) {
-                await fetch(`https://vk-studio.onrender.com/documentacao/${id}`, { method: 'DELETE' });
+                await fetch(`/api/documentacao/${id}`, { 
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
                 mostrarGerenciar();
             }
         }
 
-        async function salvarLivro() {
-            const formData = new FormData();
-            formData.append('titulo_livro', document.getElementById('book-titulo').value);
-            formData.append('sistema', document.getElementById('book-sistema').value);
-            formData.append('conteudo', document.getElementById('book-conteudo').value);
-            const file = document.getElementById('book-file').files[0];
-            if (file) formData.append('imagem', file);
-            await fetch('https://vk-studio.onrender.com/admin/criar-livro', { method: 'POST', body: formData });
-            alert("Volume Forjado!");
-        }
+        function logout() { localStorage.clear(); window.location.href = '/login'; }
 
-        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
-        
         window.onload = () => {
             atualizarCategorias();
-            listarUsuarios();
         };
     </script>
 </body>
