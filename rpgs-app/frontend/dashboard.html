@@ -383,7 +383,7 @@
                 let rankClass = doc.rank_item ? `rank-${doc.rank_item.toLowerCase().replace(/[+-]/g, '')}` : '';
                 return `
                     <div class="doc-card" onclick='abrirPopupLeitura(${JSON.stringify(doc).replace(/'/g, "&apos;")})'>
-                        ${doc.imagem ? `<img src="${doc.imagem}" style="width:100%; margin-bottom:10px; border-radius: 4px;">` : ''}
+                        ${doc.ilustracao_url ? `<img src="${doc.ilustracao_url}" style="width:100%; margin-bottom:10px; border-radius: 4px;">` : ''}
                         <h3 class="${rankClass}">${doc.titulo || 'Sem Título'}</h3>
                         <p style="font-size: 0.9em; opacity: 0.7;">${doc.conteudo.substring(0, 80)}...</p>
                     </div>`;
@@ -400,7 +400,7 @@
                 <h1 class="${rankClass}" style="font-family: 'Cinzel';">${doc.titulo}</h1>
                 <p style="color: #888;">${doc.sistema} | ${doc.categoria} ${doc.rank_item ? `| Rank ${doc.rank_item}` : ''}</p>
                 <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
-                ${doc.imagem ? `<img src="${doc.imagem}" style="width:100%; max-height:450px; object-fit:contain; margin-bottom:20px;">` : ''}
+                ${doc.ilustracao_url ? `<img src="${doc.ilustracao_url}" style="width:100%; max-height:450px; object-fit:contain; margin-bottom:20px;">` : ''}
                 <div style="font-size:1.1em; line-height:1.8; white-space:pre-wrap;">${doc.conteudo}</div>`;
             
             const cats = ["Itens", "Armas Brancas", "Armas de Fogo", "Armaduras", "Magias/Rituais"];
