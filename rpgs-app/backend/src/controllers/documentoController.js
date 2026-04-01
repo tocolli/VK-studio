@@ -2,29 +2,34 @@ const db = require('../config/db');
 
 const documentoController = {
     async criar(req, res) {
-        // Log para ver o que está vindo do seu Admin
+        // Log para depuração no Render
         console.log("--- DADOS RECEBIDOS ---");
-        console.log(req.body); 
+        console.log("Body:", req.body); 
         console.log("Arquivo:", req.file ? "OK" : "Sem foto");
-        console.log("-----------------------");
 
-        const { titulo, sistema, categoria, rank, conteudo } = req.body;
+        // AJUSTE AQUI: Pegando 'rank_item' do req.body (nome que vem do HTML)
+        const { titulo, sistema, categoria, rank_item, conteudo } = req.body;
         const ilustracao_url = req.file ? req.file.path : null;
 
         try {
-            // Verifique se os nomes das colunas (titulo, sistema, etc) batem com o seu banco no Aiven
             const query = `
                 INSERT INTO documentos (titulo, sistema, categoria, rank_licenca, conteudo, ilustracao_url) 
                 VALUES (?, ?, ?, ?, ?, ?)
             `;
             
-            // Usamos 'rank' para a coluna 'rank_licenca'
-            await db.query(query, [titulo, sistema, categoria, rank || 'Sem Rank', conteudo, ilustracao_url]);
+            // Usamos rank_item ou um padrão seguro
+            await db.query(query, [
+                titulo, 
+                sistema, 
+                categoria, 
+                rank_item || 'Sem Rank', 
+                conteudo, 
+                ilustracao_url
+            ]);
             
             res.status(201).json({ message: 'Conhecimento selado com sucesso!' });
         } catch (err) {
-            console.error("ERRO DETALHADO DO BANCO:", err.message);
-            // Isso impede o erro "Unexpected token <" enviando um JSON de erro em vez de HTML
+            console.error("ERRO NO BANCO:", err.message);
             res.status(500).json({ error: 'Erro no banco de dados: ' + err.message });
         }
     },
@@ -102,27 +107,29 @@ async buscarPorId(req, res) {
 
 // Salva as alterações (O "Reforjar")
 async atualizar(req, res) {
-    const { id } = req.params;
-    const { titulo, sistema, categoria, rank, conteudo } = req.body;
-    let query = 'UPDATE documentos SET titulo=?, sistema=?, categoria=?, rank_licenca=?, conteudo=?';
-    let params = [titulo, sistema, categoria, rank, conteudo];
+        const { id } = req.params;
+        // AJUSTE AQUI: Lendo 'rank_item' também na atualização
+        const { titulo, sistema, categoria, rank_item, conteudo } = req.body;
+        
+        let query = 'UPDATE documentos SET titulo=?, sistema=?, categoria=?, rank_licenca=?, conteudo=?';
+        let params = [titulo, sistema, categoria, rank_item || 'Sem Rank', conteudo];
 
-    // Se o mestre enviou uma NOVA imagem, atualizamos o link
-    if (req.file) {
-        query += ', ilustracao_url=?';
-        params.push(req.file.path);
+        if (req.file) {
+            query += ', ilustracao_url=?';
+            params.push(req.file.path);
+        }
+
+        query += ' WHERE id=?';
+        params.push(id);
+
+        try {
+            await db.query(query, params);
+            res.json({ message: 'Conhecimento reforjado com sucesso!' });
+        } catch (err) {
+            console.error("ERRO NA ATUALIZAÇÃO:", err.message);
+            res.status(500).json({ error: 'Erro ao atualizar: ' + err.message });
+        }
     }
-
-    query += ' WHERE id=?';
-    params.push(id);
-
-    try {
-        await db.query(query, params);
-        res.json({ message: 'Conhecimento reforjado com sucesso!' });
-    } catch (err) {
-        res.status(500).json({ error: 'Erro ao atualizar: ' + err.message });
-    }
-}
 
 };
 
