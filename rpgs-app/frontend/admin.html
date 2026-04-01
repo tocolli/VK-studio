@@ -250,6 +250,41 @@
             }
         }
 
+        function prepararEdicao(item) {
+    // 1. Faz a interface mudar para a aba de Forja (aba-forja)
+    // Procuramos o botão da sidebar que tem o texto 'Forjar Documento' para dar o destaque visual
+    const btnForja = Array.from(document.querySelectorAll('.nav-item')).find(el => el.innerText.includes('Forjar'));
+    trocarAbaVisual('aba-forja', btnForja);
+    
+    // 2. Muda o título da seção para indicar edição
+    document.getElementById('forja-titulo-secao').innerText = "Reforjando: " + item.titulo;
+    
+    // 3. Preenche o campo oculto com o ID (CRUCIAL para o salvarDoc saber que é um PUT)
+    document.getElementById('adm-id-edit').value = item.id;
+    
+    // 4. Preenche os campos básicos
+    document.getElementById('adm-titulo').value = item.titulo;
+    document.getElementById('adm-sistema').value = item.sistema;
+    
+    // 5. Atualiza as categorias do sistema selecionado e marca a correta
+    atualizarCategorias(); 
+    document.getElementById('adm-categoria').value = item.categoria;
+    
+    // 6. Preenche Rank e Conteúdo (ajustado para os nomes que vêm do Banco)
+    document.getElementById('adm-rank').value = item.rank_licenca || ""; 
+    document.getElementById('adm-conteudo').value = item.conteudo;
+    
+    // 7. Ajusta os botões
+    document.getElementById('btn-salvar-geral').innerText = "REFORJAR CONHECIMENTO";
+    document.getElementById('btn-cancelar-edit').style.display = "block";
+    
+    // 8. Roda a verificação de campos (para mostrar Rank se for Cavaleiros, etc)
+    verificarCamposEspeciais();
+    
+    // 9. Sobe a página para o topo para você ver o formulário preenchido
+    document.querySelector('.main').scrollTop = 0;
+}
+
         function cancelarEdicao() {
             document.getElementById('adm-id-edit').value = "";
             document.getElementById('forja-titulo-secao').innerText = "Forjar Novo Conhecimento";
@@ -311,14 +346,28 @@
 }
 
         async function deletarItem(id) {
-            if(confirm("Banir registro?")) {
-                await fetch(`/api/documentacao/${id}`, { 
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-                mostrarGerenciar();
+    if (confirm("Deseja realmente banir este registro do acervo?")) {
+        try {
+            const token = localStorage.getItem('token');
+            // MUDANÇA: de /documentacao/ para /documentos/
+            const res = await fetch(`/api/documentos/${id}`, { 
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (res.ok) {
+                alert("Conhecimento banido!");
+                mostrarGerenciar(); // Atualiza a lista
+            } else {
+                alert("Erro ao banir. Verifique sua permissão.");
             }
+        } catch (err) {
+            console.error("Erro na conexão:", err);
         }
+    }
+}
 
         function logout() { localStorage.clear(); window.location.href = '/login'; }
 
