@@ -14,8 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --- CAMINHO CALCULADO ---
-// Substitua a sua linha antiga por essa lógica:
-const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
+const frontendPath = path.resolve(__dirname, '..', '..', '..', 'frontend');
 
 // ADICIONE ESSE LOG LOGO ABAIXO:
 console.log("--- DEBUG DE CAMINHO ---");
