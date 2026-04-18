@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <link rel="icon" type="image/png" href="./img/logo.jpg">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V.Studio — Universo de decadência cinza</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body class="login-body" data-theme="decadencia">
+
+  <div class="login-wrapper">
+
+    <!-- PAINEL ESQUERDO -->
+    <div class="login-art" id="loginArt">
+
+      <div class="world-switcher">
+
+        <!-- DECADÊNCIA CINZA: Sol tribal dourado com espiral -->
+        <button class="world-btn active" data-world="decadencia" type="button">
+          <div class="world-symbol">
+            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <style>
+                  .sun-spin { transform-origin:60px 60px; animation:sunSpin 18s linear infinite; }
+                  .sun-pulse { transform-origin:60px 60px; animation:sunPulse 3s ease-in-out infinite; }
+                  @keyframes sunSpin { to { transform:rotate(360deg); } }
+                  @keyframes sunPulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+                </style>
+                <radialGradient id="sg1" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#fff7a0"/>
+                  <stop offset="40%" stop-color="#e8a020"/>
+                  <stop offset="100%" stop-color="#7a4a00" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+
+            
+            </svg>
+          </div>
+          <div class="world-info">
+            <span class="world-name">o sol</span>
+            <span class="world-sub">Haarat</span>
+          </div>
+        </button>
+
+        <!-- OCEANO ESTRELADO: Espiral de corvos em tinta -->
+        <button class="world-btn" data-world="oceano" type="button">
+          <div class="world-symbol">
+            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <style>
+                  .crow-spiral { transform-origin:60px 60px; animation:crowSpin 22s linear infinite; }
+                  .ink-drip { animation:inkDrip 3s ease-in-out infinite; }
+                  .ink-drip2 { animation:inkDrip 3s ease-in-out infinite 1.4s; }
+                  @keyframes crowSpin { to { transform:rotate(360deg); } }
+                  @keyframes inkDrip {
+                    0%,100%{transform:translateY(0);opacity:.9}
+                    60%{transform:translateY(8px);opacity:.2}
+                    70%{transform:translateY(9px);opacity:0}
+                  }
+                </style>
+              </defs>
+
+              
+            </svg>
+          </div>
+          <div class="world-info">
+            <span class="world-name">O vazio</span>
+            <span class="world-sub">deus sem nome</span>
+          </div>
+        </button>
+
+        <!-- CAVALEIROS DE ARMADURA: Caveira com chamas verdes -->
+        <button class="world-btn" data-world="cavaleiros" type="button">
+          <div class="world-symbol">
+            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <style>
+                  .flame-main { animation:flameWave 1.8s ease-in-out infinite; transform-origin:60px 60px; }
+                  .flame-l { animation:flameWave 2.1s ease-in-out infinite .3s; transform-origin:40px 55px; }
+                  .flame-r { animation:flameWave 1.6s ease-in-out infinite .6s; transform-origin:80px 55px; }
+                  .flame-tip { animation:flameTip 2s ease-in-out infinite; transform-origin:60px 15px; }
+                  .skull-glow { animation:skullPulse 2.5s ease-in-out infinite; }
+                  @keyframes flameWave {
+                    0%,100%{transform:scaleX(1) skewX(0deg)}
+                    30%{transform:scaleX(.92) skewX(-3deg)}
+                    60%{transform:scaleX(1.04) skewX(2deg)}
+                  }
+                  @keyframes flameTip {
+                    0%,100%{transform:scaleY(1) translateY(0)}
+                    50%{transform:scaleY(1.15) translateY(-4px)}
+                  }
+                  @keyframes skullPulse {
+                    0%,100%{opacity:.7}50%{opacity:1}
+                  }
+                </style>
+                <radialGradient id="glow-green" cx="50%" cy="80%" r="60%">
+                  <stop offset="0%" stop-color="#50ff80" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#0a2010" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="world-info">
+            <span class="world-name">A praga</span>
+            <span class="world-sub">deus da praga</span>
+          </div>
+        </button>
+
+      </div>
+
+      <!-- Texto de lore dinâmico -->
+      <div class="art-lore-block">
+        <h1 class="art-title" id="artTitle">Decadência Cinza</h1>
+        <p class="art-lore" id="artLore">"O mundo é meu."</p>
+        <div class="art-divider" id="artDivider">✦ ✦ ✦</div>
+      </div>
+    </div>
+
+    <!-- PAINEL DIREITO: FORMULÁRIO -->
+    <div class="login-panel" id="loginPanel">
+      <div class="login-form-container">
+
+        <div class="login-header">
+          <div class="login-sigil" id="loginSigil">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" id="sigilSvg">
+              <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+              <text x="20" y="26" text-anchor="middle" font-size="18" fill="currentColor">☀</text>
+            </svg>
+          </div>
+          <h2 class="login-title">VK.Studio</h2>
+          <p class="login-subtitle" id="loginSubtitle">Entrada dos Mundos</p>
+        </div>
+
+        <div id="alertBox" class="alert" role="alert"></div>
+
+        <div class="auth-tabs">
+          <button class="tab-btn active" data-tab="login" type="button">Entrar</button>
+          <button class="tab-btn" data-tab="register" type="button">Registrar</button>
+        </div>
+
+        <div id="tabLogin" class="tab-content">
+          <div class="form-stack">
+            <div class="form-group">
+              <label for="loginEmail">Endereço de E-mail</label>
+              <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email" required />
+            </div>
+            <div class="form-group">
+              <label for="loginSenha">Palavra-Chave</label>
+              <div class="input-password">
+                <input type="password" id="loginSenha" placeholder="••••••••" autocomplete="current-password" required />
+                <button type="button" class="toggle-pass" aria-label="Mostrar senha">👁</button>
+              </div>
+            </div>
+            <button type="button" id="btnLogin" class="btn btn-primary btn-full btn-lg">
+              <span class="btn-text">Cruzar a Soleira</span>
+              <div class="spinner btn-spinner" style="display:none;"></div>
+            </button>
+          </div>
+        </div>
+
+        <div id="tabRegister" class="tab-content" style="display:none;">
+          <div class="form-stack">
+            <div class="form-group">
+              <label for="regNome">Nome de Aventureiro</label>
+              <input type="text" id="regNome" placeholder="Pelé seria ossos" autocomplete="name" required />
+            </div>
+            <div class="form-group">
+              <label for="regEmail">Endereço de E-mail</label>
+              <input type="email" id="regEmail" placeholder="seu@email.com" autocomplete="email" required />
+            </div>
+            <div class="form-group">
+              <label for="regSenha">Palavra-Chave</label>
+              <div class="input-password">
+                <input type="password" id="regSenha" placeholder="Mínimo 6 caracteres" autocomplete="new-password" required />
+                <button type="button" class="toggle-pass" aria-label="Mostrar senha">👁</button>
+              </div>
+            </div>
+            <button type="button" id="btnRegistrar" class="btn btn-primary btn-full btn-lg">
+              <span class="btn-text">Inscrever no Grimório</span>
+              <div class="spinner btn-spinner" style="display:none;"></div>
+            </button>
+          </div>
+        </div>
+
+        <p class="login-footer-text">
+          Três mundos. Um grimório.<br>
+          <strong id="footerWorld">Decadência Cinza</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

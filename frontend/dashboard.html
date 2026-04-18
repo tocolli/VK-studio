@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — VK.Studio</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand"><div class="sigil">⚔</div>VK.Studio</div>
+    <button class="hamburger" id="hamburger" type="button"><span></span><span></span><span></span></button>
+    <ul class="navbar-nav" id="navMenu">
+      <li><a href="/dashboard" class="active">⚔ Câmara</a></li>
+      <li><a href="/forja">🔥Criar nova ficha</a></li>
+    </ul>
+    <div class="navbar-user">
+      <span id="navUserName"></span>
+      <div class="user-avatar" id="navAvatar">👤</div>
+      <button class="btn btn-sm btn-danger" onclick="VK.logout()" type="button">Sair</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container page-content">
+
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div>
+            <h1 class="page-title" id="pageTitle">A Câmara do Mestre</h1>
+            <p class="page-subtitle">Gestão dos Universos · VK.Studio</p>
+          </div>
+          <div id="mestreBtns" style="display:none;">
+            <button class="btn btn-primary" id="btnNovoDoc" type="button">+ Novo Documento</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div id="statsRow" class="stats-row" style="display:none;">
+        <div class="stat-card"><div class="stat-icon">📜</div><div class="stat-value" id="statDocs">0</div><div class="stat-label">Documentos</div></div>
+        <div class="stat-card"><div class="stat-icon">⚔</div><div class="stat-value" id="statFichas">0</div><div class="stat-label">Fichas</div></div>
+        <div class="stat-card"><div class="stat-icon">🌍</div><div class="stat-value">3</div><div class="stat-label">Universos</div></div>
+        <div class="stat-card"><div class="stat-icon">🎲</div><div class="stat-value" id="statSessoes">—</div><div class="stat-label">Sessões</div></div>
+      </div>
+
+      <!-- FORM NOVO DOCUMENTO -->
+      <div id="formCriarDoc" class="form-panel">
+        <h3 class="form-panel-title">📜 Novo Documento / Lore</h3>
+        <div id="alertDoc" class="alert" style="margin-bottom:1rem;"></div>
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label for="docTitulo">Título *</label>
+            <input type="text" id="docTitulo" placeholder="Nome do documento..." />
+          </div>
+          <div class="form-group">
+            <label for="docSistema">Universo *</label>
+            <select id="docSistema">
+              <option value="Decadência Cinza">Decadência Cinza</option>
+              <option value="Oceano Estrelado">Oceano Estrelado</option>
+              <option value="Cavaleiros de Armadura">Cavaleiros de Armadura</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="docCategoria">Categoria *</label>
+            <select id="docCategoria"></select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+          <label for="docConteudo">Conteúdo</label>
+          <textarea id="docConteudo" placeholder="Escreva o conteúdo..." rows="6"></textarea>
+        </div>
+        <div class="form-grid-2" style="margin-top:1rem;">
+          <div class="form-group">
+            <label for="docVisibilidade">Visibilidade</label>
+            <select id="docVisibilidade">
+              <option value="publico">Público (jogadores veem)</option>
+              <option value="privado">Privado (só Mestre)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="docImagem">Imagem (opcional)</label>
+            <input type="file" id="docImagem" accept="image/*" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn" onclick="fecharFormDoc()" type="button">Cancelar</button>
+          <button class="btn btn-primary" id="btnSalvarDoc" type="button">Salvar Documento</button>
+        </div>
+      </div>
+
+      <!-- TABS PRINCIPAIS -->
+      <div class="section-tabs">
+        <button class="section-tab-btn active" data-stab="documentos" type="button">📜 Documentos & Lore</button>
+        <button class="section-tab-btn" data-stab="fichas" type="button">⚔ Fichas</button>
+      </div>
+
+      <!-- ===== ABA DOCUMENTOS ===== -->
+      <div id="stabDocumentos">
+
+        <!-- NAVEGAÇÃO POR SISTEMA -->
+        <div class="sistema-nav" id="sistemaNave">
+          <button class="sistema-btn active" data-sistema="Decadência Cinza" type="button">
+            <span class="sistema-icon">☀</span>
+            <span>Decadência Cinza</span>
+          </button>
+          <button class="sistema-btn" data-sistema="Oceano Estrelado" type="button">
+            <span class="sistema-icon">🌊</span>
+            <span>Oceano Estrelado</span>
+          </button>
+          <button class="sistema-btn" data-sistema="Cavaleiros de Armadura" type="button">
+            <span class="sistema-icon">⚔️</span>
+            <span>Cavaleiros de Armadura</span>
+          </button>
+        </div>
+
+        <!-- GRID DE CATEGORIAS -->
+        <div class="categoria-grid" id="categoriaGrid"></div>
+
+        <!-- HEADER DA LISTAGEM -->
+        <div class="section-header" id="docListHeader" style="display:none;">
+          <span class="section-title" id="docListTitle">Documentos</span>
+          <button class="btn btn-sm" id="btnVoltarCats" type="button">← Categorias</button>
+        </div>
+
+        <!-- LISTA DE DOCUMENTOS -->
+        <div id="listaDocumentos" class="grid-3" style="display:none;"></div>
+      </div>
+
+      <!-- ===== ABA FICHAS ===== -->
+      <div id="stabFichas" style="display:none;">
+        <div class="section-header">
+          <span class="section-title">Fichas de Personagem</span>
+          <a href="/forja" class="btn btn-sm">+ Nova Ficha</a>
+        </div>
+        <div id="listaFichas" class="grid-2">
+          <div class="empty-state" style="grid-column:1/-1;"><div class="icon">⚔</div><p>Carregando fichas...</p></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL DOCUMENTO -->
+  <div class="modal-overlay" id="modalDoc">
+    <div class="modal">
+      <button class="modal-close" onclick="fecharModalDoc()" type="button">✕</button>
+      <div class="modal-meta" id="modalDocMeta"></div>
+      <div class="modal-title" id="modalDocTitulo"></div>
+      <div id="modalDocCorpo" style="color:var(--text-secondary);font-size:1rem;line-height:1.8;margin-top:1rem;"></div>
+      <div id="modalDocMestre" style="display:none;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border-color);display:flex;gap:.5rem;">
+        <button class="btn btn-sm btn-edit-doc-modal" type="button">✏ Editar</button>
+        <button class="btn btn-sm btn-danger" id="btnDeletarDoc" type="button">Remover</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth-guard.js"></script>
+  <script src="js/sistemas.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

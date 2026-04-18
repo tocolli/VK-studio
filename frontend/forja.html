@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forja — V.Studio</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/forja.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand"><div class="sigil">⚔</div>VK.Studio</div>
+    <button class="hamburger" id="hamburger" type="button"><span></span><span></span><span></span></button>
+    <ul class="navbar-nav" id="navMenu">
+      <li><a href="/dashboard">⚔ Câmara</a></li>
+      <li><a href="/forja" class="active">🔥Criar nova ficha</a></li>
+    </ul>
+    <div class="navbar-user">
+      <span id="navUserName"></span>
+      <div class="user-avatar" id="navAvatar">👤</div>
+      <button class="btn btn-sm btn-danger" onclick="VK.logout()" type="button">Sair</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container page-content">
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div>
+            <h1 class="page-title">🔥Criar nova ficha</h1>
+            <p class="page-subtitle">Criação e Edição de Fichas de Personagem</p>
+          </div>
+          <a href="/dashboard" class="btn">← Câmara</a>
+        </div>
+      </div>
+
+      <div id="alertForja" class="alert" style="margin-bottom:1.5rem;"></div>
+
+      <div class="forja-layout">
+        <!-- PAINEL ESQUERDO -->
+        <div class="forja-form-panel card">
+          <h2 class="forja-section-title">Identidade do Personagem</h2>
+
+          <div class="form-group">
+            <label for="fichaId">ID da Ficha</label>
+            <input type="text" id="fichaId" placeholder="Automático ao criar..." readonly style="color:var(--text-muted);" />
+          </div>
+          <div class="form-group">
+            <label for="fichaNome">Nome do Personagem *</label>
+            <input type="text" id="fichaNome" placeholder="Como o mundo o chamará?" />
+          </div>
+
+          <!-- SELETOR DE UNIVERSO -->
+          <div class="form-grid-2" style="margin-top:0;">
+            <div class="form-group">
+              <label for="fichaSistema">Universo *</label>
+              <select id="fichaSistema">
+                <option value="Decadência Cinza"> Decadência Cinza</option>
+                <option value="Oceano Estrelado"> Oceano Estrelado</option>
+                <option value="Cavaleiros de Armadura"> Cavaleiros de Armadura</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="fichaClasse">Classe / Tipo</label>
+              <select id="fichaClasse"></select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="fichaImagem">Imagem do Personagem</label>
+            <input type="file" id="fichaImagem" accept="image/*" />
+          </div>
+
+          <div class="ornament">✦</div>
+          <h2 class="forja-section-title">Atributos (JSON)</h2>
+          <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;">Construtor visual ou edição direta do JSON.</p>
+
+          <div id="attrBuilder" class="attr-builder">
+            <div id="attrList"></div>
+            <button type="button" class="btn btn-sm" id="btnAddAttr" style="margin-top:.75rem;">+ Adicionar Atributo</button>
+          </div>
+
+          <div class="form-group" style="margin-top:1rem;">
+            <label for="fichaAtributos">JSON dos Atributos</label>
+            <textarea id="fichaAtributos" rows="8" placeholder='{"Força": 10, "Destreza": 8}'></textarea>
+          </div>
+
+          <div class="form-actions" style="margin-top:1.5rem;">
+            <button class="btn" type="button" id="btnLimpar">Limpar</button>
+            <button class="btn btn-primary btn-lg" type="button" id="btnSalvarFicha">Forjar Personagem</button>
+          </div>
+        </div>
+
+        <!-- PAINEL DIREITO: PREVIEW + LISTA -->
+        <div class="forja-preview-panel">
+          <h2 class="forja-section-title">Pré-visualização</h2>
+          <div class="ficha-preview card" id="fichaPreview">
+            <div class="preview-header">
+              <div class="preview-avatar" id="previewAvatar">⚔</div>
+              <div>
+                <div class="preview-nome" id="previewNome">Nome do Personagem</div>
+                <div class="preview-sistema" id="previewSistema">Decadência Cinza</div>
+                <div class="preview-classe" id="previewClasse" style="font-size:.72rem;color:var(--gold-dim);font-family:var(--font-heading);letter-spacing:.1em;text-transform:uppercase;margin-top:.15rem;"></div>
+              </div>
+            </div>
+            <div class="ornament">✦</div>
+            <div class="preview-attrs" id="previewAttrs">
+              <p style="color:var(--text-muted);font-size:.85rem;grid-column:1/-1;">Adicione atributos...</p>
+            </div>
+          </div>
+
+          <div style="margin-top:2rem;">
+            <div class="section-header">
+              <span class="section-title">Fichas Salvas</span>
+              <button class="btn btn-sm" type="button" id="btnCarregarFichas">↻ Atualizar</button>
+            </div>
+            <!-- Filtro por sistema na forja -->
+            <div class="sistema-nav" style="margin-bottom:1rem;">
+              <button class="sistema-btn active" data-fsistema="todos" type="button">Todos</button>
+              <button class="sistema-btn" data-fsistema="Decadência Cinza" type="button">☀ Cinza</button>
+              <button class="sistema-btn" data-fsistema="Oceano Estrelado" type="button">☽ Oceano</button>
+              <button class="sistema-btn" data-fsistema="Cavaleiros de Armadura" type="button">☠ Cavaleiros</button>
+            </div>
+            <div id="listaFichasForja" class="ficha-list-forja"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth-guard.js"></script>
+  <script src="js/sistemas.js"></script>
+  <script src="js/forja.js"></script>
+</body>
+</html>

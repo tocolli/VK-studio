@@ -1,0 +1,171 @@
+/* frontend/css/forja.css */
+
+.forja-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.forja-form-panel {
+  position: sticky;
+  top: 80px;
+}
+
+.forja-section-title {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 1.25rem;
+}
+
+/* ===== ATTR BUILDER ===== */
+.attr-builder {
+  background: rgba(10,10,12,0.5);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.attr-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.attr-row input {
+  font-size: 0.9rem;
+  padding: 0.45rem 0.75rem;
+}
+
+.btn-remove-attr {
+  background: none;
+  border: 1px solid var(--danger);
+  color: #e74c3c;
+  border-radius: var(--radius);
+  cursor: pointer;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.8rem;
+  transition: var(--transition);
+  line-height: 1;
+}
+.btn-remove-attr:hover { background: rgba(231,76,60,0.12); }
+
+/* ===== PREVIEW ===== */
+.ficha-preview {
+  background: linear-gradient(135deg, #141210, #1a1512);
+  border: 1px solid var(--border-gold);
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.preview-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--border-gold);
+  background: radial-gradient(circle, rgba(201,168,76,0.08), #0a0a0c);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
+  color: var(--gold-dim);
+  box-shadow: 0 0 20px rgba(201,168,76,0.1);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.preview-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+.preview-nome {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  color: var(--gold-light);
+  margin-bottom: 0.2rem;
+}
+
+.preview-sistema {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: var(--font-heading);
+}
+
+.preview-attrs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.preview-attr-item {
+  background: rgba(10,10,12,0.7);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preview-attr-key {
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.preview-attr-val {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--gold);
+}
+
+/* ===== LISTA FICHAS FORJA ===== */
+.ficha-list-forja {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ficha-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  transition: var(--transition);
+  gap: 0.75rem;
+}
+
+.ficha-list-item:hover { border-color: var(--border-gold); background: var(--bg-card-hover); }
+
+.ficha-list-nome {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.ficha-list-actions { display: flex; gap: 0.4rem; }
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 900px) {
+  .forja-layout { grid-template-columns: 1fr; }
+  .forja-form-panel { position: static; }
+  .preview-attrs { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .preview-attrs { grid-template-columns: 1fr; }
+  .attr-row { grid-template-columns: 1fr auto auto; }
+}
