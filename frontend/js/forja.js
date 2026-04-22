@@ -15,7 +15,7 @@
 
   // ===== DADOS DOS TIPOS DE ALMA (Decadência Cinza) =====
   const TIPOS_ALMA = ['Alma Comum','Príncipe Mestiço','Âncora das Almas','Despertado','Exilado','Alma Velada'];
-  const PODERES_DESPERTADO = ['Magnetismo','Maldição da Dor','Sangue de Ferro'];
+  const PODERES_DESPERTADO = ['Magnetismo','Maldição da Dor','Sangue de Ferro', 'Mundo espelhado'];
   const ENTIDADES_EXILADO  = ['Adão','Seph','Véu da Noite'];
 
   const ALMA_TEMA = {
