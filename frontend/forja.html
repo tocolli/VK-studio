@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Forja — V.Studio</title>
+  <title>Forja — VK.Studio</title>
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/dashboard.css" />
   <link rel="stylesheet" href="css/forja.css" />
 </head>
 <body>
@@ -14,7 +13,7 @@
     <button class="hamburger" id="hamburger" type="button"><span></span><span></span><span></span></button>
     <ul class="navbar-nav" id="navMenu">
       <li><a href="/dashboard">⚔ Câmara</a></li>
-      <li><a href="/forja" class="active">🔥Criar nova ficha</a></li>
+      <li><a href="/forja" class="active">🔥 Forja</a></li>
     </ul>
     <div class="navbar-user">
       <span id="navUserName"></span>
@@ -25,109 +24,367 @@
 
   <main>
     <div class="container page-content">
+
       <div class="page-header">
         <div class="page-header-inner">
           <div>
-            <h1 class="page-title">🔥Criar nova ficha</h1>
-            <p class="page-subtitle">Criação e Edição de Fichas de Personagem</p>
+            <h1 class="page-title">🔥 A Forja</h1>
+            <p class="page-subtitle" id="forjaSubtitle">Selecione um universo para começar</p>
           </div>
-          <a href="/dashboard" class="btn">← Câmara</a>
+          <div style="display:flex;gap:.5rem;">
+            <button class="btn btn-sm" id="btnNovaFicha" type="button" style="display:none;">+ Nova Ficha</button>
+            <a href="/dashboard" class="btn btn-sm">← Câmara</a>
+          </div>
         </div>
       </div>
 
       <div id="alertForja" class="alert" style="margin-bottom:1.5rem;"></div>
 
-      <div class="forja-layout">
-        <!-- PAINEL ESQUERDO -->
-        <div class="forja-form-panel card">
-          <h2 class="forja-section-title">Identidade do Personagem</h2>
+      <!-- ================= ETAPA 1: SELEÇÃO DE SISTEMA ================= -->
+      <div id="etapa1">
+        <div class="sistema-select-grid">
 
-          <div class="form-group">
-            <label for="fichaId">ID da Ficha</label>
-            <input type="text" id="fichaId" placeholder="Automático ao criar..." readonly style="color:var(--text-muted);" />
-          </div>
-          <div class="form-group">
-            <label for="fichaNome">Nome do Personagem *</label>
-            <input type="text" id="fichaNome" placeholder="Como o mundo o chamará?" />
-          </div>
+          <button class="sistema-select-card" data-sistema="Decadência Cinza" type="button">
+            <div class="ssc-icon">☀</div>
+            <div class="ssc-name">Decadência Cinza</div>
+            <div class="ssc-desc">Mundo sombrio de almas despertas.<br>Inclui Roll de Tipo de Alma.</div>
+          </button>
 
-          <!-- SELETOR DE UNIVERSO -->
-          <div class="form-grid-2" style="margin-top:0;">
-            <div class="form-group">
-              <label for="fichaSistema">Universo *</label>
-              <select id="fichaSistema">
-                <option value="Decadência Cinza"> Decadência Cinza</option>
-                <option value="Oceano Estrelado"> Oceano Estrelado</option>
-                <option value="Cavaleiros de Armadura"> Cavaleiros de Armadura</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="fichaClasse">Classe / Tipo</label>
-              <select id="fichaClasse"></select>
-            </div>
-          </div>
+          <button class="sistema-select-card" data-sistema="Oceano Estrelado" type="button">
+            <div class="ssc-icon">☽</div>
+            <div class="ssc-name">Oceano Estrelado</div>
+            <div class="ssc-desc">Mares entre as estrelas.<br>Navegação e Tripulação.</div>
+          </button>
 
-          <div class="form-group">
-            <label for="fichaImagem">Imagem do Personagem</label>
-            <input type="file" id="fichaImagem" accept="image/*" />
-          </div>
+          <button class="sistema-select-card" data-sistema="Cavaleiros de Armadura" type="button">
+            <div class="ssc-icon">☠</div>
+            <div class="ssc-name">Cavaleiros de Armadura</div>
+            <div class="ssc-desc">Batalhas e montarias.<br>Corrupção e Honra.</div>
+          </button>
 
-          <div class="ornament">✦</div>
-          <h2 class="forja-section-title">Atributos (JSON)</h2>
-          <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;">Construtor visual ou edição direta do JSON.</p>
-
-          <div id="attrBuilder" class="attr-builder">
-            <div id="attrList"></div>
-            <button type="button" class="btn btn-sm" id="btnAddAttr" style="margin-top:.75rem;">+ Adicionar Atributo</button>
-          </div>
-
-          <div class="form-group" style="margin-top:1rem;">
-            <label for="fichaAtributos">JSON dos Atributos</label>
-            <textarea id="fichaAtributos" rows="8" placeholder='{"Força": 10, "Destreza": 8}'></textarea>
-          </div>
-
-          <div class="form-actions" style="margin-top:1.5rem;">
-            <button class="btn" type="button" id="btnLimpar">Limpar</button>
-            <button class="btn btn-primary btn-lg" type="button" id="btnSalvarFicha">Forjar Personagem</button>
-          </div>
         </div>
 
-        <!-- PAINEL DIREITO: PREVIEW + LISTA -->
-        <div class="forja-preview-panel">
-          <h2 class="forja-section-title">Pré-visualização</h2>
-          <div class="ficha-preview card" id="fichaPreview">
-            <div class="preview-header">
-              <div class="preview-avatar" id="previewAvatar">⚔</div>
-              <div>
-                <div class="preview-nome" id="previewNome">Nome do Personagem</div>
-                <div class="preview-sistema" id="previewSistema">Decadência Cinza</div>
-                <div class="preview-classe" id="previewClasse" style="font-size:.72rem;color:var(--gold-dim);font-family:var(--font-heading);letter-spacing:.1em;text-transform:uppercase;margin-top:.15rem;"></div>
-              </div>
-            </div>
-            <div class="ornament">✦</div>
-            <div class="preview-attrs" id="previewAttrs">
-              <p style="color:var(--text-muted);font-size:.85rem;grid-column:1/-1;">Adicione atributos...</p>
-            </div>
+        <!-- Lista de fichas existentes -->
+        <div style="margin-top:2.5rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+            <span class="section-label">Fichas Salvas</span>
+            <button class="btn btn-sm" id="btnRefreshLista" type="button">↻ Atualizar</button>
           </div>
-
-          <div style="margin-top:2rem;">
-            <div class="section-header">
-              <span class="section-title">Fichas Salvas</span>
-              <button class="btn btn-sm" type="button" id="btnCarregarFichas">↻ Atualizar</button>
-            </div>
-            <!-- Filtro por sistema na forja -->
-            <div class="sistema-nav" style="margin-bottom:1rem;">
-              <button class="sistema-btn active" data-fsistema="todos" type="button">Todos</button>
-              <button class="sistema-btn" data-fsistema="Decadência Cinza" type="button">☀ Cinza</button>
-              <button class="sistema-btn" data-fsistema="Oceano Estrelado" type="button">☽ Oceano</button>
-              <button class="sistema-btn" data-fsistema="Cavaleiros de Armadura" type="button">☠ Cavaleiros</button>
-            </div>
-            <div id="listaFichasForja" class="ficha-list-forja"></div>
+          <div class="filtro-sistema-row">
+            <button class="fsys-btn active" data-fsistema="todos" type="button">Todos</button>
+            <button class="fsys-btn" data-fsistema="Decadência Cinza" type="button">☀ Cinza</button>
+            <button class="fsys-btn" data-fsistema="Oceano Estrelado" type="button">☽ Oceano</button>
+            <button class="fsys-btn" data-fsistema="Cavaleiros de Armadura" type="button">☠ Cavaleiros</button>
           </div>
+          <div id="listaFichasForja"></div>
         </div>
       </div>
+
+      <!-- ================= ETAPA 1.5: ROLL DE ALMA (só DC) ================= -->
+      <div id="etapaRoll" style="display:none;">
+        <div class="roll-panel" id="rollPanel">
+          <div class="roll-header">
+            <div class="roll-symbol">☀</div>
+            <h2 class="roll-title">Decadência Cinza</h2>
+            <p class="roll-subtitle">Antes de criar seu personagem, o destino deve revelar<br>a natureza de sua alma.</p>
+          </div>
+          <button class="btn-roll" id="btnRollAlma" type="button">
+            <span class="roll-dice">⚄</span>
+            Rolar Tipo de Alma
+          </button>
+          <div id="rollResultado" class="roll-resultado" style="display:none;"></div>
+          <div class="roll-actions" id="rollActions" style="display:none;">
+            <button class="btn btn-sm" id="btnRolarNovamente" type="button">↺ Rolar Novamente</button>
+            <button class="btn btn-primary" id="btnAceitarAlma" type="button">Aceitar e Criar Ficha →</button>
+          </div>
+          <button class="btn btn-sm" style="margin-top:1rem;opacity:.5;" id="btnVoltarSistema" type="button">← Voltar</button>
+        </div>
+      </div>
+
+      <!-- ================= ETAPA 2: FICHA COMPLETA ================= -->
+      <div id="etapa2" style="display:none;">
+        <div class="forja-layout">
+
+          <!-- COLUNA ESQUERDA: FORMULÁRIO -->
+          <div class="forja-form-col">
+
+            <!-- CABEÇALHO DA FICHA -->
+            <div class="ficha-section" id="secaoAlma">
+              <div class="ficha-section-title">
+                <span id="almaIcone">☀</span> Identidade &amp; Alma
+              </div>
+              <input type="hidden" id="fichaId" />
+              <input type="hidden" id="fichaIdAlma" />
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Nome *</label>
+                  <input type="text" id="fichaNome" placeholder="Nome do personagem" />
+                </div>
+                <div class="form-group">
+                  <label>Idade</label>
+                  <input type="text" id="fichaIdade" placeholder="Ex: 27" />
+                </div>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Profissão</label>
+                  <input type="text" id="fichaProfissao" placeholder="Ex: Detetive" />
+                </div>
+                <div class="form-group">
+                  <label>Expectativa de Vida</label>
+                  <input type="text" id="fichaExpectativa" placeholder="Ex: 60 anos" />
+                </div>
+              </div>
+
+              <!-- Tipo de alma (renderizado dinamicamente) -->
+              <div id="blocoAlma" class="bloco-alma" style="display:none;"></div>
+
+              <div class="form-group" style="margin-top:.75rem;">
+                <label>Imagem do Personagem</label>
+                <input type="file" id="fichaImagem" accept="image/*" />
+              </div>
+            </div>
+
+            <!-- STATUS -->
+            <div class="ficha-section">
+              <div class="ficha-section-title">❤ Status</div>
+              <div class="recurso-row">
+                <span class="recurso-label">Vida</span>
+                <div class="recurso-inputs">
+                  <input type="number" class="rec-inp" id="vidaAtual" placeholder="Atual" min="0"/>
+                  <span class="rec-sep">/</span>
+                  <input type="number" class="rec-inp" id="vidaMax" placeholder="Máx" min="0"/>
+                </div>
+              </div>
+              <div class="recurso-row">
+                <span class="recurso-label">Sanidade</span>
+                <div class="recurso-inputs">
+                  <input type="number" class="rec-inp" id="sanAtual" placeholder="Atual" min="0"/>
+                  <span class="rec-sep">/</span>
+                  <input type="number" class="rec-inp" id="sanMax" placeholder="Máx" min="0"/>
+                </div>
+              </div>
+              <div class="recurso-row">
+                <span class="recurso-label">Estamina</span>
+                <div class="recurso-inputs">
+                  <input type="number" class="rec-inp" id="estAtual" placeholder="Atual" min="0"/>
+                  <span class="rec-sep">/</span>
+                  <input type="number" class="rec-inp" id="estMax" placeholder="Máx" min="0"/>
+                </div>
+              </div>
+            </div>
+
+            <!-- NECESSIDADES BÁSICAS (só DC) -->
+            <div class="ficha-section" id="secaoNecessidades" style="display:none;">
+              <div class="ficha-section-title">🍞 Necessidades Básicas</div>
+              <div class="recurso-row">
+                <span class="recurso-label">Saciedade</span>
+                <div class="recurso-inputs">
+                  <input type="number" class="rec-inp" id="sacAtual" value="10" min="0"/>
+                  <span class="rec-sep">/</span>
+                  <input type="number" class="rec-inp" id="sacMax" value="10" min="0"/>
+                </div>
+              </div>
+              <div class="recurso-row">
+                <span class="recurso-label">Sede</span>
+                <div class="recurso-inputs">
+                  <input type="number" class="rec-inp" id="sedeAtual" value="10" min="0"/>
+                  <span class="rec-sep">/</span>
+                  <input type="number" class="rec-inp" id="sedeMax" value="10" min="0"/>
+                </div>
+              </div>
+              <div class="recurso-row">
+                <span class="recurso-label">Energia</span>
+                <div class="recurso-inputs">
+                  <input type="number" class="rec-inp" id="energiaAtual" value="10" min="0"/>
+                  <span class="rec-sep">/</span>
+                  <input type="number" class="rec-inp" id="energiaMax" value="10" min="0"/>
+                </div>
+              </div>
+            </div>
+
+            <!-- CAPACITAÇÕES (calculadas) -->
+            <div class="ficha-section" id="secaoCapacitacoes" style="display:none;">
+              <div class="ficha-section-title">⚖ Capacitações</div>
+              <div class="cap-grid">
+                <div class="cap-item">
+                  <div class="cap-val" id="capEsquiva">10</div>
+                  <div class="cap-label">Esquiva</div>
+                </div>
+                <div class="cap-item">
+                  <div class="cap-val" id="capPercepcao">10</div>
+                  <div class="cap-label">Percepção</div>
+                </div>
+                <div class="cap-item">
+                  <div class="cap-val" id="capDefesa">0</div>
+                  <div class="cap-label">Defesa</div>
+                </div>
+                <div class="cap-item">
+                  <div class="cap-val" id="capPeso">—</div>
+                  <div class="cap-label">Peso ⚖</div>
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:.75rem;">
+                <label>RD da Roupa</label>
+                <input type="number" id="rdRoupa" value="0" min="0" style="width:80px;" />
+              </div>
+            </div>
+
+            <!-- ECONOMIA -->
+            <div class="ficha-section" id="secaoEconomia" style="display:none;">
+              <div class="ficha-section-title">💰 Economia</div>
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label>Dinheiro</label>
+                  <input type="text" id="ecoDinheiro" placeholder="R$ 0" />
+                </div>
+                <div class="form-group">
+                  <label>Gasto Fixo</label>
+                  <input type="text" id="ecoGasto" placeholder="R$ 0" />
+                </div>
+                <div class="form-group">
+                  <label>Renda</label>
+                  <input type="text" id="ecoRenda" placeholder="R$ 0" />
+                </div>
+              </div>
+            </div>
+
+            <!-- ATRIBUTOS COM DOTS -->
+            <div class="ficha-section">
+              <div class="ficha-section-title">⚔ Atributos</div>
+              <div id="attrDotsContainer"></div>
+            </div>
+
+            <!-- PERÍCIAS COM DOTS -->
+            <div class="ficha-section">
+              <div class="ficha-section-title">
+                📖 Perícias
+                <button class="btn-add-small" id="btnAddPericia" type="button">+ Adicionar</button>
+              </div>
+              <div id="periciasDotsContainer"></div>
+            </div>
+
+            <!-- PERÍCIAS DE PROFISSÃO -->
+            <div class="ficha-section" id="secaoPericiasProfissao" style="display:none;">
+              <div class="ficha-section-title">
+                💼 Perícias de Profissão
+                <button class="btn-add-small" id="btnAddPericiaProf" type="button">+ Adicionar</button>
+              </div>
+              <div id="periciaProfContainer"></div>
+            </div>
+
+            <!-- LISTAS CLICÁVEIS -->
+            <div class="ficha-section">
+              <div class="ficha-section-title">
+                ✨ Habilidades
+                <button class="btn-add-small" onclick="abrirModalItem('habilidades')" type="button">+ Adicionar</button>
+              </div>
+              <div class="clickable-grid" id="gridHabilidades"></div>
+            </div>
+
+            <div class="ficha-section">
+              <div class="ficha-section-title">
+                🌟 Qualidades
+                <button class="btn-add-small" onclick="abrirModalItem('qualidades')" type="button">+ Adicionar</button>
+              </div>
+              <div class="clickable-grid" id="gridQualidades"></div>
+            </div>
+
+            <div class="ficha-section">
+              <div class="ficha-section-title">
+                ⚠ Defeitos
+                <button class="btn-add-small" onclick="abrirModalItem('defeitos')" type="button">+ Adicionar</button>
+              </div>
+              <div class="clickable-grid" id="gridDefeitos"></div>
+            </div>
+
+            <div class="ficha-section">
+              <div class="ficha-section-title">
+                🎒 Inventário
+                <button class="btn-add-small" onclick="abrirModalItem('itens')" type="button">+ Adicionar</button>
+              </div>
+              <div class="clickable-grid" id="gridItens"></div>
+            </div>
+
+            <!-- CARACTERÍSTICAS EXTRAS -->
+            <div class="ficha-section">
+              <div class="ficha-section-title">
+                📝 Características
+                <button class="btn-add-small" onclick="abrirModalItem('caracteristicas')" type="button">+ Adicionar</button>
+              </div>
+              <div class="clickable-grid" id="gridCaracteristicas"></div>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="forja-actions">
+              <button class="btn" type="button" id="btnCancelarFicha">← Cancelar</button>
+              <button class="btn btn-primary btn-lg" type="button" id="btnSalvarFicha">Forjar Personagem</button>
+            </div>
+
+          </div>
+
+          <!-- COLUNA DIREITA: PREVIEW -->
+          <div class="forja-preview-col">
+            <div class="preview-sticky">
+              <div class="ficha-preview-card" id="previewCard">
+                <div class="preview-avatar" id="previewAvatar">⚔</div>
+                <div class="preview-nome" id="previewNome">Nome do Personagem</div>
+                <div class="preview-meta" id="previewMeta">—</div>
+                <div class="preview-alma-badge" id="previewAlmaBadge" style="display:none;"></div>
+                <div class="preview-stats" id="previewStats"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </main>
+
+  <!-- MODAL: Item (habilidades, qualidades, etc.) -->
+  <div class="forja-modal-overlay" id="modalItemOverlay">
+    <div class="forja-modal">
+      <button class="modal-close" id="btnFecharModalItem" type="button">✕</button>
+      <div class="modal-title" id="modalItemTitulo">Adicionar Item</div>
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" id="modalItemNome" placeholder="Nome..." />
+      </div>
+      <div class="form-group">
+        <label>Descrição (opcional)</label>
+        <textarea id="modalItemDesc" rows="4" placeholder="Descrição..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-danger btn-sm" id="btnDeletarItem" type="button" style="display:none;">Excluir</button>
+        <button class="btn btn-primary" id="btnConfirmarItem" type="button">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Adicionar Perícia -->
+  <div class="forja-modal-overlay" id="modalPericiaOverlay">
+    <div class="forja-modal">
+      <button class="modal-close" id="btnFecharModalPericia" type="button">✕</button>
+      <div class="modal-title">Nova Perícia</div>
+      <div class="form-group">
+        <label>Nome da Perícia</label>
+        <input type="text" id="modalPericiaNome" placeholder="Ex: Culinária" />
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="modalPericiaTipo">
+          <option value="basica">Perícia Básica</option>
+          <option value="profissao">Perícia de Profissão</option>
+          <option value="outra">Outra Perícia</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="btnConfirmarPericia" type="button">Adicionar</button>
+      </div>
+    </div>
+  </div>
 
   <script src="js/api.js"></script>
   <script src="js/auth-guard.js"></script>
