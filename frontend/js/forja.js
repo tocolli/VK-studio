@@ -77,6 +77,8 @@
   // ===== ESTADO GLOBAL =====
   let sistemaAtivo   = null;
   let almaRolada     = null; // { tipo, extra, nucleos }
+  let totalRolagens  = 0;
+const MAX_ROLAGENS = 2;
   let fichaState     = {};
   let fichasCache    = [];
   let filtroSistema  = 'todos';

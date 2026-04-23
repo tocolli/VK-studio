@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meu Perfil — VK.Studio</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/dashboard.css"/>
+  <link rel="stylesheet" href="css/perfil.css"/>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand"><div class="sigil">⚔</div>VK.Studio</div>
+    <button class="hamburger" id="hamburger" type="button"><span></span><span></span><span></span></button>
+    <ul class="navbar-nav" id="navMenu">
+      <li><a href="/dashboard">⚔ Câmara</a></li>
+      <li><a href="/forja">🔥 Forja</a></li>
+      <li id="navAdmin" style="display:none;"><a href="/admin">🛡 Admin</a></li>
+      <li><a href="/perfil" class="active">👤 Perfil</a></li>
+    </ul>
+    <div class="navbar-user">
+      <span id="navUserName"></span>
+      <div class="user-avatar" id="navAvatar">👤</div>
+      <button class="btn btn-sm btn-danger" onclick="VK.logout()" type="button">Sair</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container page-content">
+
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div>
+            <h1 class="page-title">👤 Meu Perfil</h1>
+            <p class="page-subtitle">Personalize sua conta</p>
+          </div>
+          <a href="/dashboard" class="btn btn-sm">← Câmara</a>
+        </div>
+      </div>
+
+      <div id="alertPerfil" class="alert" style="margin-bottom:1.5rem;"></div>
+
+      <div class="perfil-layout">
+
+        <!-- AVATAR -->
+        <div class="perfil-avatar-col">
+          <div class="avatar-card card">
+            <div class="avatar-grande" id="avatarGrande">👤</div>
+            <div class="avatar-nome" id="avatarNome">—</div>
+            <div class="avatar-role" id="avatarRole">—</div>
+            <div class="avatar-membro" id="avatarMembro">—</div>
+
+            <div class="avatar-upload-area" id="avatarDropArea">
+              <input type="file" id="avatarFile" accept="image/*" style="display:none;"/>
+              <div class="upload-icon">📷</div>
+              <p class="upload-label">Clique ou arraste uma foto</p>
+              <p class="upload-sub">JPG, PNG ou WebP · Máx 5MB</p>
+            </div>
+
+            <div id="avatarPreviewWrap" style="display:none;margin-top:1rem;">
+              <img id="avatarPreview" style="width:80px;height:80px;border-radius:50%;border:2px solid var(--border-gold);object-fit:cover;"/>
+              <div style="display:flex;gap:.5rem;margin-top:.75rem;justify-content:center;">
+                <button class="btn btn-sm" id="btnCancelarAvatar" type="button">Cancelar</button>
+                <button class="btn btn-primary btn-sm" id="btnSalvarAvatar" type="button">Salvar Foto</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DADOS -->
+        <div class="perfil-dados-col">
+
+          <div class="card" style="padding:1.5rem;margin-bottom:1rem;">
+            <div class="ficha-section-title" style="margin-bottom:1rem;">📋 Informações da Conta</div>
+            <div class="perfil-info-row"><span class="perfil-info-label">Nome</span><span class="perfil-info-val" id="infoNome">—</span></div>
+            <div class="perfil-info-row"><span class="perfil-info-label">E-mail</span><span class="perfil-info-val" id="infoEmail">—</span></div>
+            <div class="perfil-info-row"><span class="perfil-info-label">Função</span><span class="perfil-info-val" id="infoRole">—</span></div>
+            <div class="perfil-info-row"><span class="perfil-info-label">Membro desde</span><span class="perfil-info-val" id="infoMembro">—</span></div>
+          </div>
+
+          <div class="card" style="padding:1.5rem;margin-bottom:1rem;">
+            <div class="ficha-section-title" style="margin-bottom:1rem;">⚔ Minhas Fichas</div>
+            <div id="perfilFichas">
+              <div style="color:var(--text-muted);font-size:.85rem;">Carregando fichas...</div>
+            </div>
+          </div>
+
+          <div class="card" style="padding:1.5rem;">
+            <div class="ficha-section-title" style="margin-bottom:1rem;">📋 Últimas Atividades</div>
+            <div id="perfilAtividades">
+              <div style="color:var(--text-muted);font-size:.85rem;">Carregando atividades...</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth-guard.js"></script>
+  <script src="js/perfil.js"></script>
+</body>
+</html>

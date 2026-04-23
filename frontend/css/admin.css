@@ -1,0 +1,137 @@
+/* admin.css */
+.admin-filtros { padding:1.25rem; }
+.filtros-row { display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end; }
+
+/* FEED */
+.atividade-item {
+  display:flex;gap:1rem;align-items:flex-start;
+  padding:.9rem 1rem;
+  background:var(--bg-card);
+  border:1px solid var(--border-color);
+  border-radius:6px;
+  margin-bottom:.5rem;
+  transition:var(--transition);
+  position:relative;
+}
+.atividade-item:hover { border-color:var(--border-gold); }
+
+/* linha lateral colorida por tipo */
+.atividade-item::before {
+  content:'';
+  position:absolute;left:0;top:0;bottom:0;
+  width:3px;border-radius:3px 0 0 3px;
+  background:var(--border-gold);
+}
+.atividade-item.tipo-vida::before      { background:#c94a4a; }
+.atividade-item.tipo-sanidade::before  { background:#4a8ac9; }
+.atividade-item.tipo-estamina::before  { background:#4ac98a; }
+.atividade-item.tipo-ficha::before     { background:var(--gold-dim); }
+.atividade-item.tipo-status::before    { background:#c9a84c; }
+
+.ativ-avatar {
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid var(--border-gold);
+  background:var(--bg-card);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;color:var(--gold-dim);flex-shrink:0;overflow:hidden;
+}
+.ativ-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+
+.ativ-corpo { flex:1;min-width:0; }
+
+.ativ-titulo {
+  font-family:var(--font-heading);
+  font-size:.85rem;
+  color:var(--text-primary);
+  margin-bottom:.2rem;
+  line-height:1.4;
+}
+.ativ-titulo strong { color:var(--gold-light); }
+.ativ-titulo .campo { color:var(--text-secondary); }
+
+.ativ-diff {
+  display:inline-flex;align-items:center;gap:.4rem;
+  font-family:var(--font-heading);font-size:.72rem;
+  background:rgba(0,0,0,.3);
+  border:1px solid var(--border-color);
+  border-radius:3px;
+  padding:.2rem .6rem;
+  margin:.2rem 0;
+}
+.ativ-diff .val-ant { color:#e74c3c; text-decoration:line-through;opacity:.8; }
+.ativ-diff .seta    { color:var(--text-muted); }
+.ativ-diff .val-nov { color:#27ae60; }
+
+.ativ-meta {
+  font-size:.72rem;
+  color:var(--text-muted);
+  font-family:var(--font-heading);
+  letter-spacing:.06em;
+}
+.ativ-personagem {
+  font-style:italic;
+  color:var(--gold-dim);
+  margin-right:.5rem;
+}
+
+/* PAGINAÇÃO */
+.paginacao {
+  display:flex;align-items:center;justify-content:center;
+  gap:1rem;padding:1.5rem 0;
+}
+
+/* TABELA USUÁRIOS */
+.usuarios-table {
+  width:100%;border-collapse:collapse;
+  font-family:var(--font-body);font-size:.95rem;
+}
+.usuarios-table th {
+  font-family:var(--font-heading);font-size:.72rem;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-muted);
+  padding:.6rem 1rem;text-align:left;
+  border-bottom:1px solid var(--border-color);
+}
+.usuarios-table td {
+  padding:.75rem 1rem;
+  border-bottom:1px solid rgba(42,40,32,.3);
+  color:var(--text-primary);
+  vertical-align:middle;
+}
+.usuarios-table tr:hover td { background:rgba(201,168,76,.03); }
+
+.role-badge {
+  font-family:var(--font-heading);font-size:.65rem;letter-spacing:.1em;
+  text-transform:uppercase;padding:.2rem .6rem;border-radius:2px;border:1px solid;
+}
+.role-badge.mestre  { color:var(--gold);border-color:var(--gold-dim);background:rgba(201,168,76,.1); }
+.role-badge.jogador { color:var(--text-secondary);border-color:var(--text-muted);background:rgba(74,72,64,.1); }
+
+.user-mini-avatar {
+  width:28px;height:28px;border-radius:50%;border:1px solid var(--border-gold);
+  background:var(--bg-card);display:inline-flex;align-items:center;
+  justify-content:center;font-size:.7rem;color:var(--gold-dim);
+  vertical-align:middle;margin-right:.5rem;overflow:hidden;
+}
+.user-mini-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+
+.empty-feed {
+  text-align:center;padding:3rem 1rem;color:var(--text-muted);
+  font-family:var(--font-heading);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;
+}
+
+/* form-group herdado */
+.form-group { display:flex;flex-direction:column;gap:.3rem; }
+.form-group label { font-family:var(--font-heading);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted); }
+select,input[type="text"],input[type="number"] {
+  background:rgba(10,10,12,.8);border:1px solid var(--border-color);border-radius:4px;
+  color:var(--text-primary);font-family:var(--font-body);font-size:.95rem;
+  padding:.55rem .85rem;transition:var(--transition);outline:none;width:100%;
+}
+select:focus,input:focus { border-color:var(--gold-dim);box-shadow:0 0 0 2px rgba(201,168,76,.08); }
+
+@media(max-width:640px){
+  .filtros-row { flex-direction:column; }
+  .usuarios-table { font-size:.82rem; }
+  .usuarios-table td,.usuarios-table th { padding:.5rem .6rem; }
+}

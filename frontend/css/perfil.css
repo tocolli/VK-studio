@@ -1,0 +1,124 @@
+/* perfil.css */
+.perfil-layout {
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:2rem;
+  align-items:start;
+}
+
+/* AVATAR CARD */
+.avatar-card {
+  text-align:center;
+  padding:1.75rem 1.25rem;
+  position:sticky;top:80px;
+}
+
+.avatar-grande {
+  width:110px;height:110px;border-radius:50%;
+  border:2px solid var(--border-gold);
+  background:radial-gradient(circle,rgba(201,168,76,.1),var(--bg-primary));
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.5rem;color:var(--gold-dim);
+  margin:0 auto 1rem;
+  box-shadow:0 0 24px rgba(201,168,76,.12);
+  overflow:hidden;
+}
+.avatar-grande img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+
+.avatar-nome {
+  font-family:var(--font-heading);font-size:1rem;
+  color:var(--gold-light);margin-bottom:.2rem;
+}
+.avatar-role {
+  font-family:var(--font-heading);font-size:.72rem;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gold-dim);margin-bottom:.25rem;
+}
+.avatar-membro {
+  font-size:.8rem;color:var(--text-muted);
+  margin-bottom:1.25rem;
+}
+
+/* UPLOAD AREA */
+.avatar-upload-area {
+  border:1px dashed var(--border-gold);
+  border-radius:8px;padding:1rem .75rem;
+  cursor:pointer;
+  transition:var(--transition);
+  background:rgba(0,0,0,.2);
+}
+.avatar-upload-area:hover { border-color:var(--gold);background:rgba(201,168,76,.05); }
+
+.upload-icon { font-size:1.5rem;margin-bottom:.4rem;opacity:.6; }
+.upload-label {
+  font-family:var(--font-heading);font-size:.72rem;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-secondary);margin-bottom:.2rem;
+}
+.upload-sub { font-size:.72rem;color:var(--text-muted); }
+
+/* DADOS */
+.perfil-info-row {
+  display:flex;justify-content:space-between;align-items:center;
+  padding:.6rem 0;
+  border-bottom:1px solid rgba(42,40,32,.3);
+}
+.perfil-info-row:last-child { border-bottom:none; }
+.perfil-info-label {
+  font-family:var(--font-heading);font-size:.72rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);
+}
+.perfil-info-val { font-family:var(--font-body);font-size:.95rem;color:var(--text-primary); }
+
+/* FICHAS MINI */
+.perfil-ficha-item {
+  display:flex;align-items:center;gap:.75rem;
+  padding:.6rem .75rem;
+  background:rgba(0,0,0,.2);
+  border:1px solid var(--border-color);
+  border-radius:4px;margin-bottom:.4rem;
+  transition:var(--transition);
+  text-decoration:none;
+}
+.perfil-ficha-item:hover { border-color:var(--border-gold); }
+.perfil-ficha-avatar {
+  width:32px;height:32px;border-radius:50%;
+  border:1px solid var(--border-gold);
+  background:var(--bg-primary);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;color:var(--gold-dim);flex-shrink:0;overflow:hidden;
+}
+.perfil-ficha-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+.perfil-ficha-nome {
+  font-family:var(--font-heading);font-size:.82rem;color:var(--text-primary);
+}
+.perfil-ficha-sistema { font-size:.72rem;color:var(--text-muted); }
+
+/* ATIVIDADES MINI */
+.perfil-atv-item {
+  padding:.5rem 0;
+  border-bottom:1px solid rgba(42,40,32,.2);
+  font-size:.85rem;
+  color:var(--text-secondary);
+}
+.perfil-atv-item:last-child { border-bottom:none; }
+.perfil-atv-campo {
+  font-family:var(--font-heading);font-size:.7rem;
+  color:var(--gold-dim);text-transform:uppercase;letter-spacing:.08em;
+}
+.perfil-atv-diff { color:var(--text-muted);font-size:.78rem; }
+.perfil-atv-hora { float:right;color:var(--text-muted);font-size:.72rem; }
+
+/* ALERT */
+.alert{padding:.75rem 1rem;border-radius:4px;font-size:.9rem;border-left:3px solid;display:none;}
+.alert.show{display:block;}
+.alert-error{background:rgba(146,43,33,.12);border-color:#922b21;color:#e74c3c;}
+.alert-success{background:rgba(30,107,74,.12);border-color:#1e6b4a;color:#27ae60;}
+
+/* ficha-section-title herdado */
+.ficha-section-title{font-family:var(--font-heading);font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold-dim);}
+
+@media(max-width:768px){
+  .perfil-layout{grid-template-columns:1fr;}
+  .avatar-card{position:static;}
+}

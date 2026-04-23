@@ -13,7 +13,9 @@
     <button class="hamburger" id="hamburger" type="button"><span></span><span></span><span></span></button>
     <ul class="navbar-nav" id="navMenu">
       <li><a href="/dashboard" class="active">⚔ Câmara</a></li>
-      <li><a href="/forja">🔥Criar nova ficha</a></li>
+      <li><a href="/forja">🔥 Forja</a></li>
+      <li id="navAdmin" style="display:none;"><a href="/admin">🛡 Admin</a></li>
+      <li><a href="/perfil">👤 Perfil</a></li>
     </ul>
     <div class="navbar-user">
       <span id="navUserName"></span>
@@ -71,12 +73,24 @@
           <label for="docConteudo">Conteúdo</label>
           <textarea id="docConteudo" placeholder="Escreva o conteúdo..." rows="6"></textarea>
         </div>
-        <div class="form-grid-2" style="margin-top:1rem;">
+        <div class="form-grid-3" style="margin-top:1rem;">
           <div class="form-group">
             <label for="docVisibilidade">Visibilidade</label>
             <select id="docVisibilidade">
               <option value="publico">Público (jogadores veem)</option>
               <option value="privado">Privado (só Mestre)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="docTagRaridade">Tag de Raridade</label>
+            <select id="docTagRaridade">
+              <option value="">— Sem tag —</option>
+              <option value="D-">D-</option><option value="D">D</option><option value="D+">D+</option>
+              <option value="C-">C-</option><option value="C">C</option><option value="C+">C+</option>
+              <option value="B-">B-</option><option value="B">B</option><option value="B+">B+</option>
+              <option value="A-">A-</option><option value="A">A</option><option value="A+">A+</option>
+              <option value="S-">S-</option><option value="S">S</option><option value="S+">S+</option>
+              <option value="X">X</option>
             </select>
           </div>
           <div class="form-group">
@@ -106,11 +120,11 @@
             <span>Decadência Cinza</span>
           </button>
           <button class="sistema-btn" data-sistema="Oceano Estrelado" type="button">
-            <span class="sistema-icon">🌊</span>
+            <span class="sistema-icon">☽</span>
             <span>Oceano Estrelado</span>
           </button>
           <button class="sistema-btn" data-sistema="Cavaleiros de Armadura" type="button">
-            <span class="sistema-icon">⚔️</span>
+            <span class="sistema-icon">☠</span>
             <span>Cavaleiros de Armadura</span>
           </button>
         </div>

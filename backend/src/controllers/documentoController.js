@@ -1,42 +1,29 @@
 // backend/src/controllers/documentoController.js
 const { pool } = require('../config/database');
 
-// Árvore canônica de sistemas e categorias
 const SISTEMAS = {
-  'Decadência Cinza': ['Livro de Regras','Itens','Bestiário','Armas Brancas','Armas de Fogo','Armaduras','Classes','Veículos','Magias/Rituais'],
-  'Oceano Estrelado': ['Livro de Regras','Itens','Bestiário','Armas Brancas','Armas de Fogo','Armaduras','Classes','Embarcações','Magias/Rituais','Tripulação'],
-  'Cavaleiros de Armadura': ['Livro de Regras','Itens','Bestiário','Armas Brancas','Armas de Fogo','Armaduras','Classes','Montaria','Magias/Rituais'],
+  'Decadência Cinza':      ['Livro de Regras','Itens','Bestiário','Armas Brancas','Armas de Fogo','Armaduras','Classes','Veículos','Magias/Rituais'],
+  'Oceano Estrelado':      ['Livro de Regras','Itens','Bestiário','Armas Brancas','Armas de Fogo','Armaduras','Classes','Embarcações','Magias/Rituais','Tripulação'],
+  'Cavaleiros de Armadura':['Livro de Regras','Itens','Bestiário','Armas Brancas','Armas de Fogo','Armaduras','Classes','Montaria','Magias/Rituais'],
 };
+
+const TAGS_RARIDADE = ['D-','D','D+','C-','C','C+','B-','B','B+','A-','A','A+','S-','S','S+','X'];
 
 async function listar(req, res) {
   try {
     const isMestre = req.user?.role === 'mestre';
-    const { sistema, categoria } = req.query;
-
+    const { sistema, categoria, tag } = req.query;
     const conditions = [];
     const params = [];
-
-    if (!isMestre) {
-      conditions.push('d.visibilidade = "publico"');
-    }
-    if (sistema) {
-      conditions.push('d.sistema = ?');
-      params.push(sistema);
-    }
-    if (categoria) {
-      conditions.push('d.categoria = ?');
-      params.push(categoria);
-    }
-
+    if (!isMestre) { conditions.push('d.visibilidade = "publico"'); }
+    if (sistema)   { conditions.push('d.sistema = ?');   params.push(sistema); }
+    if (categoria) { conditions.push('d.categoria = ?'); params.push(categoria); }
+    if (tag)       { conditions.push('d.tag_raridade = ?'); params.push(tag); }
     const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-    const query = `
-      SELECT d.*, u.nome as autor_nome
-      FROM documentos d
-      JOIN users u ON d.autor_id = u.id
-      ${where}
-      ORDER BY d.created_at DESC
-    `;
-    const [rows] = await pool.execute(query, params);
+    const [rows] = await pool.execute(
+      `SELECT d.*, u.nome as autor_nome FROM documentos d JOIN users u ON d.autor_id = u.id ${where} ORDER BY d.created_at DESC`,
+      params
+    );
     return res.json({ success: true, documentos: rows, sistemas: SISTEMAS });
   } catch (err) {
     console.error('Erro ao listar documentos:', err);
@@ -45,7 +32,7 @@ async function listar(req, res) {
 }
 
 async function getSistemas(req, res) {
-  return res.json({ success: true, sistemas: SISTEMAS });
+  return res.json({ success: true, sistemas: SISTEMAS, tags: TAGS_RARIDADE });
 }
 
 async function buscarPorId(req, res) {
@@ -53,9 +40,7 @@ async function buscarPorId(req, res) {
     const { id } = req.params;
     const isMestre = req.user?.role === 'mestre';
     const [rows] = await pool.execute(
-      `SELECT d.*, u.nome as autor_nome FROM documentos d
-       JOIN users u ON d.autor_id = u.id WHERE d.id = ?`,
-      [id]
+      `SELECT d.*, u.nome as autor_nome FROM documentos d JOIN users u ON d.autor_id = u.id WHERE d.id = ?`, [id]
     );
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Não encontrado.' });
     const doc = rows[0];
@@ -68,15 +53,13 @@ async function buscarPorId(req, res) {
 
 async function criar(req, res) {
   try {
-    const { titulo, conteudo, sistema, categoria, visibilidade } = req.body;
+    const { titulo, conteudo, sistema, categoria, visibilidade, tag_raridade } = req.body;
     const imagem_url = req.file?.path || null;
     if (!titulo) return res.status(400).json({ success: false, message: 'Título é obrigatório.' });
-    const sistemaVal = sistema || 'Decadência Cinza';
-    const categoriaVal = categoria || 'Livro de Regras';
+    const tag = TAGS_RARIDADE.includes(tag_raridade) ? tag_raridade : null;
     const [result] = await pool.execute(
-      `INSERT INTO documentos (titulo, conteudo, sistema, categoria, visibilidade, autor_id, imagem_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [titulo, conteudo || '', sistemaVal, categoriaVal, visibilidade || 'publico', req.user.id, imagem_url]
+      `INSERT INTO documentos (titulo, conteudo, sistema, categoria, visibilidade, autor_id, imagem_url, tag_raridade) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [titulo, conteudo || '', sistema || 'Decadência Cinza', categoria || 'Livro de Regras', visibilidade || 'publico', req.user.id, imagem_url, tag]
     );
     return res.status(201).json({ success: true, message: 'Documento criado!', id: result.insertId });
   } catch (err) {
@@ -88,10 +71,11 @@ async function criar(req, res) {
 async function atualizar(req, res) {
   try {
     const { id } = req.params;
-    const { titulo, conteudo, sistema, categoria, visibilidade } = req.body;
+    const { titulo, conteudo, sistema, categoria, visibilidade, tag_raridade } = req.body;
     const imagem_url = req.file?.path;
-    let query = `UPDATE documentos SET titulo=?, conteudo=?, sistema=?, categoria=?, visibilidade=?`;
-    const params = [titulo, conteudo, sistema, categoria, visibilidade];
+    const tag = TAGS_RARIDADE.includes(tag_raridade) ? tag_raridade : null;
+    let query = `UPDATE documentos SET titulo=?, conteudo=?, sistema=?, categoria=?, visibilidade=?, tag_raridade=?`;
+    const params = [titulo, conteudo, sistema, categoria, visibilidade, tag];
     if (imagem_url) { query += `, imagem_url=?`; params.push(imagem_url); }
     query += ` WHERE id=?`;
     params.push(id);

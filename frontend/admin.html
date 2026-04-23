@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — VK.Studio</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/dashboard.css"/>
+  <link rel="stylesheet" href="css/admin.css"/>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand"><div class="sigil">⚔</div>VK.Studio</div>
+    <button class="hamburger" id="hamburger" type="button"><span></span><span></span><span></span></button>
+    <ul class="navbar-nav" id="navMenu">
+      <li><a href="/dashboard">⚔ Câmara</a></li>
+      <li><a href="/forja">🔥 Forja</a></li>
+      <li><a href="/admin" class="active">🛡 Admin</a></li>
+      <li><a href="/perfil">👤 Perfil</a></li>
+    </ul>
+    <div class="navbar-user">
+      <span id="navUserName"></span>
+      <div class="user-avatar" id="navAvatar">👤</div>
+      <button class="btn btn-sm btn-danger" onclick="VK.logout()" type="button">Sair</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container page-content">
+
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div>
+            <h1 class="page-title">🛡 Painel de Administração</h1>
+            <p class="page-subtitle">Atividades dos Jogadores · VK.Studio</p>
+          </div>
+          <button class="btn btn-sm" id="btnRefresh" type="button">↻ Atualizar</button>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="stUsers">—</div><div class="stat-label">Usuários</div></div>
+        <div class="stat-card"><div class="stat-icon">⚔</div><div class="stat-value" id="stFichas">—</div><div class="stat-label">Fichas Ativas</div></div>
+        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value" id="stAtivHoje">—</div><div class="stat-label">Alterações Hoje</div></div>
+        <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-value" id="stAtivos7d">—</div><div class="stat-label">Jogadores Ativos (7d)</div></div>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="admin-filtros card" style="margin-bottom:1.5rem;">
+        <div class="filtros-row">
+          <div class="form-group" style="flex:1;min-width:160px;">
+            <label>Filtrar por Jogador</label>
+            <select id="filtroUsuario">
+              <option value="">Todos os jogadores</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;min-width:160px;">
+            <label>Tipo de Alteração</label>
+            <select id="filtroCampo">
+              <option value="">Todos os campos</option>
+              <option value="vida">Vida</option>
+              <option value="sanidade">Sanidade</option>
+              <option value="estamina">Estamina</option>
+              <option value="ficha">Criação / Arquivamento</option>
+              <option value="nome do personagem">Nome</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:0 0 auto;align-self:flex-end;">
+            <button class="btn btn-primary" id="btnFiltrar" type="button">Filtrar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEED DE ATIVIDADES -->
+      <div class="section-header" style="margin-bottom:1rem;">
+        <span class="section-title">📋 Feed de Atividades</span>
+        <span id="totalAtividades" style="font-family:var(--font-heading);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);"></span>
+      </div>
+
+      <div id="feedAtividades"></div>
+
+      <!-- PAGINAÇÃO -->
+      <div class="paginacao" id="paginacao" style="display:none;">
+        <button class="btn btn-sm" id="btnAnterior" type="button">← Anterior</button>
+        <span id="paginaInfo" style="font-family:var(--font-heading);font-size:.78rem;color:var(--text-muted);"></span>
+        <button class="btn btn-sm" id="btnProxima" type="button">Próxima →</button>
+      </div>
+
+      <!-- TABELA DE USUÁRIOS -->
+      <div style="margin-top:3rem;">
+        <div class="section-header" style="margin-bottom:1rem;">
+          <span class="section-title">👥 Usuários Cadastrados</span>
+        </div>
+        <div id="tabelaUsuarios"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth-guard.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
