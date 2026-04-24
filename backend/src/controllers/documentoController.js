@@ -18,7 +18,14 @@ async function listar(req, res) {
     if (!isMestre) { conditions.push('d.visibilidade = "publico"'); }
     if (sistema)   { conditions.push('d.sistema = ?');   params.push(sistema); }
     if (categoria) { conditions.push('d.categoria = ?'); params.push(categoria); }
-    if (tag)       { conditions.push('d.tag_raridade = ?'); params.push(tag); }
+    if (req.query.busca) {
+      conditions.push('(d.titulo LIKE ? OR d.tags LIKE ?)');
+      params.push(`%${req.query.busca}%`, `%${req.query.busca}%`);
+    }
+    if (req.query.tag) {
+      conditions.push('d.tags LIKE ?');
+      params.push(`%${req.query.tag}%`);
+    }
     const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
     const [rows] = await pool.execute(
       `SELECT d.*, u.nome as autor_nome FROM documentos d JOIN users u ON d.autor_id = u.id ${where} ORDER BY d.created_at DESC`,
@@ -56,11 +63,11 @@ async function criar(req, res) {
     const { titulo, conteudo, sistema, categoria, visibilidade, tag_raridade } = req.body;
     const imagem_url = req.file?.path || null;
     if (!titulo) return res.status(400).json({ success: false, message: 'Título é obrigatório.' });
-    const tag = TAGS_RARIDADE.includes(tag_raridade) ? tag_raridade : null;
+    const tags = req.body.tags || '';
     const [result] = await pool.execute(
-      `INSERT INTO documentos (titulo, conteudo, sistema, categoria, visibilidade, autor_id, imagem_url, tag_raridade) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [titulo, conteudo || '', sistema || 'Decadência Cinza', categoria || 'Livro de Regras', visibilidade || 'publico', req.user.id, imagem_url, tag]
-    );
+  `INSERT INTO documentos (titulo, conteudo, sistema, categoria, visibilidade, autor_id, imagem_url, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+  [titulo, conteudo || '', sistema || 'Decadência Cinza', categoria || 'Livro de Regras', visibilidade || 'publico', req.user.id, imagem_url, tags]
+);
     return res.status(201).json({ success: true, message: 'Documento criado!', id: result.insertId });
   } catch (err) {
     console.error('Erro ao criar documento:', err);
@@ -73,9 +80,9 @@ async function atualizar(req, res) {
     const { id } = req.params;
     const { titulo, conteudo, sistema, categoria, visibilidade, tag_raridade } = req.body;
     const imagem_url = req.file?.path;
-    const tag = TAGS_RARIDADE.includes(tag_raridade) ? tag_raridade : null;
-    let query = `UPDATE documentos SET titulo=?, conteudo=?, sistema=?, categoria=?, visibilidade=?, tag_raridade=?`;
-    const params = [titulo, conteudo, sistema, categoria, visibilidade, tag];
+    const tags = req.body.tags || '';
+    let query = `UPDATE documentos SET titulo=?, conteudo=?, sistema=?, categoria=?, visibilidade=?, tags=?`;
+    const params = [titulo, conteudo, sistema, categoria, visibilidade, tags];
     if (imagem_url) { query += `, imagem_url=?`; params.push(imagem_url); }
     query += ` WHERE id=?`;
     params.push(id);

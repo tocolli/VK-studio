@@ -468,3 +468,114 @@
   .sistema-btn { font-size: 0.72rem; padding: 0.5rem 0.9rem; }
   .categoria-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.75rem; }
 }
+
+/* ===== BUSCA ===== */
+.busca-row {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+
+.busca-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.busca-icon {
+  position: absolute;
+  left: .85rem;
+  font-size: .95rem;
+  pointer-events: none;
+  opacity: .5;
+}
+
+#buscaInput {
+  width: 100%;
+  padding: .65rem 2.5rem .65rem 2.5rem;
+  background: rgba(10,10,12,.8);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: .95rem;
+  transition: var(--transition);
+  outline: none;
+}
+#buscaInput:focus {
+  border-color: var(--gold-dim);
+  box-shadow: 0 0 0 2px rgba(201,168,76,.08);
+}
+#buscaInput::placeholder { color: var(--text-muted); }
+
+.busca-limpar {
+  position: absolute;
+  right: .75rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: .9rem;
+  line-height: 1;
+  transition: var(--transition);
+}
+.busca-limpar:hover { color: var(--text-primary); }
+
+/* Tags sugeridas clicáveis */
+.tags-sugeridas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+  padding: .2rem .65rem;
+  background: rgba(10,10,12,.6);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-family: var(--font-heading);
+  font-size: .68rem;
+  letter-spacing: .06em;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.tag-pill:hover, .tag-pill.ativa {
+  border-color: var(--gold);
+  color: var(--gold-light);
+  background: rgba(201,168,76,.08);
+}
+
+/* Tags no card e no modal */
+.doc-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+  margin-top: .4rem;
+}
+
+.doc-tag {
+  display: inline-block;
+  padding: .15rem .5rem;
+  border-radius: 3px;
+  font-family: var(--font-heading);
+  font-size: .65rem;
+  letter-spacing: .06em;
+  border: 1px solid;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.doc-tag:hover { opacity: .75; }
+
+/* Cores por prefixo de raridade */
+.doc-tag.tag-x  { color:#d080ff;border-color:#8030c0;background:rgba(128,48,192,.15); }
+.doc-tag.tag-s  { color:#f08040;border-color:#a04818;background:rgba(160,72,24,.15); }
+.doc-tag.tag-a  { color:#e8c040;border-color:#a07820;background:rgba(160,120,32,.12); }
+.doc-tag.tag-b  { color:#7ac87a;border-color:#3a783a;background:rgba(58,120,58,.12); }
+.doc-tag.tag-c  { color:#7ab0d8;border-color:#3a6090;background:rgba(58,96,144,.12); }
+.doc-tag.tag-d  { color:#9a8a7a;border-color:#5a4a3a;background:rgba(90,74,58,.12); }
+.doc-tag.tag-default { color:var(--gold-dim);border-color:var(--border-gold);background:rgba(201,168,76,.07); }

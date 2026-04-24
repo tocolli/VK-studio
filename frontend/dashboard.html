@@ -82,16 +82,9 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="docTagRaridade">Tag de Raridade</label>
-            <select id="docTagRaridade">
-              <option value="">— Sem tag —</option>
-              <option value="D-">D-</option><option value="D">D</option><option value="D+">D+</option>
-              <option value="C-">C-</option><option value="C">C</option><option value="C+">C+</option>
-              <option value="B-">B-</option><option value="B">B</option><option value="B+">B+</option>
-              <option value="A-">A-</option><option value="A">A</option><option value="A+">A+</option>
-              <option value="S-">S-</option><option value="S">S</option><option value="S+">S+</option>
-              <option value="X">X</option>
-            </select>
+            <label for="docTags">Tags</label>
+            <input type="text" id="docTags" placeholder="#B+ #espada-curta #raro" />
+            <span style="font-size:.72rem;color:var(--text-muted);margin-top:.2rem;">Use # antes de cada tag. Ex: #S #magia #fogo</span>
           </div>
           <div class="form-group">
             <label for="docImagem">Imagem (opcional)</label>
@@ -128,6 +121,15 @@
             <span>Cavaleiros de Armadura</span>
           </button>
         </div>
+
+        <div class="busca-row" id="buscaRow" style="display:none;">
+  <div class="busca-input-wrap">
+    <span class="busca-icon">🔍</span>
+    <input type="text" id="buscaInput" placeholder="Buscar por título ou #tag..." />
+    <button class="busca-limpar" id="btnLimparBusca" type="button" style="display:none;">✕</button>
+  </div>
+  <div class="tags-sugeridas" id="tagsSugeridas"></div>
+</div>
 
         <!-- GRID DE CATEGORIAS -->
         <div class="categoria-grid" id="categoriaGrid"></div>
