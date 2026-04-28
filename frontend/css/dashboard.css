@@ -715,23 +715,78 @@
 .ql-toolbar.ql-snow    { border: none !important; }
 
 /* ===== CLASSES DO QUILL NA EXIBIÇÃO (modal e cards) ===== */
-.doc-conteudo-rich .ql-align-center { text-align: center; }
-.doc-conteudo-rich .ql-align-right  { text-align: right; }
-.doc-conteudo-rich .ql-align-justify{ text-align: justify; }
+.doc-conteudo-rich {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.8;
+  margin-bottom: .75rem;
+  word-break: break-word;
+}
 
-.doc-conteudo-rich p  { margin-bottom: .5rem; min-height: 1.2em; }
-.doc-conteudo-rich br { display: block; content: ''; margin-top: .25rem; }
+/* Cada parágrafo em bloco separado com espaço */
+.doc-conteudo-rich p {
+  display: block;
+  min-height: 1.4em;
+  margin-top: 0;
+  margin-bottom: .6rem;
+}
+
+/* Parágrafos vazios viram quebra de linha visível */
+.doc-conteudo-rich p:empty {
+  margin-bottom: .6rem;
+}
+.doc-conteudo-rich p:has(br:only-child) {
+  margin-bottom: .6rem;
+}
+
+/* Alinhamentos — cobre tanto classe quanto style inline */
+.doc-conteudo-rich .ql-align-center,
+.doc-conteudo-rich p[style*="text-align: center"],
+.doc-conteudo-rich p[style*="text-align:center"] {
+  text-align: center;
+}
+.doc-conteudo-rich .ql-align-right,
+.doc-conteudo-rich p[style*="text-align: right"],
+.doc-conteudo-rich p[style*="text-align:right"] {
+  text-align: right;
+}
+.doc-conteudo-rich .ql-align-justify,
+.doc-conteudo-rich p[style*="text-align: justify"],
+.doc-conteudo-rich p[style*="text-align:justify"] {
+  text-align: justify;
+}
 
 .doc-conteudo-rich .ql-indent-1 { padding-left: 2em; }
 .doc-conteudo-rich .ql-indent-2 { padding-left: 4em; }
 .doc-conteudo-rich .ql-indent-3 { padding-left: 6em; }
 
+.doc-conteudo-rich h1 { font-family: var(--font-display); color: var(--gold-light); font-size: 1.4rem; margin: .75rem 0 .4rem; display: block; }
+.doc-conteudo-rich h2 { font-family: var(--font-heading); color: var(--gold); font-size: 1.15rem; margin: .6rem 0 .3rem; display: block; }
+.doc-conteudo-rich h3 { font-family: var(--font-heading); color: var(--gold-dim); font-size: 1rem; margin: .5rem 0 .25rem; display: block; }
+.doc-conteudo-rich strong { color: var(--text-primary); }
+.doc-conteudo-rich em { font-style: italic; }
 .doc-conteudo-rich u  { text-decoration: underline; }
 .doc-conteudo-rich s  { text-decoration: line-through; }
-
-/* Garante que parágrafos vazios (quebras de linha) ocupem espaço */
-.doc-conteudo-rich p:empty::after,
-.doc-conteudo-rich p br:only-child { 
-  content: '\00a0'; 
+.doc-conteudo-rich blockquote {
+  border-left: 3px solid var(--gold-dim);
+  padding-left: 1rem;
+  font-style: italic;
+  color: var(--text-muted);
+  background: rgba(201,168,76,.04);
+  margin: .5rem 0;
   display: block;
+}
+.doc-conteudo-rich ul,
+.doc-conteudo-rich ol  { padding-left: 1.5rem; color: var(--text-secondary); margin-bottom: .5rem; }
+.doc-conteudo-rich li  { margin-bottom: .25rem; }
+.doc-conteudo-rich a   { color: var(--gold); text-decoration: underline; }
+.doc-conteudo-rich pre {
+  background: rgba(0,0,0,.5);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: .75rem;
+  color: #7af0a8;
+  font-size: .85rem;
+  display: block;
+  white-space: pre-wrap;
 }
