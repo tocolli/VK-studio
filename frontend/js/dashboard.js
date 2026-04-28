@@ -2,6 +2,19 @@
 (function () {
   'use strict';
 
+
+  // ===== EDITOR QUILL =====
+  let quillEditor = null;
+
+  function initQuill() {
+    if (quillEditor) return; // já inicializado
+    quillEditor = new Quill('#editorQuill', {
+      theme: 'snow',
+      modules: { toolbar: '#editorToolbar' },
+      placeholder: 'Escreva o conteúdo do documento...',
+    });
+  }
+
   const user = VK.user;
   const isMestre = VK.isMestre;
 
@@ -53,11 +66,13 @@
   selSistema.addEventListener('change', () => popularCategorias(selSistema.value));
   popularCategorias('Decadência Cinza');
 
-  document.getElementById('btnNovoDoc')?.addEventListener('click', () => {
+ document.getElementById('btnNovoDoc')?.addEventListener('click', () => {
     docEditandoId = null;
     document.getElementById('docTitulo').value   = '';
     document.getElementById('docConteudo').value = '';
     document.getElementById('docTags').value     = '';
+    initQuill();
+    quillEditor.setContents([]); // limpa o editor
     selSistema.value = sistemaAtual;
     popularCategorias(sistemaAtual);
     document.getElementById('formCriarDoc').classList.add('open');
@@ -77,7 +92,7 @@
 
   document.getElementById('btnSalvarDoc')?.addEventListener('click', async () => {
     const titulo      = document.getElementById('docTitulo').value.trim();
-    const conteudo    = document.getElementById('docConteudo').value.trim();
+    const conteudo    = quillEditor ? quillEditor.root.innerHTML : document.getElementById('docConteudo').value.trim();
     const sistema     = selSistema.value;
     const categoria   = selCategoria.value;
     const visibilidade = document.getElementById('docVisibilidade').value;
@@ -361,12 +376,9 @@
 
     document.getElementById('modalDocTitulo').textContent = doc.titulo;
 
-    // Conteúdo + tags clicáveis no modal
     const corpo = document.getElementById('modalDocCorpo');
-    corpo.innerHTML = `<p>${escH(doc.conteudo || 'Sem conteúdo.').replace(/\n/g,'<br>')}</p>
+   corpo.innerHTML = `<div class="doc-conteudo-rich">${doc.conteudo || '<p style="color:var(--text-muted)">Sem conteúdo.</p>'}</div>
       ${renderTagsHtml(doc.tags)}`;
-
-    // Clicar numa tag no modal fecha e filtra
     bindTagClicks(corpo, tag => { fecharModalDoc(); executarBusca(tag); });
 
     if (isMestre) {
@@ -387,9 +399,10 @@
     const doc = docsCache.find(d => String(d.id) === String(id));
     if (!doc) return;
     docEditandoId = id;
-    document.getElementById('docTitulo').value   = doc.titulo;
-    document.getElementById('docConteudo').value = doc.conteudo || '';
-    document.getElementById('docTags').value     = doc.tags || '';
+    document.getElementById('docTitulo').value = doc.titulo;
+    document.getElementById('docTags').value   = doc.tags || '';
+    initQuill();
+    quillEditor.root.innerHTML = doc.conteudo || '';
     selSistema.value = doc.sistema || 'Decadência Cinza';
     popularCategorias(doc.sistema || 'Decadência Cinza');
     selCategoria.value = doc.categoria || '';

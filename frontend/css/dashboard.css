@@ -579,3 +579,137 @@
 .doc-tag.tag-c  { color:#7ab0d8;border-color:#3a6090;background:rgba(58,96,144,.12); }
 .doc-tag.tag-d  { color:#9a8a7a;border-color:#5a4a3a;background:rgba(90,74,58,.12); }
 .doc-tag.tag-default { color:var(--gold-dim);border-color:var(--border-gold);background:rgba(201,168,76,.07); }
+
+
+/* ===== EDITOR QUILL — TEMA DARK FANTASY ===== */
+#editorContainer {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: var(--transition);
+}
+#editorContainer:focus-within {
+  border-color: var(--gold-dim);
+  box-shadow: 0 0 0 2px rgba(201,168,76,.08);
+}
+
+/* Toolbar */
+#editorToolbar {
+  background: #0e0c08 !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 6px 8px !important;
+  flex-wrap: wrap;
+}
+
+#editorToolbar .ql-formats {
+  margin-right: 8px !important;
+}
+
+/* Botões da toolbar */
+#editorToolbar button,
+#editorToolbar .ql-picker-label {
+  color: var(--text-secondary) !important;
+  border: none !important;
+}
+#editorToolbar button:hover,
+#editorToolbar button.ql-active,
+#editorToolbar .ql-picker-label:hover {
+  color: var(--gold) !important;
+}
+#editorToolbar .ql-stroke {
+  stroke: var(--text-secondary) !important;
+}
+#editorToolbar button:hover .ql-stroke,
+#editorToolbar button.ql-active .ql-stroke {
+  stroke: var(--gold) !important;
+}
+#editorToolbar .ql-fill {
+  fill: var(--text-secondary) !important;
+}
+#editorToolbar button:hover .ql-fill,
+#editorToolbar button.ql-active .ql-fill {
+  fill: var(--gold) !important;
+}
+
+/* Select de header e font */
+#editorToolbar .ql-picker {
+  color: var(--text-secondary) !important;
+}
+#editorToolbar .ql-picker-options {
+  background: #141210 !important;
+  border: 1px solid var(--border-gold) !important;
+  border-radius: var(--radius) !important;
+}
+#editorToolbar .ql-picker-item {
+  color: var(--text-secondary) !important;
+}
+#editorToolbar .ql-picker-item:hover {
+  color: var(--gold) !important;
+}
+
+/* Área de escrita */
+#editorQuill {
+  background: rgba(10,10,12,.8) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-body) !important;
+  font-size: 1rem !important;
+  min-height: 220px !important;
+  border: none !important;
+}
+
+.ql-editor {
+  min-height: 220px;
+  line-height: 1.75;
+  color: var(--text-primary) !important;
+}
+
+.ql-editor.ql-blank::before {
+  color: var(--text-muted) !important;
+  font-style: italic;
+  font-family: var(--font-body);
+}
+
+/* Headings dentro do editor */
+.ql-editor h1 { font-family: var(--font-display); color: var(--gold-light); font-size: 1.5rem; margin-bottom: .5rem; }
+.ql-editor h2 { font-family: var(--font-heading); color: var(--gold); font-size: 1.2rem; margin-bottom: .4rem; }
+.ql-editor h3 { font-family: var(--font-heading); color: var(--gold-dim); font-size: 1rem; margin-bottom: .3rem; }
+.ql-editor blockquote {
+  border-left: 3px solid var(--gold-dim);
+  padding-left: 1rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  background: rgba(201,168,76,.04);
+  margin: .5rem 0;
+}
+.ql-editor pre.ql-syntax {
+  background: rgba(0,0,0,.5);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  color: #7af0a8;
+  font-size: .85rem;
+  padding: .75rem 1rem;
+}
+
+/* Tooltip de link */
+.ql-tooltip {
+  background: #141210 !important;
+  border: 1px solid var(--border-gold) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5) !important;
+}
+.ql-tooltip input[type=text] {
+  background: rgba(0,0,0,.4) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--radius) !important;
+}
+.ql-tooltip a.ql-action,
+.ql-tooltip a.ql-remove {
+  color: var(--gold) !important;
+}
+
+/* Oculta a borda padrão do Quill */
+.ql-container.ql-snow { border: none !important; }
+.ql-toolbar.ql-snow    { border: none !important; }
