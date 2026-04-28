@@ -713,3 +713,25 @@
 /* Oculta a borda padrão do Quill */
 .ql-container.ql-snow { border: none !important; }
 .ql-toolbar.ql-snow    { border: none !important; }
+
+/* ===== CLASSES DO QUILL NA EXIBIÇÃO (modal e cards) ===== */
+.doc-conteudo-rich .ql-align-center { text-align: center; }
+.doc-conteudo-rich .ql-align-right  { text-align: right; }
+.doc-conteudo-rich .ql-align-justify{ text-align: justify; }
+
+.doc-conteudo-rich p  { margin-bottom: .5rem; min-height: 1.2em; }
+.doc-conteudo-rich br { display: block; content: ''; margin-top: .25rem; }
+
+.doc-conteudo-rich .ql-indent-1 { padding-left: 2em; }
+.doc-conteudo-rich .ql-indent-2 { padding-left: 4em; }
+.doc-conteudo-rich .ql-indent-3 { padding-left: 6em; }
+
+.doc-conteudo-rich u  { text-decoration: underline; }
+.doc-conteudo-rich s  { text-decoration: line-through; }
+
+/* Garante que parágrafos vazios (quebras de linha) ocupem espaço */
+.doc-conteudo-rich p:empty::after,
+.doc-conteudo-rich p br:only-child { 
+  content: '\00a0'; 
+  display: block;
+}
