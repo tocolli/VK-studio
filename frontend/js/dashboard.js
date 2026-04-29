@@ -369,7 +369,7 @@
   function abrirDoc(id) {
     const doc = docsCache.find(d => String(d.id) === String(id));
     if (!doc) return;
-
+    console.log('HTML do conteudo:', doc.conteudo);
     document.getElementById('modalDocMeta').innerHTML =
       `<span class="badge badge-gold">${escH(doc.sistema)}</span> &nbsp;
        <span class="badge badge-gray">${escH(doc.categoria)}</span>`;
