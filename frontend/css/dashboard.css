@@ -781,6 +781,7 @@
 .doc-conteudo-rich li  { margin-bottom: .25rem; }
 .doc-conteudo-rich a   { color: var(--gold); text-decoration: underline; }
 .doc-conteudo-rich pre {
+ .doc-conteudo-rich br { display: block; }
   background: rgba(0,0,0,.5);
   border: 1px solid var(--border-color);
   border-radius: 4px;
