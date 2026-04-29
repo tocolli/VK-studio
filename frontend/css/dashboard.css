@@ -722,39 +722,25 @@
   margin-bottom: .75rem;
   word-break: break-word;
 }
-
-/* Cada parágrafo em bloco separado com espaço */
 .doc-conteudo-rich p {
   display: block;
-  min-height: 1.4em;
-  margin-top: 0;
-  margin-bottom: .6rem;
+  margin-bottom: .7rem;
+  min-height: 1em;
 }
+.doc-conteudo-rich p:empty,
+.doc-conteudo-rich p:blank { margin-bottom: .7rem; }
+.doc-conteudo-rich br { display: block; margin: .1rem 0; }
 
-/* Parágrafos vazios viram quebra de linha visível */
-.doc-conteudo-rich p:empty {
-  margin-bottom: .6rem;
-}
-.doc-conteudo-rich p:has(br:only-child) {
-  margin-bottom: .6rem;
-}
-
-/* Alinhamentos — cobre tanto classe quanto style inline */
+/* Alinhamentos — Quill usa classe OU style inline */
 .doc-conteudo-rich .ql-align-center,
-.doc-conteudo-rich p[style*="text-align: center"],
-.doc-conteudo-rich p[style*="text-align:center"] {
-  text-align: center;
-}
+.doc-conteudo-rich [style*="text-align: center"],
+.doc-conteudo-rich [style*="text-align:center"]   { text-align: center; display: block; }
 .doc-conteudo-rich .ql-align-right,
-.doc-conteudo-rich p[style*="text-align: right"],
-.doc-conteudo-rich p[style*="text-align:right"] {
-  text-align: right;
-}
+.doc-conteudo-rich [style*="text-align: right"],
+.doc-conteudo-rich [style*="text-align:right"]    { text-align: right;  display: block; }
 .doc-conteudo-rich .ql-align-justify,
-.doc-conteudo-rich p[style*="text-align: justify"],
-.doc-conteudo-rich p[style*="text-align:justify"] {
-  text-align: justify;
-}
+.doc-conteudo-rich [style*="text-align: justify"],
+.doc-conteudo-rich [style*="text-align:justify"]  { text-align: justify; display: block; }
 
 .doc-conteudo-rich .ql-indent-1 { padding-left: 2em; }
 .doc-conteudo-rich .ql-indent-2 { padding-left: 4em; }
@@ -776,12 +762,10 @@
   margin: .5rem 0;
   display: block;
 }
-.doc-conteudo-rich ul,
-.doc-conteudo-rich ol  { padding-left: 1.5rem; color: var(--text-secondary); margin-bottom: .5rem; }
-.doc-conteudo-rich li  { margin-bottom: .25rem; }
-.doc-conteudo-rich a   { color: var(--gold); text-decoration: underline; }
+.doc-conteudo-rich ul, .doc-conteudo-rich ol { padding-left: 1.5rem; color: var(--text-secondary); margin-bottom: .5rem; }
+.doc-conteudo-rich li { margin-bottom: .25rem; }
+.doc-conteudo-rich a  { color: var(--gold); text-decoration: underline; }
 .doc-conteudo-rich pre {
- .doc-conteudo-rich br { display: block; }
   background: rgba(0,0,0,.5);
   border: 1px solid var(--border-color);
   border-radius: 4px;

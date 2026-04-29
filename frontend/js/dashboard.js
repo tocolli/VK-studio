@@ -377,7 +377,7 @@
     document.getElementById('modalDocTitulo').textContent = doc.titulo;
 
     const corpo = document.getElementById('modalDocCorpo');
-   corpo.innerHTML = `<div class="doc-conteudo-rich">${doc.conteudo || '<p style="color:var(--text-muted)">Sem conteúdo.</p>'}</div>
+   corpo.innerHTML = `<div class="doc-conteudo-rich">${formatarConteudo(doc.conteudo)}</div>
       ${renderTagsHtml(doc.tags)}`;
     bindTagClicks(corpo, tag => { fecharModalDoc(); executarBusca(tag); });
 
@@ -460,6 +460,21 @@
     return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  function formatarConteudo(html) {
+    if (!html) return '<p style="color:var(--text-muted)">Sem conteúdo.</p>';
+
+    // Divide parágrafos colados pelo \n dentro do mesmo <p>
+    // e converte cada linha em um <p> próprio
+    let resultado = html
+      // Quebras de linha dentro de parágrafos viram </p><p>
+      .replace(/\n\n+/g, '</p><p>')
+      .replace(/\n/g, '<br>')
+      // Remove parágrafos vazios que ficaram só com <br>
+      .replace(/<p[^>]*>\s*<br>\s*<\/p>/g, '<p>&nbsp;</p>');
+
+    return resultado;
+  }
+  
   // ===== INÍCIO =====
   mostrarCategoriasGrid('Decadência Cinza');
 })();
