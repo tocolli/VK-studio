@@ -94,7 +94,7 @@ const MAX_ROLAGENS = 2;
   }
 
   // ===== ETAPA 1: SELEÇÃO DE SISTEMA =====
-  document.querySelectorAll('.sistema-select-card').forEach(card => {
+  /* document.querySelectorAll('.sistema-select-card').forEach(card => {
     card.addEventListener('click', () => {
       sistemaAtivo = card.dataset.sistema;
       if (sistemaAtivo === 'Decadência Cinza') {
@@ -106,7 +106,7 @@ const MAX_ROLAGENS = 2;
       }
     });
   });
-
+ */
   // ===== ROLL DE ALMA (Decadência Cinza) =====
   function resetRoll() {
     document.getElementById('rollResultado').style.display = 'none';
@@ -741,8 +741,13 @@ const MAX_ROLAGENS = 2;
 
     container.querySelectorAll('.btn-editar-ficha').forEach(btn => {
       btn.addEventListener('click', () => {
-        history.pushState(null, '', `/forja?id=${btn.dataset.id}`);
-        carregarFichaParaEdicao(btn.dataset.id);
+        const ficha = fichasCache.find(f => String(f.id) === btn.dataset.id);
+const rota = {
+  'Cavaleiros de Armadura': '/ficha-cavaleiros',
+  'Oceano Estrelado':       '/ficha-oceano',
+  'Decadência Cinza':       '/ficha-decadencia',
+}[ficha?.sistema] || '/forja';
+window.location.href = rota + '?id=' + btn.dataset.id;
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     });

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ficha — Cavaleiros de Armadura · VK.Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/ficha-cavaleiros.css"/>
+  <style>
+    body { background:#111214; margin:0; padding:0; }
+    .ficha-topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.6rem 1rem; background:#0e0c08;
+      border-bottom:1px solid #3a3d44;
+      font-family:'Cinzel',serif; font-size:.72rem;
+      letter-spacing:.1em; text-transform:uppercase;
+    }
+    .ficha-topbar a { color:#cd7f32; text-decoration:none; }
+    .ficha-topbar a:hover { color:#e8a020; }
+    .ficha-topbar-title { color:#7a4a10; }
+    #fichaContainer { max-width:700px; margin:0 auto; padding:1rem; }
+  </style>
+</head>
+<body>
+  <div class="ficha-topbar">
+    <a href="/forja">← Fichas</a>
+    <span class="ficha-topbar-title">☠ Cavaleiros de Armadura</span>
+    <a href="/dashboard">Câmara</a>
+  </div>
+
+  <div id="fichaContainer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth-guard.js"></script>
+  <script src="js/ficha-cavaleiros.js"></script>
+  <script>
+    (async function() {
+      const container = document.getElementById('fichaContainer');
+      const params    = new URLSearchParams(window.location.search);
+      const fichaId   = params.get('id');
+
+      let estado = FichaCavaleiros.ESTADO_DEFAULT();
+
+      // Se veio com ?id=X, carrega do banco
+      if (fichaId) {
+        const res = await Api.request('/fichas/' + fichaId);
+        if (res?.ok) {
+          const f    = res.data.ficha;
+          const atrs = typeof f.atributos === 'string'
+            ? JSON.parse(f.atributos) : f.atributos;
+
+          // Mapeia os dados salvos para o estado da ficha
+          estado = FichaCavaleiros.ESTADO_DEFAULT();
+          estado.id         = f.id;
+          estado.nome       = f.nome_personagem;
+          estado.avatar_url = f.imagem_url || '';
+          estado.classe     = atrs.classe || '';
+          estado.patente    = atrs.patente || 'Soldado';
+          estado.vit        = atrs.vitalidade  || [7,7];
+          estado.imp        = atrs.impeto      || [9,9];
+          estado.luc        = atrs.lucidez     || [10,10];
+          estado.arm        = atrs.armadura    || [10,10];
+          estado.arm_estagio= atrs.arm_estagio || 'Impecável';
+          estado.atrs       = atrs.atributos_cav || estado.atrs;
+          estado.proficiencias = atrs.proficiencias || estado.proficiencias;
+          estado.habilidades   = atrs.habilidades   || [];
+          estado.inventario    = atrs.inventario     || estado.inventario;
+          estado.status        = atrs.status         || [];
+          estado.notas         = atrs.notas          || '';
+        }
+      }
+
+      // Função de salvar chamada automaticamente pelo JS da ficha
+      async function salvar(e) {
+        const payload = {
+          nome_personagem: e.nome,
+          sistema: 'Cavaleiros de Armadura',
+          atributos: JSON.stringify({
+            classe:        e.classe,
+            patente:       e.patente,
+            vitalidade:    e.vit,
+            impeto:        e.imp,
+            lucidez:       e.luc,
+            armadura:      e.arm,
+            arm_estagio:   e.arm_estagio,
+            atributos_cav: e.atrs,
+            proficiencias: e.proficiencias,
+            habilidades:   e.habilidades,
+            inventario:    e.inventario,
+            status:        e.status,
+            notas:         e.notas,
+          }),
+        };
+
+        const fd = new FormData();
+        fd.append('nome_personagem', payload.nome_personagem);
+        fd.append('sistema',         payload.sistema);
+        fd.append('atributos',       payload.atributos);
+
+        const res = e.id
+          ? await Api.atualizarFicha(e.id, fd)
+          : await Api.criarFicha(fd);
+
+        if (res?.ok && !e.id && res.data.id) {
+          e.id = res.data.id;
+          history.replaceState(null, '', '/ficha-cavaleiros?id=' + e.id);
+        }
+      }
+
+      // Renderiza a ficha
+      FichaCavaleiros.render(container, estado, salvar);
+    })();
+  </script>
+</body>
+</html>

@@ -56,6 +56,12 @@ const Api = {
     return this.request(`/admin/atividades${qs ? '?'+qs : ''}`);
   },
   async estatisticas() { return this.request('/admin/estatisticas'); },
+
+  async listarSessoes()         { return this.request('/sessoes'); },
+async criarSessao(nome)       { return this.request('/sessoes', { method:'POST', body:{ nome } }); },
+async buscarSessao(id)        { return this.request('/sessoes/' + id); },
+async listarMapas(sessaoId)   { return this.request('/sessoes/' + sessaoId + '/mapas'); },
+
 };
 
 window.Api = Api;

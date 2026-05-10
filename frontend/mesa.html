@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mesa — VK.Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="css/mesa.css"/>
+</head>
+<body class="mesa-body">
+
+<div class="mesa-topbar" id="mesaTopbar">
+  <div class="topbar-left">
+    <div class="topbar-logo"><i class="fa-solid fa-khalid"></i> VK.Studio</div>
+    <div class="topbar-sessao">
+      <span id="topbarNomeSessao">—</span>
+      <span class="topbar-codigo" id="topbarCodigo">·</span>
+    </div>
+  </div>
+
+  <div class="topbar-center" id="topbarTools">
+    <div class="tool-group" id="grupoFerramentasMestre" style="display:none;">
+      <button class="tool-btn active" data-tool="mover"     title="Mover tokens (M)"><i class="fa-solid fa-hand"></i></button>
+      <button class="tool-btn"        data-tool="fog-apagar" title="Revelar área (R)"><i class="fa-solid fa-eye"></i></button>
+      <button class="tool-btn"        data-tool="fog-cobrir"  title="Cobrir área (C)"><i class="fa-solid fa-moon"></i></button>
+      <button class="tool-btn"        data-tool="ping"      title="Marcar ponto (P)"><i class="fa-solid fa-location-dot"></i></button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn"        id="btnAdicionarToken" title="Adicionar token"><i class="fa-solid fa-plus"></i></button>
+      <button class="tool-btn"        id="btnGerenciarMapas" title="Mapas"><i class="fa-solid fa-map-location-dot"></i></button>
+    </div>
+    <div class="tool-group" id="grupoFerramentasJogador">
+      <button class="tool-btn active" data-tool="mover" title="Mover"><i class="fa-solid fa-hand"></i></button>
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <div class="topbar-usuarios" id="topbarUsuarios"></div>
+    <button class="mesa-btn-icon" id="btnToggleChat" title="Chat (Tab)"><i class="fa-solid fa-comment"></i>
+      <span class="chat-badge" id="chatBadge" style="display:none;">0</span>
+    </button>
+    <button class="mesa-btn-icon mesa-btn-sair" id="btnSairMesa" title="Sair da mesa"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+</div>
+
+<div class="mesa-viewport" id="mesaViewport">
+
+  <div class="zoom-controls">
+    <button class="zoom-btn" id="btnZoomIn"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+    <span class="zoom-val" id="zoomVal">100%</span>
+    <button class="zoom-btn" id="btnZoomOut"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+    <button class="zoom-btn" id="btnZoomReset" title="Resetar zoom"><i class="fa-solid fa-expand"></i></button>
+  </div>
+
+  <canvas id="mesaCanvas"></canvas>
+
+  <div class="ping-anim" id="pingAnim" style="display:none;"></div>
+</div>
+
+<div class="mesa-chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <span class="chat-titulo"><i class="fa-solid fa-comment-dots"></i> Chat da Mesa</span>
+    <button class="chat-fechar" id="btnFecharChat"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+
+  <div class="chat-msgs" id="chatMsgs"></div>
+
+  <div class="chat-dados-rapidos">
+    <span class="dados-label">Rolar:</span>
+    <button class="dado-btn" data-expr="1d4">d4</button>
+    <button class="dado-btn" data-expr="1d6">d6</button>
+    <button class="dado-btn" data-expr="1d8">d8</button>
+    <button class="dado-btn" data-expr="1d10">d10</button>
+    <button class="dado-btn" data-expr="1d12">d12</button>
+    <button class="dado-btn" data-expr="1d20">d20</button>
+    <button class="dado-btn" data-expr="1d100">d100</button>
+  </div>
+
+  <div class="chat-input-area">
+    <div class="chat-input-row">
+      <input type="text" id="chatInputExpr" placeholder="Ex: 2d6+3 ou mensagem..."
+             class="chat-input" autocomplete="off"/>
+      <button class="chat-send" id="btnChatSend"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+    <div class="chat-opcoes" id="chatOpcoesMestre" style="display:none;">
+      <label class="chat-privado-label">
+        <input type="checkbox" id="checkPrivado"/>
+        <span><i class="fa-solid fa-user-secret"></i> Rolagem privada</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="mesa-modal-overlay open" id="modalEntrar">
+  <div class="mesa-modal">
+    <div class="mesa-modal-titulo"><i class="fa-solid fa-shield-halved"></i> Entrar na Mesa</div>
+    <div id="alertMesa" class="mesa-alert" style="display:none;"></div>
+    <div class="mesa-field">
+      <label>Código da Sessão</label>
+      <input type="text" id="inputCodigo" placeholder="Ex: A1B2C3D4"
+             maxlength="8" class="mesa-inp" autocomplete="off"
+             style="text-transform:uppercase;letter-spacing:.2em;font-size:1.2rem;text-align:center;"/>
+    </div>
+    <div class="mesa-modal-actions">
+      <a href="/dashboard" class="mesa-btn mesa-btn-ghost"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
+      <button class="mesa-btn mesa-btn-primary" id="btnEntrarMesa" type="button">Entrar <i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <div class="modal-ou" id="modalOuMestre" style="display:none;">
+      <span>ou</span>
+    </div>
+    <div id="modalCriarSessao" style="display:none;">
+      <div class="mesa-field">
+        <label>Nome da Sessão</label>
+        <input type="text" id="inputNomeSessao" placeholder="Ex: Sessão 1 — Stormport"
+               class="mesa-inp"/>
+      </div>
+      <button class="mesa-btn mesa-btn-primary" id="btnCriarSessao" type="button"
+              style="width:100%;"><i class="fa-solid fa-plus"></i> Criar Nova Sessão</button>
+    </div>
+  </div>
+</div>
+
+<div class="mesa-modal-overlay" id="modalMapas">
+  <div class="mesa-modal" style="max-width:560px;">
+    <button class="mesa-modal-close" id="btnFecharMapas"><i class="fa-solid fa-xmark"></i></button>
+    <div class="mesa-modal-titulo"><i class="fa-solid fa-map-location-dot"></i> Mapas da Sessão</div>
+
+    <div class="mapas-lista" id="mapasList"></div>
+
+    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #2a2d33;">
+      <div class="mesa-modal-titulo" style="font-size:.72rem;margin-bottom:.75rem;">Enviar Novo Mapa</div>
+      <div class="mesa-field">
+        <label>Nome do Mapa</label>
+        <input type="text" id="mapaNovoNome" placeholder="Ex: Cidade de Stormport" class="mesa-inp"/>
+      </div>
+      <div class="mesa-field">
+        <label>Imagem</label>
+        <input type="file" id="mapaNovoArquivo" accept="image/*" class="mesa-inp"/>
+      </div>
+      <div class="mesa-g2">
+        <div class="mesa-field">
+          <label>Colunas do Grid</label>
+          <input type="number" id="mapaNovoLargura" value="20" min="5" max="50" class="mesa-inp"/>
+        </div>
+        <div class="mesa-field">
+          <label>Linhas do Grid</label>
+          <input type="number" id="mapaNovoAltura" value="20" min="5" max="50" class="mesa-inp"/>
+        </div>
+      </div>
+      <button class="mesa-btn mesa-btn-primary" id="btnEnviarMapa" style="width:100%;">
+        <i class="fa-solid fa-upload"></i> Enviar Mapa
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="mesa-modal-overlay" id="modalToken">
+  <div class="mesa-modal">
+    <button class="mesa-modal-close" id="btnFecharToken"><i class="fa-solid fa-xmark"></i></button>
+    <div class="mesa-modal-titulo" id="tokenModalTitulo"><i class="fa-solid fa-plus"></i> Novo Token</div>
+
+    <div class="mesa-field">
+      <label>Nome</label>
+      <input type="text" id="tokenNome" placeholder="Ex: Kael, Goblin A..." class="mesa-inp"/>
+    </div>
+    <div class="mesa-g2">
+      <div class="mesa-field">
+        <label>HP Atual</label>
+        <input type="number" id="tokenHpAtual" value="10" min="0" class="mesa-inp"/>
+      </div>
+      <div class="mesa-field">
+        <label>HP Máximo</label>
+        <input type="number" id="tokenHpMax" value="10" min="1" class="mesa-inp"/>
+      </div>
+    </div>
+    <div class="mesa-g2">
+      <div class="mesa-field">
+        <label>Tamanho (células)</label>
+        <input type="number" id="tokenTamanho" value="1" min="1" max="4" class="mesa-inp"/>
+      </div>
+      <div class="mesa-field">
+        <label>Cor do Token</label>
+        <input type="color" id="tokenCor" value="#c9a84c" class="mesa-inp" style="height:38px;cursor:pointer;"/>
+      </div>
+    </div>
+    <div class="mesa-field">
+      <label>Imagem URL (opcional)</label>
+      <input type="text" id="tokenImagemUrl" placeholder="https://..." class="mesa-inp"/>
+    </div>
+    <div class="mesa-modal-actions">
+      <button class="mesa-btn mesa-btn-ghost"   id="btnCancelarToken">Cancelar</button>
+      <button class="mesa-btn mesa-btn-danger"  id="btnDeletarToken"  style="display:none;"><i class="fa-solid fa-trash"></i> Remover</button>
+      <button class="mesa-btn mesa-btn-primary" id="btnSalvarToken">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="token-tooltip" id="tokenTooltip" style="display:none;">
+  <div class="tt-nome" id="ttNome"></div>
+  <div class="tt-hp" id="ttHp"></div>
+  <div class="tt-acoes" id="ttAcoes"></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth-guard.js"></script>
+<script src="js/mesa.js"></script>
+</body>
+</html>

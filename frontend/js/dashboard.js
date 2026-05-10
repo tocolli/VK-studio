@@ -2,6 +2,358 @@
 (function () {
   'use strict';
 
+  // ===== CAMPOS ESTRUTURADOS POR CATEGORIA =====
+
+  // Quais categorias usam modo estruturado por padrão
+  const CATS_ESTRUTURADAS = new Set([
+    'Itens','Armas Brancas','Armas de Fogo','Armaduras',
+    'Magias/Rituais','Classes','Montaria','Embarcações','Tripulação','Veículos'
+  ]);
+
+  // Definição dos campos por categoria
+  const CAMPOS_POR_CATEGORIA = {
+    'Itens': () => `
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">Propriedades do Item</div>
+        <div class="campos-grid-3">
+          <div class="form-group"><label>Efeito / Buff</label>
+            <input type="text" id="ce-efeito" placeholder="Ex: +2 Vigor por 1 turno"/></div>
+          <div class="form-group"><label>Peso (slots)</label>
+            <input type="number" id="ce-peso" min="0" value="1"/></div>
+          <div class="form-group"><label>Preço</label>
+            <input type="text" id="ce-preco" placeholder="Ex: 15 peças"/></div>
+        </div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Condição Especial</label>
+            <input type="text" id="ce-condicao" placeholder="Ex: Quebra ao cair"/></div>
+          <div class="form-group"><label>Usos / Quantidade</label>
+            <input type="text" id="ce-usos" placeholder="Ex: 3 usos, Empilhável"/></div>
+        </div>
+      </div>`,
+
+    'Armas Brancas': () => `
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">⚔ Estatísticas de Combate</div>
+        <div class="campos-grid-3">
+          <div class="form-group"><label>Dano — Integridade</label>
+            <input type="text" id="ce-dano-int" placeholder="Ex: 3"/></div>
+          <div class="form-group"><label>Dano — Vitalidade</label>
+            <input type="text" id="ce-dano-vit" placeholder="Ex: 1"/></div>
+          <div class="form-group"><label>Alcance (metros)</label>
+            <input type="text" id="ce-alcance" placeholder="Ex: 1m / 2m"/></div>
+        </div>
+        <div class="campos-grid-3">
+          <div class="form-group"><label>Peso (slots)</label>
+            <input type="number" id="ce-peso" min="1" value="2"/></div>
+          <div class="form-group"><label>Atributo Base</label>
+            <input type="text" id="ce-atributo" placeholder="Ex: Vigor Bruto"/></div>
+          <div class="form-group"><label>Preço</label>
+            <input type="text" id="ce-preco" placeholder="Ex: 40 peças"/></div>
+        </div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Classe com Vantagem</label>
+            <input type="text" id="ce-classe-vantagem" placeholder="Ex: Duelista, Berserker"/></div>
+          <div class="form-group"><label>Requisito</label>
+            <input type="text" id="ce-requisito" placeholder="Ex: Vigor Bruto 3+"/></div>
+        </div>
+      </div>`,
+
+    'Armas de Fogo': () => `
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">🔫 Estatísticas de Combate</div>
+        <div class="campos-grid-3">
+          <div class="form-group"><label>Dano — Integridade</label>
+            <input type="text" id="ce-dano-int" placeholder="Ex: 4"/></div>
+          <div class="form-group"><label>Dano — Vitalidade</label>
+            <input type="text" id="ce-dano-vit" placeholder="Ex: 2"/></div>
+          <div class="form-group"><label>Alcance (metros)</label>
+            <input type="text" id="ce-alcance" placeholder="Ex: 30m"/></div>
+        </div>
+        <div class="campos-grid-3">
+          <div class="form-group"><label>Munição / Carregador</label>
+            <input type="text" id="ce-municao" placeholder="Ex: 6 tiros"/></div>
+          <div class="form-group"><label>Peso (slots)</label>
+            <input type="number" id="ce-peso" min="1" value="2"/></div>
+          <div class="form-group"><label>Preço</label>
+            <input type="text" id="ce-preco" placeholder="Ex: 120 peças"/></div>
+        </div>
+        <div class="form-group">
+          <label>Penalidade / Condição Especial</label>
+          <input type="text" id="ce-condicao" placeholder="Ex: Inutilizável em chuva forte"/>
+        </div>
+      </div>`,
+
+    'Armaduras': () => `
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">🛡 Propriedades da Armadura</div>
+        <div class="campos-grid-3">
+          <div class="form-group"><label>Integridade Base</label>
+            <input type="number" id="ce-integridade" min="1" value="10"/></div>
+          <div class="form-group"><label>RD (Redução de Dano)</label>
+            <input type="number" id="ce-rd" min="0" value="0"/></div>
+          <div class="form-group"><label>Peso (slots)</label>
+            <input type="number" id="ce-peso" min="1" value="3"/></div>
+        </div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Penalidade de Movimento</label>
+            <input type="text" id="ce-penalidade-mov" placeholder="Ex: -2 movimento"/></div>
+          <div class="form-group"><label>Restrição de Classe</label>
+            <input type="text" id="ce-restricao" placeholder="Ex: Não usável por Batedor"/></div>
+        </div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Material</label>
+            <input type="text" id="ce-material" placeholder="Ex: Aço temperado, Couro curtido"/></div>
+          <div class="form-group"><label>Preço</label>
+            <input type="text" id="ce-preco" placeholder="Ex: 80 peças"/></div>
+        </div>
+      </div>`,
+
+    'Magias/Rituais': () => `
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">✨ Propriedades da Magia</div>
+        <div class="campos-grid-3">
+          <div class="form-group"><label>Custo</label>
+            <input type="text" id="ce-custo" placeholder="Ex: 2 Ímpeto, 1 Sanidade"/></div>
+          <div class="form-group"><label>Alcance</label>
+            <input type="text" id="ce-alcance" placeholder="Ex: 10 metros, Contato"/></div>
+          <div class="form-group"><label>Duração</label>
+            <input type="text" id="ce-duracao" placeholder="Ex: 3 turnos, Permanente"/></div>
+        </div>
+        <div class="form-group">
+          <label>Efeito</label>
+          <textarea id="ce-efeito" rows="2" placeholder="Descreva o que a magia faz mecanicamente..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Falha Crítica (resultado 1)</label>
+          <input type="text" id="ce-falha" placeholder="Ex: Causa 2 de dano em sanidade ao conjurador"/>
+        </div>
+        <div class="form-group">
+          <label>Atributo de Teste</label>
+          <input type="text" id="ce-atributo" placeholder="Ex: Lucidez, Intelecto"/>
+        </div>
+      </div>`,
+
+    'Classes': () => `
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">👤 Identidade da Classe</div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Atributo Base</label>
+            <input type="text" id="ce-atributo" placeholder="Ex: Vigor Bruto"/></div>
+          <div class="form-group"><label>Vantagem de Arma</label>
+            <input type="text" id="ce-arma-vantagem" placeholder="Ex: Lanças e Alabardas"/></div>
+        </div>
+      </div>
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">Habilidades Inatas (Passivas)</div>
+        <div id="lista-inatas"></div>
+        <button class="btn-add-small" id="btnAddInata" type="button" style="margin-top:.5rem;">+ Adicionar Inata</button>
+      </div>
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">Habilidades Ativas (Custo em Ímpeto)</div>
+        <div id="lista-ativas"></div>
+        <button class="btn-add-small" id="btnAddAtiva" type="button" style="margin-top:.5rem;">+ Adicionar Ativa</button>
+      </div>`,
+
+    'Montaria': () => `
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">🐴 Estatísticas da Montaria</div>
+        <div class="campos-grid-3">
+          <div class="form-group"><label>Vitalidade</label>
+            <input type="number" id="ce-vitalidade" min="1" value="10"/></div>
+          <div class="form-group"><label>Ímpeto</label>
+            <input type="number" id="ce-impeto" min="0" value="9"/></div>
+          <div class="form-group"><label>Integridade</label>
+            <input type="number" id="ce-integridade" min="0" value="4"/></div>
+        </div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Bônus Especial</label>
+            <input type="text" id="ce-bonus" placeholder="Ex: +2 em testes de fuga"/></div>
+          <div class="form-group"><label>Consumo Diário</label>
+            <input type="text" id="ce-consumo" placeholder="Ex: 3 fenos + 3 água"/></div>
+        </div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Característica Especial</label>
+            <input type="text" id="ce-caracteristica" placeholder="Ex: Não recua de abominações"/></div>
+          <div class="form-group"><label>Preço</label>
+            <input type="text" id="ce-preco" placeholder="Ex: 200 peças"/></div>
+        </div>
+      </div>`,
+
+    'Embarcações': () => `
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">⛵ Estatísticas da Embarcação</div>
+        <div class="campos-grid-3">
+          <div class="form-group"><label>Casco (Vitalidade)</label>
+            <input type="number" id="ce-casco" min="1" value="20"/></div>
+          <div class="form-group"><label>Velocidade</label>
+            <input type="text" id="ce-velocidade" placeholder="Ex: 8 nós"/></div>
+          <div class="form-group"><label>Carga Máxima (slots)</label>
+            <input type="number" id="ce-carga" min="0" value="50"/></div>
+        </div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Tripulação Mínima</label>
+            <input type="number" id="ce-tripulacao" min="1" value="4"/></div>
+          <div class="form-group"><label>Armas de Bordo</label>
+            <input type="text" id="ce-armas-bordo" placeholder="Ex: 4 canhões laterais"/></div>
+        </div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Bônus Especial</label>
+            <input type="text" id="ce-bonus" placeholder="Ex: +2 em navegação noturna"/></div>
+          <div class="form-group"><label>Preço</label>
+            <input type="text" id="ce-preco" placeholder="Ex: 2.000 peças"/></div>
+        </div>
+      </div>`,
+
+    'Veículos': () => `
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">🚗 Estatísticas do Veículo</div>
+        <div class="campos-grid-3">
+          <div class="form-group"><label>Estrutura (Vitalidade)</label>
+            <input type="number" id="ce-estrutura" min="1" value="15"/></div>
+          <div class="form-group"><label>Velocidade</label>
+            <input type="text" id="ce-velocidade" placeholder="Ex: 30 km/h"/></div>
+          <div class="form-group"><label>Capacidade de Carga</label>
+            <input type="text" id="ce-carga" placeholder="Ex: 500 kg"/></div>
+        </div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Tripulação Mínima</label>
+            <input type="number" id="ce-tripulacao" min="1" value="1"/></div>
+          <div class="form-group"><label>Combustível</label>
+            <input type="text" id="ce-combustivel" placeholder="Ex: 20L por dia"/></div>
+        </div>
+      </div>`,
+
+    'Tripulação': () => `
+      <div class="campo-estruturado">
+        <div class="campo-estruturado-titulo">🧭 Dados do NPC de Tripulação</div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Função na Embarcação</label>
+            <input type="text" id="ce-funcao" placeholder="Ex: Navegador, Cozinheiro"/></div>
+          <div class="form-group"><label>Moral (recurso)</label>
+            <input type="number" id="ce-moral" min="0" value="10"/></div>
+        </div>
+        <div class="campos-grid-2">
+          <div class="form-group"><label>Lealdade (1-10)</label>
+            <input type="number" id="ce-lealdade" min="1" max="10" value="5"/></div>
+          <div class="form-group"><label>Habilidade Especial</label>
+            <input type="text" id="ce-habilidade" placeholder="Ex: +2 em navegação noturna"/></div>
+        </div>
+        <div class="form-group">
+          <label>Segredo Pessoal</label>
+          <input type="text" id="ce-segredo" placeholder="Algo que só o Mestre sabe..."/>
+        </div>
+      </div>`,
+  };
+
+  // Lê todos os campos estruturados do DOM e retorna um objeto
+  function lerCamposEstruturados() {
+    const campos = {};
+    const descEl = document.getElementById('campoDescricao');
+    if (descEl) campos.descricao = descEl.value.trim();
+
+    // Campos genéricos por id
+    const ids = [
+      'ce-efeito','ce-peso','ce-preco','ce-condicao','ce-usos',
+      'ce-dano-int','ce-dano-vit','ce-alcance','ce-atributo',
+      'ce-classe-vantagem','ce-requisito','ce-municao','ce-penalidade-mov',
+      'ce-restricao','ce-material','ce-integridade','ce-rd',
+      'ce-custo','ce-duracao','ce-falha','ce-arma-vantagem',
+      'ce-vitalidade','ce-impeto','ce-bonus','ce-consumo',
+      'ce-caracteristica','ce-casco','ce-velocidade','ce-carga',
+      'ce-tripulacao','ce-armas-bordo','ce-estrutura','ce-combustivel',
+      'ce-funcao','ce-moral','ce-lealdade','ce-habilidade','ce-segredo',
+    ];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value !== '' && el.value !== null) {
+        campos[id.replace('ce-','')] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value.trim();
+      }
+    });
+
+    // Textarea efeito (magias)
+    const efeitoTA = document.getElementById('ce-efeito');
+    if (efeitoTA && efeitoTA.tagName === 'TEXTAREA') campos['efeito'] = efeitoTA.value.trim();
+
+    // Habilidades de classe (inatas + ativas)
+    const inatas = [];
+    document.querySelectorAll('#lista-inatas .hab-classe-item').forEach(item => {
+      const nome = item.querySelector('.hab-inata-nome')?.value.trim();
+      const desc = item.querySelector('.hab-inata-desc')?.value.trim();
+      if (nome) inatas.push({ nome, desc });
+    });
+    if (inatas.length) campos['habilidades_inatas'] = inatas;
+
+    const ativas = [];
+    document.querySelectorAll('#lista-ativas .hab-classe-item').forEach(item => {
+      const nome  = item.querySelector('.hab-ativa-nome')?.value.trim();
+      const custo = item.querySelector('.hab-ativa-custo')?.value.trim();
+      const desc  = item.querySelector('.hab-ativa-desc')?.value.trim();
+      if (nome) ativas.push({ nome, custo, desc });
+    });
+    if (ativas.length) campos['habilidades_ativas'] = ativas;
+
+    return campos;
+  }
+
+  // Preenche campos ao editar um documento já salvo
+  function preencherCamposEstruturados(camposObj) {
+    if (!camposObj) return;
+    const descEl = document.getElementById('campoDescricao');
+    if (descEl && camposObj.descricao) descEl.value = camposObj.descricao;
+
+    Object.entries(camposObj).forEach(([k, v]) => {
+      const el = document.getElementById('ce-' + k);
+      if (el && typeof v === 'string') el.value = v;
+      else if (el && typeof v === 'number') el.value = v;
+    });
+
+    // Habilidades inatas
+    if (camposObj.habilidades_inatas?.length) {
+      const lista = document.getElementById('lista-inatas');
+      if (lista) {
+        lista.innerHTML = '';
+        camposObj.habilidades_inatas.forEach(h => adicionarHabilidadeClasse('inata', h));
+      }
+    }
+    // Habilidades ativas
+    if (camposObj.habilidades_ativas?.length) {
+      const lista = document.getElementById('lista-ativas');
+      if (lista) {
+        lista.innerHTML = '';
+        camposObj.habilidades_ativas.forEach(h => adicionarHabilidadeClasse('ativa', h));
+      }
+    }
+  }
+
+  function adicionarHabilidadeClasse(tipo, dados = {}) {
+    const lista = document.getElementById(tipo === 'inata' ? 'lista-inatas' : 'lista-ativas');
+    if (!lista) return;
+    const item = document.createElement('div');
+    item.className = 'hab-classe-item';
+    if (tipo === 'inata') {
+      item.innerHTML = `
+        <div class="hab-classe-inputs">
+          <input type="text" class="hab-inata-nome" placeholder="Nome da habilidade inata"
+            value="${escH(dados.nome||'')}"/>
+          <input type="text" class="hab-inata-desc" placeholder="Descrição / efeito"
+            value="${escH(dados.desc||'')}"/>
+        </div>
+        <button class="hab-classe-del" type="button">✕</button>`;
+    } else {
+      item.innerHTML = `
+        <div class="hab-classe-inputs">
+          <input type="text" class="hab-ativa-nome" placeholder="Nome da habilidade ativa"
+            value="${escH(dados.nome||'')}"/>
+          <input type="text" class="hab-ativa-custo" placeholder="Custo (ex: 2 Ímpeto)"
+            value="${escH(dados.custo||'')}"/>
+          <input type="text" class="hab-ativa-desc" placeholder="Descrição / efeito"
+            value="${escH(dados.desc||'')}"/>
+        </div>
+        <button class="hab-classe-del" type="button">✕</button>`;
+    }
+    item.querySelector('.hab-classe-del').addEventListener('click', () => item.remove());
+    lista.appendChild(item);
+  }
 
   // ===== EDITOR QUILL =====
   let quillEditor = null;
@@ -63,6 +415,53 @@
     selCategoria.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
   }
 
+  // ===== LÓGICA DO MODO DO DOCUMENTO =====
+  let modoDocAtivo = 'lore';
+
+  function atualizarModoDoc(categoria) {
+    const deveEstruturar = CATS_ESTRUTURADAS.has(categoria);
+    if (deveEstruturar && modoDocAtivo !== 'estruturado') {
+      setModoDoc('estruturado');
+    } else if (!deveEstruturar && modoDocAtivo !== 'lore') {
+      setModoDoc('lore');
+    }
+    // Atualiza campos dinâmicos independente
+    atualizarCamposDinamicos(categoria);
+  }
+
+  function setModoDoc(modo) {
+    modoDocAtivo = modo;
+    document.querySelectorAll('.modo-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.modo === modo);
+    });
+    document.getElementById('modoLore').style.display       = modo === 'lore'       ? 'block' : 'none';
+    document.getElementById('modoEstruturado').style.display = modo === 'estruturado' ? 'block' : 'none';
+  }
+
+  function atualizarCamposDinamicos(categoria) {
+    const container = document.getElementById('camposDinamicos');
+    if (!container) return;
+    const fn = CAMPOS_POR_CATEGORIA[categoria];
+    container.innerHTML = fn ? fn() : '';
+    // Bind botões de habilidades de classe
+    document.getElementById('btnAddInata')?.addEventListener('click', () => adicionarHabilidadeClasse('inata'));
+    document.getElementById('btnAddAtiva')?.addEventListener('click', () => adicionarHabilidadeClasse('ativa'));
+  }
+
+  // Listeners das tabs de modo
+  document.querySelectorAll('.modo-tab').forEach(btn => {
+    btn.addEventListener('click', () => setModoDoc(btn.dataset.modo));
+  });
+
+  // Quando a categoria muda, atualiza o modo e os campos
+  selCategoria.addEventListener('change', () => {
+    atualizarModoDoc(selCategoria.value);
+  });
+  selSistema.addEventListener('change', () => {
+    popularCategorias(selSistema.value);
+    atualizarModoDoc(selCategoria.value);
+  });
+
   selSistema.addEventListener('change', () => popularCategorias(selSistema.value));
   popularCategorias('Decadência Cinza');
 
@@ -76,6 +475,11 @@
     selSistema.value = sistemaAtual;
     popularCategorias(sistemaAtual);
     document.getElementById('formCriarDoc').classList.add('open');
+    modoDocAtivo = 'lore';
+    setModoDoc('lore');
+    atualizarCamposDinamicos(selCategoria.value);
+    atualizarModoDoc(selCategoria.value);
+    if (document.getElementById('campoDescricao')) document.getElementById('campoDescricao').value = '';
     document.getElementById('formCriarDoc').scrollIntoView({ behavior: 'smooth' });
   });
 
@@ -92,7 +496,12 @@
 
   document.getElementById('btnSalvarDoc')?.addEventListener('click', async () => {
     const titulo      = document.getElementById('docTitulo').value.trim();
-    const conteudo    = quillEditor ? quillEditor.root.innerHTML : document.getElementById('docConteudo').value.trim();
+    const conteudo    = modoDocAtivo === 'lore'
+      ? (quillEditor ? quillEditor.root.innerHTML : '')
+      : (document.getElementById('campoDescricao')?.value.trim() || '');
+    const campos_extras = modoDocAtivo === 'estruturado'
+      ? JSON.stringify(lerCamposEstruturados())
+      : null;
     const sistema     = selSistema.value;
     const categoria   = selCategoria.value;
     const visibilidade = document.getElementById('docVisibilidade').value;
@@ -107,6 +516,8 @@
     fd.append('categoria',   categoria);
     fd.append('visibilidade',visibilidade);
     fd.append('tags',        tags);
+     fd.append('tipo_documento', modoDocAtivo);
+    if (campos_extras) fd.append('campos_extras', campos_extras);
     if (imagemFile) fd.append('imagem', imagemFile);
 
     const btn = document.getElementById('btnSalvarDoc');
@@ -377,8 +788,14 @@
     document.getElementById('modalDocTitulo').textContent = doc.titulo;
 
     const corpo = document.getElementById('modalDocCorpo');
-   corpo.innerHTML = `<div class="doc-conteudo-rich">${formatarConteudo(doc.conteudo)}</div>
-      ${renderTagsHtml(doc.tags)}`;
+    if (doc.tipo_documento === 'estruturado' && doc.campos_extras) {
+      const campos = typeof doc.campos_extras === 'string'
+        ? JSON.parse(doc.campos_extras) : doc.campos_extras;
+      corpo.innerHTML = renderDocEstruturado(campos, doc.categoria) + renderTagsHtml(doc.tags);
+    } else {
+      corpo.innerHTML = `<div class="doc-conteudo-rich">${formatarConteudo(doc.conteudo)}</div>
+        ${renderTagsHtml(doc.tags)}`;
+    }
     bindTagClicks(corpo, tag => { fecharModalDoc(); executarBusca(tag); });
 
     if (isMestre) {
@@ -401,6 +818,14 @@
     docEditandoId = id;
     document.getElementById('docTitulo').value = doc.titulo;
     document.getElementById('docTags').value   = doc.tags || '';
+     const tipoDoc = doc.tipo_documento || 'lore';
+    setModoDoc(tipoDoc);
+    atualizarCamposDinamicos(doc.categoria || 'Livro de Regras');
+    if (tipoDoc === 'estruturado' && doc.campos_extras) {
+      const campos = typeof doc.campos_extras === 'string'
+        ? JSON.parse(doc.campos_extras) : doc.campos_extras;
+      setTimeout(() => preencherCamposEstruturados(campos), 50);
+    }
     initQuill();
     quillEditor.root.innerHTML = doc.conteudo || '';
     selSistema.value = doc.sistema || 'Decadência Cinza';
@@ -458,6 +883,97 @@
   }
   function escH(s) {
     return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderDocEstruturado(campos, categoria) {
+    if (!campos) return '';
+    const linhas = [];
+
+    if (campos.descricao) {
+      linhas.push(`<p style="color:var(--text-secondary);font-size:1rem;line-height:1.7;margin-bottom:.75rem;">${escH(campos.descricao)}</p>`);
+    }
+
+    const LABELS = {
+      'dano-int':       '⚔ Dano (Integridade)',
+      'dano-vit':       '💀 Dano (Vitalidade)',
+      'alcance':        '📏 Alcance',
+      'peso':           '⚖ Peso',
+      'preco':          '💰 Preço',
+      'efeito':         '✨ Efeito',
+      'atributo':       '📊 Atributo Base',
+      'custo':          '🔵 Custo',
+      'duracao':        '⏱ Duração',
+      'falha':          '💥 Falha Crítica',
+      'integridade':    '🛡 Integridade',
+      'rd':             '🔰 RD',
+      'material':       '🔩 Material',
+      'restricao':      '⛔ Restrição',
+      'penalidade-mov': '🐢 Penalidade',
+      'vitalidade':     '❤ Vitalidade',
+      'impeto':         '🔵 Ímpeto',
+      'bonus':          '⭐ Bônus',
+      'consumo':        '🌾 Consumo Diário',
+      'arma-vantagem':  '⚔ Vantagem de Arma',
+      'municao':        '🔫 Munição',
+      'condicao':       '⚠ Condição',
+      'usos':           '🔄 Usos',
+      'requisito':      '📋 Requisito',
+      'classe-vantagem':'🏅 Classe com Vantagem',
+      'casco':          '⚓ Casco',
+      'velocidade':     '💨 Velocidade',
+      'carga':          '📦 Carga',
+      'tripulacao':     '👥 Tripulação',
+      'armas-bordo':    '💣 Armas de Bordo',
+      'funcao':         '🧭 Função',
+      'moral':          '❤ Moral',
+      'lealdade':       '🤝 Lealdade',
+      'habilidade':     '⭐ Habilidade',
+      'segredo':        '🔒 Segredo',
+    };
+
+    // Campos simples
+    const statsHtml = Object.entries(campos)
+      .filter(([k]) => !['descricao','habilidades_inatas','habilidades_ativas'].includes(k))
+      .filter(([, v]) => v !== '' && v !== null && v !== undefined)
+      .map(([k, v]) => {
+        const label = LABELS[k] || k;
+        // Dano tem destaque especial (clicável no futuro para o tabletop)
+        const isDano = k === 'dano-int' || k === 'dano-vit';
+        return `<div class="doc-campo-item${isDano ? ' doc-campo-dano' : ''}">
+          <span class="doc-campo-label">${label}</span>
+          <span class="doc-campo-val">${escH(String(v))}</span>
+        </div>`;
+      }).join('');
+
+    if (statsHtml) {
+      linhas.push(`<div class="doc-campos-grid">${statsHtml}</div>`);
+    }
+
+    // Habilidades de classe
+    if (campos.habilidades_inatas?.length) {
+      linhas.push(`<div class="doc-habs-section">
+        <div class="doc-habs-titulo">Habilidades Inatas</div>
+        ${campos.habilidades_inatas.map(h => `
+          <div class="doc-hab-item doc-hab-inata">
+            <span class="doc-hab-nome">${escH(h.nome)}</span>
+            <span class="doc-hab-desc">${escH(h.desc)}</span>
+          </div>`).join('')}
+      </div>`);
+    }
+
+    if (campos.habilidades_ativas?.length) {
+      linhas.push(`<div class="doc-habs-section">
+        <div class="doc-habs-titulo">Habilidades Ativas</div>
+        ${campos.habilidades_ativas.map(h => `
+          <div class="doc-hab-item doc-hab-ativa">
+            <span class="doc-hab-nome">${escH(h.nome)}</span>
+            ${h.custo ? `<span class="doc-hab-custo">${escH(h.custo)}</span>` : ''}
+            <span class="doc-hab-desc">${escH(h.desc)}</span>
+          </div>`).join('')}
+      </div>`);
+    }
+
+    return linhas.join('');
   }
 
   function formatarConteudo(html) {

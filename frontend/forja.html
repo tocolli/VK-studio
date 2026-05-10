@@ -13,7 +13,10 @@
     <button class="hamburger" id="hamburger" type="button"><span></span><span></span><span></span></button>
     <ul class="navbar-nav" id="navMenu">
       <li><a href="/dashboard">⚔ Câmara</a></li>
-      <li><a href="/forja" class="active">🔥 Forja</a></li>
+      <li><a href="/forja" class="active">Nova ficha</a></li>
+<li id="navAdmin" style="display:none;"><a href="/admin">🛡 Admin</a></li>
+<li><a href="/perfil">👤 Perfil</a></li>
+<li><a href="/mesa">🎲 Mesa</a></li>
     </ul>
     <div class="navbar-user">
       <span id="navUserName"></span>
@@ -28,7 +31,7 @@
       <div class="page-header">
         <div class="page-header-inner">
           <div>
-            <h1 class="page-title">🔥 A Forja</h1>
+            <h1 class="page-title">Fichas</h1>
             <p class="page-subtitle" id="forjaSubtitle">Selecione um universo para começar</p>
           </div>
           <div style="display:flex;gap:.5rem;">
@@ -40,29 +43,33 @@
 
       <div id="alertForja" class="alert" style="margin-bottom:1.5rem;"></div>
 
-      <!-- ================= ETAPA 1: SELEÇÃO DE SISTEMA ================= -->
-      <div id="etapa1">
-        <div class="sistema-select-grid">
+     <!-- ================= ETAPA 1: SELEÇÃO DE SISTEMA ================= -->
+<div id="etapa1">
+  <div class="sistema-select-grid">
 
-          <button class="sistema-select-card" data-sistema="Decadência Cinza" type="button">
-            <div class="ssc-icon">☀</div>
-            <div class="ssc-name">Decadência Cinza</div>
-            <div class="ssc-desc">Mundo sombrio de almas despertas.<br>Inclui Roll de Tipo de Alma.</div>
-          </button>
+    <!-- Card: Decadência Cinza -->
+    <button class="sistema-select-card" onclick="window.location.href='/ficha-decadencia.html'" type="button">
+      <div class="ssc-icon">☀</div>
+      <div class="ssc-name">Decadência Cinza</div>
+      <div class="ssc-desc">A decadência do mundo, da mente, do corpo e da alma.<br>O homem é a decadência.</div>
+    </button>
 
-          <button class="sistema-select-card" data-sistema="Oceano Estrelado" type="button">
-            <div class="ssc-icon">☽</div>
-            <div class="ssc-name">Oceano Estrelado</div>
-            <div class="ssc-desc">Mares entre as estrelas.<br>Navegação e Tripulação.</div>
-          </button>
+    <!-- Card: Oceano Estrelado -->
+    <button class="sistema-select-card" onclick="window.location.href='/ficha-oceano.html'" type="button">
+      <div class="ssc-icon">☽</div>
+      <div class="ssc-name">Oceano Estrelado</div>
+      <div class="ssc-desc">Os mares não tem donos, sua liberdade pertence a você.<br>Se o oceano reflete os céus de forma tão pura, o que ele reflete em você?.</div>
+    </button>
 
-          <button class="sistema-select-card" data-sistema="Cavaleiros de Armadura" type="button">
-            <div class="ssc-icon">☠</div>
-            <div class="ssc-name">Cavaleiros de Armadura</div>
-            <div class="ssc-desc">Batalhas e montarias.<br>Corrupção e Honra.</div>
-          </button>
+    <!-- Card: Cavaleiros de Armadura -->
+    <button class="sistema-select-card" onclick="window.location.href='/ficha-cavaleiros.html'" type="button">
+      <div class="ssc-icon">☠</div>
+      <div class="ssc-name">Cavaleiros de Armadura</div>
+      <div class="ssc-desc">As coisas lá fora são fortes mas nunca mais fortes que a determinação dos cavaleiros.<br>A força vem dos sonhos de infância.</div>
+    </button>
 
-        </div>
+  </div>
+</div>
 
         <!-- Lista de fichas existentes -->
         <div style="margin-top:2.5rem;">

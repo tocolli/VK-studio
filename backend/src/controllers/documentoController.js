@@ -60,14 +60,37 @@ async function buscarPorId(req, res) {
 
 async function criar(req, res) {
   try {
-    const { titulo, conteudo, sistema, categoria, visibilidade, tag_raridade } = req.body;
+    const {
+      titulo, conteudo, sistema, categoria, visibilidade,
+      tags, tipo_documento, campos_extras
+    } = req.body;
     const imagem_url = req.file?.path || null;
+
     if (!titulo) return res.status(400).json({ success: false, message: 'Título é obrigatório.' });
-    const tags = req.body.tags || '';
+
+    const tipo = tipo_documento || 'lore';
+    const campos = campos_extras
+      ? (typeof campos_extras === 'string' ? campos_extras : JSON.stringify(campos_extras))
+      : null;
+
     const [result] = await pool.execute(
-  `INSERT INTO documentos (titulo, conteudo, sistema, categoria, visibilidade, autor_id, imagem_url, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-  [titulo, conteudo || '', sistema || 'Decadência Cinza', categoria || 'Livro de Regras', visibilidade || 'publico', req.user.id, imagem_url, tags]
-);
+      `INSERT INTO documentos
+         (titulo, conteudo, sistema, categoria, tipo_documento, campos_extras,
+          visibilidade, autor_id, imagem_url, tags)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        titulo,
+        conteudo || '',
+        sistema || 'Decadência Cinza',
+        categoria || 'Livro de Regras',
+        tipo,
+        campos,
+        visibilidade || 'publico',
+        req.user.id,
+        imagem_url,
+        req.body.tags || ''
+      ]
+    );
     return res.status(201).json({ success: true, message: 'Documento criado!', id: result.insertId });
   } catch (err) {
     console.error('Erro ao criar documento:', err);
@@ -78,14 +101,26 @@ async function criar(req, res) {
 async function atualizar(req, res) {
   try {
     const { id } = req.params;
-    const { titulo, conteudo, sistema, categoria, visibilidade, tag_raridade } = req.body;
+    const {
+      titulo, conteudo, sistema, categoria, visibilidade,
+      tags, tipo_documento, campos_extras
+    } = req.body;
     const imagem_url = req.file?.path;
-    const tags = req.body.tags || '';
-    let query = `UPDATE documentos SET titulo=?, conteudo=?, sistema=?, categoria=?, visibilidade=?, tags=?`;
-    const params = [titulo, conteudo, sistema, categoria, visibilidade, tags];
+
+    const tipo = tipo_documento || 'lore';
+    const campos = campos_extras
+      ? (typeof campos_extras === 'string' ? campos_extras : JSON.stringify(campos_extras))
+      : null;
+
+    let query = `UPDATE documentos
+      SET titulo=?, conteudo=?, sistema=?, categoria=?,
+          tipo_documento=?, campos_extras=?, visibilidade=?, tags=?`;
+    const params = [titulo, conteudo || '', sistema, categoria, tipo, campos, visibilidade, tags || ''];
+
     if (imagem_url) { query += `, imagem_url=?`; params.push(imagem_url); }
     query += ` WHERE id=?`;
     params.push(id);
+
     await pool.execute(query, params);
     return res.json({ success: true, message: 'Documento atualizado!' });
   } catch (err) {

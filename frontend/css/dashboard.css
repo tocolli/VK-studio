@@ -775,3 +775,160 @@
   display: block;
   white-space: pre-wrap;
 }
+
+<div class="form-group" style="margin-top:1rem;" id="modoDocWrap">
+  <label>Tipo de Conteúdo</label>
+  <div class="modo-doc-tabs">
+    <button class="modo-tab active" data-modo="lore" type="button">
+      📜 Lore / Regras
+      <span class="modo-tab-sub">Editor de texto livre</span>
+    </button>
+    <button class="modo-tab" data-modo="estruturado" type="button">
+      ⚔ Item / Arma / Classe
+      <span class="modo-tab-sub">Campos separados por tipo</span>
+    </button>
+  </div>
+</div>
+
+<!-- MODO LORE: editor Quill -->
+<div id="modoLore" style="margin-top:.75rem;">
+  <div id="editorContainer">
+    <div id="editorToolbar">
+      <span class="ql-formats">
+        <select class="ql-header">
+          <option value="1">Título 1</option>
+          <option value="2">Título 2</option>
+          <option value="3">Título 3</option>
+          <option selected>Normal</option>
+        </select>
+        <select class="ql-font"></select>
+      </span>
+      <span class="ql-formats">
+        <button class="ql-bold"></button>
+        <button class="ql-italic"></button>
+        <button class="ql-underline"></button>
+        <button class="ql-strike"></button>
+      </span>
+      <span class="ql-formats">
+        <select class="ql-color"></select>
+        <select class="ql-background"></select>
+      </span>
+      <span class="ql-formats">
+        <button class="ql-align" value=""></button>
+        <button class="ql-align" value="center"></button>
+        <button class="ql-align" value="right"></button>
+        <button class="ql-align" value="justify"></button>
+      </span>
+      <span class="ql-formats">
+        <button class="ql-list" value="ordered"></button>
+        <button class="ql-list" value="bullet"></button>
+        <button class="ql-blockquote"></button>
+        <button class="ql-code-block"></button>
+      </span>
+      <span class="ql-formats">
+        <button class="ql-link"></button>
+        <button class="ql-clean"></button>
+      </span>
+    </div>
+    <div id="editorQuill"></div>
+  </div>
+  <input type="hidden" id="docConteudo"/>
+</div>
+
+<!-- MODO ESTRUTURADO: campos dinâmicos por categoria -->
+<div id="modoEstruturado" style="display:none;margin-top:.75rem;">
+  <div class="form-group">
+    <label>Descrição Geral</label>
+    <textarea id="campoDescricao" rows="3"
+      placeholder="Descrição visual, história, origem do item..."></textarea>
+  </div>
+  <!-- Container preenchido dinamicamente pelo JS conforme categoria -->
+  <div id="camposDinamicos"></div>
+</div>
+
+/* ===== EXIBIÇÃO CAMPOS ESTRUTURADOS NO MODAL ===== */
+.doc-campos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: .4rem;
+  margin-bottom: .75rem;
+}
+
+.doc-campo-item {
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: .45rem .65rem;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+
+.doc-campo-item.doc-campo-dano {
+  border-color: var(--danger, #922b21);
+  background: rgba(146,43,33,.08);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.doc-campo-item.doc-campo-dano:hover {
+  background: rgba(146,43,33,.16);
+  border-color: #e74c3c;
+}
+
+.doc-campo-label {
+  font-family: var(--font-heading);
+  font-size: .58rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.doc-campo-val {
+  font-family: var(--font-heading);
+  font-size: .95rem;
+  color: var(--gold-light);
+}
+
+.doc-campo-dano .doc-campo-val { color: #e74c3c; }
+
+/* Habilidades de classe no modal */
+.doc-habs-section { margin-top: .75rem; }
+.doc-habs-titulo {
+  font-family: var(--font-heading);
+  font-size: .65rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--gold-dim);
+  margin-bottom: .4rem;
+  padding-bottom: .3rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.doc-hab-item {
+  padding: .5rem .75rem;
+  margin-bottom: .3rem;
+  border-radius: 4px;
+  border-left: 3px solid;
+}
+.doc-hab-inata { border-color: var(--gold-dim); background: rgba(201,168,76,.05); }
+.doc-hab-ativa  { border-color: #3498db;         background: rgba(52,152,219,.05); }
+
+.doc-hab-nome {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: .75rem; color: var(--gold);
+  text-transform: uppercase; letter-spacing: .05em;
+  margin-bottom: .15rem;
+}
+.doc-hab-custo {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: .6rem; color: #3498db;
+  border: 1px solid #1a5a9a;
+  background: rgba(52,152,219,.1);
+  border-radius: 2px; padding: .1rem .4rem;
+  margin-bottom: .2rem;
+}
+.doc-hab-desc {
+  display: block;
+  font-size: .82rem; color: var(--text-secondary);
+  line-height: 1.5;
+}

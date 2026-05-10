@@ -6,7 +6,7 @@ async function listarAtividades(req, res) {
   try {
     const limite = parseInt(req.query.limite) || 100;
     const pagina = parseInt(req.query.pagina) || 1;
-    const offset = (pagina - 1) * limite;
+    const offset = Math.max(0, (pagina - 1) * limite); 
     const usuario_id = req.query.usuario_id || null;
     const ficha_id   = req.query.ficha_id   || null;
 
@@ -15,14 +15,14 @@ async function listarAtividades(req, res) {
     if (usuario_id) { where += ' AND a.usuario_id = ?'; params.push(usuario_id); }
     if (ficha_id)   { where += ' AND a.ficha_id = ?';   params.push(ficha_id); }
 
-    const [rows] = await pool.execute(
+    const [rows] = await pool.query(
       `SELECT a.*, u.avatar_url as usuario_avatar
        FROM atividades_fichas a
        LEFT JOIN users u ON a.usuario_id = u.id
        WHERE 1=1 ${where}
        ORDER BY a.created_at DESC
        LIMIT ? OFFSET ?`,
-      [...params, limite, offset]
+      [...params, Number(limite), Number(offset)]
     );
 
     const [[{ total }]] = await pool.execute(

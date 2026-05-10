@@ -16,9 +16,10 @@
     <button class="hamburger" id="hamburger" type="button"><span></span><span></span><span></span></button>
     <ul class="navbar-nav" id="navMenu">
       <li><a href="/dashboard" class="active">⚔ Câmara</a></li>
-      <li><a href="/forja">🔥 Forja</a></li>
+      <li><a href="/forja">🔥Fichas</a></li>
       <li id="navAdmin" style="display:none;"><a href="/admin">🛡 Admin</a></li>
       <li><a href="/perfil">👤 Perfil</a></li>
+      <li><a href="/mesa">🎲 Mesa</a></li>
     </ul>
     <div class="navbar-user">
       <span id="navUserName"></span>
@@ -72,8 +73,22 @@
             <select id="docCategoria"></select>
           </div>
         </div>
-        <div class="form-group" style="margin-top:1rem;">
-  <label>Conteúdo</label>
+        <div class="form-group" style="margin-top:1rem;" id="modoDocWrap">
+  <label>Tipo de Conteúdo</label>
+  <div class="modo-doc-tabs">
+    <button class="modo-tab active" data-modo="lore" type="button">
+      📜 Lore / Regras
+      <span class="modo-tab-sub">Editor de texto livre</span>
+    </button>
+    <button class="modo-tab" data-modo="estruturado" type="button">
+      ⚔ Item / Arma / Classe
+      <span class="modo-tab-sub">Campos separados por tipo</span>
+    </button>
+  </div>
+</div>
+
+<!-- MODO LORE: editor Quill -->
+<div id="modoLore" style="margin-top:.75rem;">
   <div id="editorContainer">
     <div id="editorToolbar">
       <span class="ql-formats">
@@ -86,36 +101,46 @@
         <select class="ql-font"></select>
       </span>
       <span class="ql-formats">
-        <button class="ql-bold"      title="Negrito"></button>
-        <button class="ql-italic"    title="Itálico"></button>
-        <button class="ql-underline" title="Sublinhado"></button>
-        <button class="ql-strike"    title="Tachado"></button>
+        <button class="ql-bold"></button>
+        <button class="ql-italic"></button>
+        <button class="ql-underline"></button>
+        <button class="ql-strike"></button>
       </span>
       <span class="ql-formats">
-        <select class="ql-color"      title="Cor do texto"></select>
-        <select class="ql-background" title="Cor de fundo"></select>
+        <select class="ql-color"></select>
+        <select class="ql-background"></select>
       </span>
       <span class="ql-formats">
-        <button class="ql-align" value=""        title="Esquerda"></button>
-        <button class="ql-align" value="center"  title="Centro"></button>
-        <button class="ql-align" value="right"   title="Direita"></button>
-        <button class="ql-align" value="justify" title="Justificar"></button>
+        <button class="ql-align" value=""></button>
+        <button class="ql-align" value="center"></button>
+        <button class="ql-align" value="right"></button>
+        <button class="ql-align" value="justify"></button>
       </span>
       <span class="ql-formats">
-        <button class="ql-list" value="ordered"  title="Lista numerada"></button>
-        <button class="ql-list" value="bullet"   title="Lista com marcadores"></button>
-        <button class="ql-blockquote"            title="Citação"></button>
-        <button class="ql-code-block"            title="Bloco de código"></button>
+        <button class="ql-list" value="ordered"></button>
+        <button class="ql-list" value="bullet"></button>
+        <button class="ql-blockquote"></button>
+        <button class="ql-code-block"></button>
       </span>
       <span class="ql-formats">
-        <button class="ql-link"  title="Link"></button>
-        <button class="ql-clean" title="Limpar formatação"></button>
+        <button class="ql-link"></button>
+        <button class="ql-clean"></button>
       </span>
     </div>
     <div id="editorQuill"></div>
   </div>
-  <!-- Campo hidden que recebe o HTML antes de salvar -->
-  <input type="hidden" id="docConteudo" />
+  <input type="hidden" id="docConteudo"/>
+</div>
+
+<!-- MODO ESTRUTURADO: campos dinâmicos por categoria -->
+<div id="modoEstruturado" style="display:none;margin-top:.75rem;">
+  <div class="form-group">
+    <label>Descrição Geral</label>
+    <textarea id="campoDescricao" rows="3"
+      placeholder="Descrição visual, história, origem do item..."></textarea>
+  </div>
+  <!-- Container preenchido dinamicamente pelo JS conforme categoria -->
+  <div id="camposDinamicos"></div>
 </div>
         <div class="form-grid-3" style="margin-top:1rem;">
           <div class="form-group">
