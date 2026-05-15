@@ -7,24 +7,37 @@
   <link rel="stylesheet" href="css/style.css"/>
   <link rel="stylesheet" href="css/dashboard.css"/>
   <link rel="stylesheet" href="css/admin.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Forçar ícones brancos */
+    i { color: #ffffff !important; }
+    .navbar-nav i, .section-title i { margin-right: 8px; }
+  </style>
 </head>
 <body>
   <nav class="navbar">
-    <div class="navbar-brand"><div class="sigil">⚔</div>VK.Studio</div>
-    <button class="hamburger" id="hamburger" type="button"><span></span><span></span><span></span></button>
-    <ul class="navbar-nav" id="navMenu">
-      <li><a href="/dashboard">⚔ Câmara</a></li>
-      <li><a href="/forja">🔥Fichas</a></li>
-      <li><a href="/admin" class="active">🛡 Admin</a></li>
-      <li><a href="/perfil">👤 Perfil</a></li>
-      <li><a href="/mesa">🎲 Mesa</a></li>
-    </ul>
-    <div class="navbar-user">
+  <div class="navbar-brand">
+    <div class="sigil"><i class="fa-solid fa-khalid"></i></div>
+    VK.Studio
+  </div>
+  <button class="hamburger" id="hamburger" type="button">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="navbar-nav" id="navMenu">
+    <li><a href="/dashboard"><i class="fa-solid fa-fort-awesome"></i> Sistemas</a></li>
+    <li><a href="/forja"><i class="fa-solid fa-file-lines"></i> Fichas</a></li>
+    <li id="navAdmin" style="display:none;"><a href="/admin"><i class="fa-solid fa-shield-halved"></i> Admin</a></li>
+    <li><a href="/perfil"><i class="fa-solid fa-user"></i> Perfil</a></li>
+    <li><a href="/mesa"><i class="fa-solid fa-dice-d20"></i> Mesa</a></li>
+  </ul>
+  <div class="navbar-user">
       <span id="navUserName"></span>
-      <div class="user-avatar" id="navAvatar">👤</div>
+      <a href="/perfil" class="user-avatar-link" title="Ir para o meu perfil">
+        <div class="user-avatar" id="navAvatar"><i class="fa-solid fa-user"></i></div>
+      </a>
       <button class="btn btn-sm btn-danger" onclick="VK.logout()" type="button">Sair</button>
     </div>
-  </nav>
+</nav>
 
   <main>
     <div class="container page-content">
@@ -32,19 +45,19 @@
       <div class="page-header">
         <div class="page-header-inner">
           <div>
-            <h1 class="page-title">🛡 Painel de Administração</h1>
+            <h1 class="page-title"><i class="fa-solid fa-shield-halved"></i> Painel de Administração</h1>
             <p class="page-subtitle">Atividades dos Jogadores · VK.Studio</p>
           </div>
-          <button class="btn btn-sm" id="btnRefresh" type="button">↻ Atualizar</button>
+          <button class="btn btn-sm" id="btnRefresh" type="button"><i class="fa-solid fa-rotate-right"></i> Atualizar</button>
         </div>
       </div>
 
       <!-- STATS -->
       <div class="stats-row" id="statsRow">
-        <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="stUsers">—</div><div class="stat-label">Usuários</div></div>
-        <div class="stat-card"><div class="stat-icon">⚔</div><div class="stat-value" id="stFichas">—</div><div class="stat-label">Fichas Ativas</div></div>
-        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value" id="stAtivHoje">—</div><div class="stat-label">Alterações Hoje</div></div>
-        <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-value" id="stAtivos7d">—</div><div class="stat-label">Jogadores Ativos (7d)</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-users"></i></div><div class="stat-value" id="stUsers">—</div><div class="stat-label">Usuários</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-khanda"></i></div><div class="stat-value" id="stFichas">—</div><div class="stat-label">Fichas Ativas</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-list-check"></i></div><div class="stat-value" id="stAtivHoje">—</div><div class="stat-label">Alterações Hoje</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-fire"></i></div><div class="stat-value" id="stAtivos7d">—</div><div class="stat-label">Jogadores Ativos (7d)</div></div>
       </div>
 
       <!-- FILTROS -->
@@ -75,7 +88,7 @@
 
       <!-- FEED DE ATIVIDADES -->
       <div class="section-header" style="margin-bottom:1rem;">
-        <span class="section-title">📋 Feed de Atividades</span>
+        <span class="section-title"><i class="fa-solid fa-list-check"></i> Feed de Atividades</span>
         <span id="totalAtividades" style="font-family:var(--font-heading);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);"></span>
       </div>
 
@@ -91,7 +104,7 @@
       <!-- TABELA DE USUÁRIOS -->
       <div style="margin-top:3rem;">
         <div class="section-header" style="margin-bottom:1rem;">
-          <span class="section-title">👥 Usuários Cadastrados</span>
+          <span class="section-title"><i class="fa-solid fa-users"></i> Usuários Cadastrados</span>
         </div>
         <div id="tabelaUsuarios"></div>
       </div>

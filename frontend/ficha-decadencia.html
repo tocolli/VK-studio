@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha Decadência Cinza — VK.Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Nosifer&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/ficha-decadencia.css">
+</head>
+<body class="ficha-body apocalypse">
+    <div class="overlay-grange"></div>
+
+    <div class="ficha-container" id="fichaOutbreak">
+        
+        <!-- CABEÇALHO (Proporções da imagem, conteúdo da 0.5) -->
+        <header class="header-kirk">
+            <div class="foto-placeholder" id="fotoPersonagem" title="Clica para alterar a foto">
+                <i class="fa-solid fa-user" id="fotoIcon"></i>
+                <input type="file" id="inpFotoPersonagem" accept="image/*" style="display: none;">
+            </div>
+            <div class="info-principal">
+                <input type="text" id="fichaNome" class="inp-nome-kirk" placeholder="NOME">
+                <div class="sub-info">
+                    <div class="field-kirk">
+                        <label>IDADE</label>
+                        <input type="number" id="fichaIdade" placeholder="Ex: 34">
+                    </div>
+                    <div class="field-kirk">
+                        <label>EXPECTATIVA DE VIDA</label>
+                        <input type="text" id="fichaExpectativa" placeholder="Ex: Baixa">
+                    </div>
+                    <div class="field-kirk">
+                        <label>PROFISSÃO</label>
+                        <input type="text" id="fichaProfissao" placeholder="Ex: Mecânico">
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- STATUS VITAIS (Estilo Kirk: 3 Caixas com Barra) -->
+        <section class="sessao-kirk">
+            <div class="titulo-sessao-kirk">
+                <span>—</span> STATUS <span>—</span>
+            </div>
+            <div class="grid-recursos">
+                <div class="box-recurso">
+                    <div class="recurso-label">VIDA</div>
+                    <div class="recurso-inputs">
+                        <input type="number" id="vidaCur" value="15"> / <input type="number" id="vidaMax" value="15">
+                    </div>
+                    <div class="bar-bg"><div id="barVida" class="bar-fill bar-vida"></div></div>
+                </div>
+                <div class="box-recurso">
+                    <div class="recurso-label">SANIDADE</div>
+                    <div class="recurso-inputs">
+                        <input type="number" id="sanCur" value="10"> / <input type="number" id="sanMax" value="10">
+                    </div>
+                    <div class="bar-bg"><div id="barSan" class="bar-fill bar-san"></div></div>
+                </div>
+                <div class="box-recurso">
+                    <div class="recurso-label">ESTAMINA</div>
+                    <div class="recurso-inputs">
+                        <input type="number" id="estaCur" value="12"> / <input type="number" id="estaMax" value="12">
+                    </div>
+                    <div class="bar-bg"><div id="barEsta" class="bar-fill bar-esta"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NECESSIDADES BÁSICAS E CAPACITAÇÕES (Estilo Quadrados Curtos) -->
+        <div class="secao-dupla-grid">
+            <div class="metade-secao">
+                <div class="titulo-sessao-kirk" style="font-size:0.9rem;">NECESSIDADES BÁSICAS</div>
+                <div class="grid-stats-curtos">
+                    <div class="stat-quadrado">
+                        <input type="text" id="necSaciedade" value="10/10">
+                        <span>SACIEDADE</span>
+                    </div>
+                    <div class="stat-quadrado">
+                        <input type="text" id="necSede" value="10/10">
+                        <span>SEDE</span>
+                    </div>
+                    <div class="stat-quadrado">
+                        <input type="text" id="necEnergia" value="10/10">
+                        <span>ENERGIA</span>
+                    </div>
+                </div>
+            </div>
+            <div class="metade-secao">
+                <div class="titulo-sessao-kirk" style="font-size:0.9rem;">ECONOMIA</div>
+                <div class="grid-stats-curtos">
+                    <div class="stat-quadrado">
+                        <input type="number" id="ecoDinheiro" value="0">
+                        <span>DINHEIRO</span>
+                    </div>
+                    <div class="stat-quadrado">
+                        <input type="number" id="ecoGasto" value="0">
+                        <span>GASTO FIXO</span>
+                    </div>
+                    <div class="stat-quadrado">
+                        <input type="number" id="ecoRenda" value="0">
+                        <span>RENDA</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="sessao-kirk">
+            <div class="titulo-sessao-kirk">CAPACITAÇÕES</div>
+            <div class="grid-stats-curtos" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="stat-quadrado">
+                    <input type="text" id="capPeso" value="0kg" readonly>
+                    <span>PESO ⚖️</span>
+                </div>
+                <div class="stat-quadrado">
+                    <input type="number" id="passivaEsquiva" value="0" readonly>
+                    <span>ESQUIVA PASSIVA</span>
+                </div>
+                <div class="stat-quadrado">
+                    <input type="number" id="passivaPercepcao" value="0" readonly>
+                    <span>PERCEPÇÃO PASSIVA</span>
+                </div>
+                <div class="stat-quadrado">
+                    <input type="number" id="passivaDefesa" value="0">
+                    <span>DEFESA PASSIVA</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ATRIBUTOS -->
+        <section class="sessao-kirk">
+            <div class="titulo-sessao-kirk">ATRIBUTOS</div>
+            <div class="grid-stats-curtos" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="stat-quadrado attr-box">
+                    <input type="number" id="attrFisico" class="attr-input" value="0">
+                    <span>FÍSICO</span>
+                </div>
+                <div class="stat-quadrado attr-box">
+                    <input type="number" id="attrIntelecto" class="attr-input" value="0">
+                    <span>INTELECTO</span>
+                </div>
+                <div class="stat-quadrado attr-box">
+                    <input type="number" id="attrSocial" class="attr-input" value="0">
+                    <span>SOCIAL</span>
+                </div>
+                <div class="stat-quadrado attr-box">
+                    <input type="number" id="attrAgilidade" class="attr-input" value="0">
+                    <span>AGILIDADE</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- PERÍCIAS BÁSICAS -->
+        <section class="sessao-kirk">
+            <div class="titulo-sessao-kirk">PERÍCIAS BÁSICAS</div>
+            <div class="pericias-grid-apocalypse">
+                <div class="pericia-row"><span>Pontaria</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Armas brancas</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Desarmado</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Furtividade</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Percepção</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Persuasão</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Condução</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Reflexos</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Religião</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Atletismo</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Culinária</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Vigor</span><input type="number" value="0"></div>
+                <div class="pericia-row"><span>Ciência</span><input type="number" value="0"></div>
+            </div>
+        </section>
+
+        <!-- PERÍCIAS DINÂMICAS E CARACTERÍSTICAS -->
+        <div class="secao-dupla-grid">
+            <div class="metade-secao">
+                <div class="flex-header">
+                    <div class="titulo-sessao-kirk" style="margin:0;">PERÍCIAS DE PROFISSÃO</div>
+                    <button type="button" class="btn-add-blood" id="btnNovaPericiaProf">+</button>
+                </div>
+                <div id="lista-pericias-prof" class="pericias-dinamicas"></div>
+            </div>
+            <div class="metade-secao">
+                <div class="flex-header">
+                    <div class="titulo-sessao-kirk" style="margin:0;">OUTRAS PERÍCIAS</div>
+                    <button type="button" class="btn-add-blood" id="btnNovaPericiaOutra">+</button>
+                </div>
+                <div id="lista-pericias-outras" class="pericias-dinamicas"></div>
+            </div>
+        </div>
+
+        <section class="sessao-kirk" style="margin-top: 20px;">
+            <div class="flex-header">
+                <div class="titulo-sessao-kirk" style="margin:0;">CARACTERÍSTICAS</div>
+                <button type="button" class="btn-add-blood" id="btnNovaCaracteristica">+</button>
+            </div>
+            <div id="lista-caracteristicas" class="pericias-dinamicas"></div>
+        </section>
+
+        <!-- INVENTÁRIO COM BOTÃO FUNCIONAL -->
+        <section class="sessao-kirk">
+            <div class="flex-header">
+                <div class="titulo-sessao-kirk" style="margin:0;">INVENTÁRIO</div>
+                <button type="button" class="mesa-btn-blood" id="btnAbrirMenuSistema">
+                    <i class="fa-solid fa-box-open"></i> ABRIR ITENS DO SISTEMA
+                </button>
+            </div>
+            <div id="inventario-dropzone" class="dropzone-area grimy">
+                <p class="empty-inv-msg">Nada na mochila ainda... (Arraste os itens aqui)</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- PAINEL LATERAL DE ITENS (SISTEMA) -->
+    <div id="painelSistemaItens" class="painel-lateral-itens">
+        <div class="painel-header">
+            <span><i class="fa-solid fa-box-open"></i> ITENS DISPONÍVEIS</span>
+            <button id="btnFecharPainelSistema">✕</button>
+        </div>
+        <div class="lista-itens-render" id="listaItensSistema">
+            <p style="font-size: 0.8rem; color: #888; padding: 10px;">Arraste para o inventário:</p>
+            <div class="item-saque-card" draggable="true" data-item='{"titulo":"Pé de Cabra", "peso":2, "descricao":"Bônus para arrombar."}'>🔧 Pé de Cabra</div>
+            <div class="item-saque-card" draggable="true" data-item='{"titulo":"Ração Militar", "peso":0.5, "descricao":"Restaura saciedade."}'>🍱 Ração Militar</div>
+            <div class="item-saque-card" draggable="true" data-item='{"titulo":"Lanterna", "peso":1, "descricao":"Ilumina áreas escuras."}'>🔦 Lanterna</div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/ficha-decadencia.js"></script>
+</body>
+</html>

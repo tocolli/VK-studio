@@ -212,6 +212,32 @@ function iniciarSocket(io) {
       }
     });
 
+    // ── ALTERAÇÃO DE FICHA (jogador salva → notifica mestre) ──────────
+    socket.on('ficha:alterada', async ({ sessaoId, jogadorId, jogadorNome, fichaId, personagem, resumo }) => {
+      // Repassa para toda a sala (o mestre vê no chat de sistema)
+      socket.to(String(sessaoId)).emit('ficha:alterada', {
+        jogadorId, jogadorNome, fichaId, personagem, resumo,
+      });
+
+      // Registra no log de atividades (tabela que já existe)
+      try {
+        const mudancas = [];
+        if (resumo?.vit) mudancas.push(`Vida ${resumo.vit[0]}/${resumo.vit[1]}`);
+        if (resumo?.imp) mudancas.push(`Ímpeto ${resumo.imp[0]}/${resumo.imp[1]}`);
+        if (resumo?.luc) mudancas.push(`Lucidez ${resumo.luc[0]}/${resumo.luc[1]}`);
+
+        await pool.execute(
+          `INSERT INTO atividades_fichas
+             (usuario_id, usuario_nome, ficha_id, personagem_nome, campo, valor_anterior, valor_novo)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [jogadorId, jogadorNome, fichaId, personagem,
+           'mesa (tabletop)', '—', mudancas.join(' · ')]
+        );
+      } catch (e) {
+        console.error('[ficha:alterada] log falhou:', e.message);
+      }
+    });
+
     // ── FOG OF WAR ────────────────────────────────────────────────────
     socket.on('fog:atualizar', async ({ sessaoId, mapaId, celulas }) => {
       if (!isMestre) return;

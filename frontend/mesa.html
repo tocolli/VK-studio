@@ -6,207 +6,304 @@
   <title>Mesa — VK.Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="css/mesa.css"/>
+  <link rel="stylesheet" href="css/ficha-cavaleiros.css"/>
 </head>
 <body class="mesa-body">
 
-<div class="mesa-topbar" id="mesaTopbar">
+<!-- ===== TOPBAR ===== -->
+<header class="mesa-topbar">
   <div class="topbar-left">
-    <div class="topbar-logo"><i class="fa-solid fa-khalid"></i> VK.Studio</div>
-    <div class="topbar-sessao">
-      <span id="topbarNomeSessao">—</span>
-      <span class="topbar-codigo" id="topbarCodigo">·</span>
-    </div>
+    <span class="topbar-logo">VK.Studio</span>
+    <div class="topbar-divider"></div>
+    <span class="topbar-sessao-nome" id="topbarNomeSessao">—</span>
+    <span class="topbar-sessao-codigo" id="topbarCodigo"></span>
   </div>
 
   <div class="topbar-center" id="topbarTools">
-    <div class="tool-group" id="grupoFerramentasMestre" style="display:none;">
-      <button class="tool-btn active" data-tool="mover"     title="Mover tokens (M)"><i class="fa-solid fa-hand"></i></button>
-      <button class="tool-btn"        data-tool="fog-apagar" title="Revelar área (R)"><i class="fa-solid fa-eye"></i></button>
-      <button class="tool-btn"        data-tool="fog-cobrir"  title="Cobrir área (C)"><i class="fa-solid fa-moon"></i></button>
-      <button class="tool-btn"        data-tool="ping"      title="Marcar ponto (P)"><i class="fa-solid fa-location-dot"></i></button>
+    <!-- Ferramentas mestre -->
+    <div class="tool-group" id="grupoMestre" style="display:none;">
+      <button class="tool-btn active" data-tool="select"    data-tip="Selecionar (S)"><i data-lucide="mouse-pointer-2"></i></button>
+      <button class="tool-btn"        data-tool="fog-erase" data-tip="Revelar Fog (R)"><i data-lucide="eye"></i></button>
+      <button class="tool-btn"        data-tool="fog-paint" data-tip="Cobrir Fog (C)"><i data-lucide="eye-off"></i></button>
+      <button class="tool-btn"        data-tool="measure"   data-tip="Medir distância (D)"><i data-lucide="ruler"></i></button>
+      <button class="tool-btn"        data-tool="ping"      data-tip="Marcar ponto (P)"><i data-lucide="map-pin"></i></button>
       <div class="tool-sep"></div>
-      <button class="tool-btn"        id="btnAdicionarToken" title="Adicionar token"><i class="fa-solid fa-plus"></i></button>
-      <button class="tool-btn"        id="btnGerenciarMapas" title="Mapas"><i class="fa-solid fa-map-location-dot"></i></button>
+      <button class="tool-btn" id="btnAddToken" data-tip="Adicionar token"><i data-lucide="plus-circle"></i></button>
+      <button class="tool-btn" id="btnMapas"    data-tip="Gerenciar mapas"><i data-lucide="map"></i></button>
     </div>
-    <div class="tool-group" id="grupoFerramentasJogador">
-      <button class="tool-btn active" data-tool="mover" title="Mover"><i class="fa-solid fa-hand"></i></button>
+    <!-- Ferramentas jogador -->
+    <div class="tool-group" id="grupoJogador">
+      <button class="tool-btn active" data-tool="select" data-tip="Selecionar"><i data-lucide="mouse-pointer-2"></i></button>
+      <button class="tool-btn"        data-tool="measure" data-tip="Medir"><i data-lucide="ruler"></i></button>
     </div>
   </div>
 
   <div class="topbar-right">
-    <div class="topbar-usuarios" id="topbarUsuarios"></div>
-    <button class="mesa-btn-icon" id="btnToggleChat" title="Chat (Tab)"><i class="fa-solid fa-comment"></i>
-      <span class="chat-badge" id="chatBadge" style="display:none;">0</span>
+    <div class="usuarios-pips" id="usuariosPips"></div>
+    <div class="topbar-divider"></div>
+    <button class="topbar-icon-btn" id="btnFichas" data-tip="Fichas (F)"><i data-lucide="scroll-text"></i></button>
+    <button class="topbar-icon-btn" id="btnChat"   data-tip="Chat (T)">
+      <i data-lucide="message-square"></i>
+      <span class="notif-badge" id="chatBadge" style="display:none;"></span>
     </button>
-    <button class="mesa-btn-icon mesa-btn-sair" id="btnSairMesa" title="Sair da mesa"><i class="fa-solid fa-xmark"></i></button>
+    <div class="topbar-divider"></div>
+    <button class="topbar-icon-btn danger" id="btnSair" data-tip="Sair"><i data-lucide="log-out"></i></button>
   </div>
-</div>
+</header>
 
+<!-- ===== VIEWPORT ===== -->
 <div class="mesa-viewport" id="mesaViewport">
-
-  <div class="zoom-controls">
-    <button class="zoom-btn" id="btnZoomIn"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-    <span class="zoom-val" id="zoomVal">100%</span>
-    <button class="zoom-btn" id="btnZoomOut"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-    <button class="zoom-btn" id="btnZoomReset" title="Resetar zoom"><i class="fa-solid fa-expand"></i></button>
-  </div>
-
   <canvas id="mesaCanvas"></canvas>
+  <div class="ping-ring" id="pingRing" style="display:none;"></div>
 
-  <div class="ping-anim" id="pingAnim" style="display:none;"></div>
+  <!-- Régua de medição -->
+  <div class="measure-label" id="measureLabel" style="display:none;"></div>
+
+  <!-- Controles de zoom (canto inferior esquerdo) -->
+  <div class="zoom-bar">
+    <button class="zoom-btn" id="btnZoomOut"><i data-lucide="minus"></i></button>
+    <span class="zoom-pct" id="zoomPct">100%</span>
+    <button class="zoom-btn" id="btnZoomIn"><i data-lucide="plus"></i></button>
+    <button class="zoom-btn" id="btnZoomFit" data-tip="Ajustar ao mapa"><i data-lucide="maximize-2"></i></button>
+  </div>
 </div>
 
-<div class="mesa-chat-panel" id="chatPanel">
-  <div class="chat-header">
-    <span class="chat-titulo"><i class="fa-solid fa-comment-dots"></i> Chat da Mesa</span>
-    <button class="chat-fechar" id="btnFecharChat"><i class="fa-solid fa-xmark"></i></button>
+<!-- ===== SIDEBAR DIREITA ===== -->
+<aside class="mesa-sidebar" id="mesaSidebar">
+
+  <!-- Abas da sidebar -->
+  <div class="sidebar-tabs">
+    <button class="sidebar-tab active" data-stab="fichas">
+      <i data-lucide="scroll-text"></i><span>Fichas</span>
+    </button>
+    <button class="sidebar-tab" data-stab="chat">
+      <i data-lucide="message-square"></i><span>Chat</span>
+      <span class="notif-badge-tab" id="chatBadgeTab" style="display:none;"></span>
+    </button>
+    <button class="sidebar-tab" id="tabConfigs" data-stab="config" style="display:none;">
+      <i data-lucide="settings"></i><span>Config</span>
+    </button>
   </div>
 
-  <div class="chat-msgs" id="chatMsgs"></div>
-
-  <div class="chat-dados-rapidos">
-    <span class="dados-label">Rolar:</span>
-    <button class="dado-btn" data-expr="1d4">d4</button>
-    <button class="dado-btn" data-expr="1d6">d6</button>
-    <button class="dado-btn" data-expr="1d8">d8</button>
-    <button class="dado-btn" data-expr="1d10">d10</button>
-    <button class="dado-btn" data-expr="1d12">d12</button>
-    <button class="dado-btn" data-expr="1d20">d20</button>
-    <button class="dado-btn" data-expr="1d100">d100</button>
-  </div>
-
-  <div class="chat-input-area">
-    <div class="chat-input-row">
-      <input type="text" id="chatInputExpr" placeholder="Ex: 2d6+3 ou mensagem..."
-             class="chat-input" autocomplete="off"/>
-      <button class="chat-send" id="btnChatSend"><i class="fa-solid fa-paper-plane"></i></button>
+  <!-- ABA: FICHAS -->
+  <div class="sidebar-content" id="stabFichas">
+    <div class="sidebar-section-label">Minhas Fichas</div>
+    <div id="listaFichasSidebar" class="fichas-sidebar-lista">
+      <div class="sidebar-empty">
+        <i data-lucide="scroll-text"></i>
+        <p>Nenhuma ficha encontrada</p>
+        <a href="/forja" target="_blank" class="sidebar-link">Criar na Forja</a>
+      </div>
     </div>
-    <div class="chat-opcoes" id="chatOpcoesMestre" style="display:none;">
-      <label class="chat-privado-label">
+    <!-- Fichas de outros jogadores (só mestre) -->
+    <div id="secaoFichasJogadores" style="display:none;">
+      <div class="sidebar-section-label" style="margin-top:.75rem;">Fichas dos Jogadores</div>
+      <div id="listaFichasJogadores" class="fichas-sidebar-lista"></div>
+    </div>
+  </div>
+
+  <!-- ABA: CHAT -->
+  <div class="sidebar-content" id="stabChat" style="display:none;">
+    <div class="chat-msgs-area" id="chatMsgs"></div>
+    <div class="chat-dados-row">
+      <button class="dado-chip" data-expr="1d4">d4</button>
+      <button class="dado-chip" data-expr="1d6">d6</button>
+      <button class="dado-chip" data-expr="1d8">d8</button>
+      <button class="dado-chip" data-expr="1d10">d10</button>
+      <button class="dado-chip" data-expr="1d12">d12</button>
+      <button class="dado-chip" data-expr="1d20">d20</button>
+      <button class="dado-chip" data-expr="1d100">d%</button>
+    </div>
+    <div class="chat-input-wrap">
+      <input type="text" id="chatInput" class="chat-input"
+             placeholder="Mensagem ou 2d6+3..."/>
+      <button class="chat-send-btn" id="btnChatSend">
+        <i data-lucide="send"></i>
+      </button>
+    </div>
+    <div class="chat-private-row" id="chatPrivateRow" style="display:none;">
+      <label class="private-label">
         <input type="checkbox" id="checkPrivado"/>
-        <span><i class="fa-solid fa-user-secret"></i> Rolagem privada</span>
+        <i data-lucide="lock"></i>
+        <span>Rolagem privada</span>
       </label>
     </div>
   </div>
-</div>
 
-<div class="mesa-modal-overlay open" id="modalEntrar">
-  <div class="mesa-modal">
-    <div class="mesa-modal-titulo"><i class="fa-solid fa-shield-halved"></i> Entrar na Mesa</div>
-    <div id="alertMesa" class="mesa-alert" style="display:none;"></div>
-    <div class="mesa-field">
-      <label>Código da Sessão</label>
-      <input type="text" id="inputCodigo" placeholder="Ex: A1B2C3D4"
-             maxlength="8" class="mesa-inp" autocomplete="off"
-             style="text-transform:uppercase;letter-spacing:.2em;font-size:1.2rem;text-align:center;"/>
-    </div>
-    <div class="mesa-modal-actions">
-      <a href="/dashboard" class="mesa-btn mesa-btn-ghost"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
-      <button class="mesa-btn mesa-btn-primary" id="btnEntrarMesa" type="button">Entrar <i class="fa-solid fa-chevron-right"></i></button>
-    </div>
-    <div class="modal-ou" id="modalOuMestre" style="display:none;">
-      <span>ou</span>
-    </div>
-    <div id="modalCriarSessao" style="display:none;">
-      <div class="mesa-field">
-        <label>Nome da Sessão</label>
-        <input type="text" id="inputNomeSessao" placeholder="Ex: Sessão 1 — Stormport"
-               class="mesa-inp"/>
-      </div>
-      <button class="mesa-btn mesa-btn-primary" id="btnCriarSessao" type="button"
-              style="width:100%;"><i class="fa-solid fa-plus"></i> Criar Nova Sessão</button>
-    </div>
+  <!-- ABA: CONFIG (mestre) -->
+  <div class="sidebar-content" id="stabConfig" style="display:none;">
+    <div class="sidebar-section-label">Sessão</div>
+    <div class="config-info" id="configSessaoInfo"></div>
+    <button class="config-btn danger" id="btnEncerrarSessao">
+      <i data-lucide="x-circle"></i> Encerrar Sessão
+    </button>
   </div>
-</div>
+</aside>
 
-<div class="mesa-modal-overlay" id="modalMapas">
-  <div class="mesa-modal" style="max-width:560px;">
-    <button class="mesa-modal-close" id="btnFecharMapas"><i class="fa-solid fa-xmark"></i></button>
-    <div class="mesa-modal-titulo"><i class="fa-solid fa-map-location-dot"></i> Mapas da Sessão</div>
+<!-- ===== JANELAS ARRASTÁVEIS ===== -->
+<!-- Container de janelas (fichas abertas) -->
+<div id="windowsContainer"></div>
 
-    <div class="mapas-lista" id="mapasList"></div>
+<!-- ===== TOOLTIP GLOBAL ===== -->
+<div class="token-ctx-menu" id="tokenCtxMenu" style="display:none;"></div>
 
-    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #2a2d33;">
-      <div class="mesa-modal-titulo" style="font-size:.72rem;margin-bottom:.75rem;">Enviar Novo Mapa</div>
-      <div class="mesa-field">
-        <label>Nome do Mapa</label>
-        <input type="text" id="mapaNovoNome" placeholder="Ex: Cidade de Stormport" class="mesa-inp"/>
+<!-- ===== MODAL: ENTRAR NA MESA ===== -->
+<div class="overlay open" id="overlayEntrar">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Entrar na Mesa</span>
+    </div>
+    <div id="alertEntrar" class="modal-alert" style="display:none;"></div>
+
+    <div class="modal-field">
+      <label>Código da Sessão</label>
+      <input type="text" id="inputCodigo" class="modal-inp" maxlength="8"
+             placeholder="Ex: A1B2C3D4"
+             style="text-transform:uppercase;letter-spacing:.25em;font-size:1.1rem;text-align:center;"/>
+    </div>
+    <div class="modal-actions">
+      <a href="/dashboard" class="modal-btn ghost">
+        <i data-lucide="arrow-left"></i> Voltar
+      </a>
+      <button class="modal-btn primary" id="btnEntrar">Entrar</button>
+    </div>
+
+    <div class="modal-ou" id="ouMestre" style="display:none;">ou</div>
+    <div id="criarSessaoWrap" style="display:none;">
+      <div class="modal-field">
+        <label>Nome da Nova Sessão</label>
+        <input type="text" id="inputNomeSessao" class="modal-inp"
+               placeholder="Ex: Sessão 3 — As Ruínas de Korth"/>
       </div>
-      <div class="mesa-field">
-        <label>Imagem</label>
-        <input type="file" id="mapaNovoArquivo" accept="image/*" class="mesa-inp"/>
-      </div>
-      <div class="mesa-g2">
-        <div class="mesa-field">
-          <label>Colunas do Grid</label>
-          <input type="number" id="mapaNovoLargura" value="20" min="5" max="50" class="mesa-inp"/>
-        </div>
-        <div class="mesa-field">
-          <label>Linhas do Grid</label>
-          <input type="number" id="mapaNovoAltura" value="20" min="5" max="50" class="mesa-inp"/>
-        </div>
-      </div>
-      <button class="mesa-btn mesa-btn-primary" id="btnEnviarMapa" style="width:100%;">
-        <i class="fa-solid fa-upload"></i> Enviar Mapa
+      <button class="modal-btn primary" id="btnCriarSessao" style="width:100%;">
+        <i data-lucide="plus"></i> Criar Sessão
       </button>
     </div>
   </div>
 </div>
 
-<div class="mesa-modal-overlay" id="modalToken">
-  <div class="mesa-modal">
-    <button class="mesa-modal-close" id="btnFecharToken"><i class="fa-solid fa-xmark"></i></button>
-    <div class="mesa-modal-titulo" id="tokenModalTitulo"><i class="fa-solid fa-plus"></i> Novo Token</div>
-
-    <div class="mesa-field">
+<!-- ===== MODAL: MAPAS ===== -->
+<div class="overlay" id="overlayMapas">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-header">
+      <span class="modal-title">Mapas da Sessão</span>
+      <button class="modal-close" data-close="overlayMapas"><i data-lucide="x"></i></button>
+    </div>
+    <div id="mapaLista" class="mapa-lista"></div>
+    <div class="modal-section-label" style="margin-top:1rem;">Enviar Novo Mapa</div>
+    <div class="modal-field">
       <label>Nome</label>
-      <input type="text" id="tokenNome" placeholder="Ex: Kael, Goblin A..." class="mesa-inp"/>
+      <input type="text" id="mapaNovoNome" class="modal-inp" placeholder="Ex: Cidade de Stormport"/>
     </div>
-    <div class="mesa-g2">
-      <div class="mesa-field">
-        <label>HP Atual</label>
-        <input type="number" id="tokenHpAtual" value="10" min="0" class="mesa-inp"/>
-      </div>
-      <div class="mesa-field">
-        <label>HP Máximo</label>
-        <input type="number" id="tokenHpMax" value="10" min="1" class="mesa-inp"/>
-      </div>
+    <div class="modal-field">
+      <label>Imagem (JPG/PNG/WebP · max 15MB)</label>
+      <input type="file" id="mapaNovoArq" accept="image/*" class="modal-inp"/>
     </div>
-    <div class="mesa-g2">
-      <div class="mesa-field">
-        <label>Tamanho (células)</label>
-        <input type="number" id="tokenTamanho" value="1" min="1" max="4" class="mesa-inp"/>
+    <div class="modal-grid2">
+      <div class="modal-field">
+        <label>Colunas</label>
+        <input type="number" id="mapaNovoCol" value="20" min="5" max="80" class="modal-inp"/>
       </div>
-      <div class="mesa-field">
-        <label>Cor do Token</label>
-        <input type="color" id="tokenCor" value="#c9a84c" class="mesa-inp" style="height:38px;cursor:pointer;"/>
+      <div class="modal-field">
+        <label>Linhas</label>
+        <input type="number" id="mapaNovoRow" value="20" min="5" max="80" class="modal-inp"/>
       </div>
     </div>
-    <div class="mesa-field">
-      <label>Imagem URL (opcional)</label>
-      <input type="text" id="tokenImagemUrl" placeholder="https://..." class="mesa-inp"/>
-    </div>
-    <div class="mesa-modal-actions">
-      <button class="mesa-btn mesa-btn-ghost"   id="btnCancelarToken">Cancelar</button>
-      <button class="mesa-btn mesa-btn-danger"  id="btnDeletarToken"  style="display:none;"><i class="fa-solid fa-trash"></i> Remover</button>
-      <button class="mesa-btn mesa-btn-primary" id="btnSalvarToken">Salvar</button>
+    <div class="modal-actions">
+      <button class="modal-btn primary" id="btnEnviarMapa" style="width:100%;">
+        <i data-lucide="upload"></i> Enviar Mapa
+      </button>
     </div>
   </div>
 </div>
 
-<div class="token-tooltip" id="tokenTooltip" style="display:none;">
-  <div class="tt-nome" id="ttNome"></div>
-  <div class="tt-hp" id="ttHp"></div>
-  <div class="tt-acoes" id="ttAcoes"></div>
+<!-- ===== MODAL: TOKEN ===== -->
+<div class="overlay" id="overlayToken">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-header">
+      <span class="modal-title" id="tokenModalTitulo">Novo Token</span>
+      <button class="modal-close" data-close="overlayToken"><i data-lucide="x"></i></button>
+    </div>
+
+    <div class="modal-field">
+      <label>Nome</label>
+      <input type="text" id="tokenNome" class="modal-inp" placeholder="Ex: Kael, Goblin A..."/>
+    </div>
+
+    <!-- GALERIA DE IMAGENS -->
+    <div class="modal-field">
+      <label>Imagem</label>
+      <div class="galeria-tabs">
+        <button class="galeria-tab active" data-gtab="fichas">Fichas</button>
+        <button class="galeria-tab" data-gtab="jogadores">Jogadores</button>
+        <button class="galeria-tab" data-gtab="url">URL</button>
+      </div>
+      <div id="galeriaFichas"    class="galeria-grid"></div>
+      <div id="galeriaJogadores" class="galeria-grid" style="display:none;"></div>
+      <div id="galeriaUrl"       style="display:none;">
+        <input type="text" id="tokenUrlInput" class="modal-inp" placeholder="https://..."/>
+      </div>
+      <div class="galeria-preview" id="galeriaPreview" style="display:none;">
+        <img id="galeriaPreviewImg" alt="preview"/>
+        <button class="galeria-clear" id="btnGaleriaClear">
+          <i data-lucide="x"></i> Remover
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-grid2">
+      <div class="modal-field">
+        <label>HP Atual</label>
+        <input type="number" id="tokenHpAtual" value="10" min="0" class="modal-inp"/>
+      </div>
+      <div class="modal-field">
+        <label>HP Máximo</label>
+        <input type="number" id="tokenHpMax" value="10" min="1" class="modal-inp"/>
+      </div>
+    </div>
+    <div class="modal-grid2">
+      <div class="modal-field">
+        <label>Tamanho (células)</label>
+        <input type="number" id="tokenTam" value="1" min="1" max="5" class="modal-inp"/>
+      </div>
+      <div class="modal-field">
+        <label>Cor</label>
+        <input type="color" id="tokenCor" value="#c9a84c"
+               class="modal-inp" style="height:38px;cursor:pointer;padding:.25rem;"/>
+      </div>
+    </div>
+
+    <!-- ILUMINAÇÃO -->
+    <div class="modal-section-label" style="margin-top:.5rem;">Iluminação</div>
+    <div class="modal-grid2">
+      <div class="modal-field">
+        <label>
+          <input type="checkbox" id="tokenLuzAtiva" style="accent-color:var(--gold);margin-right:.4rem;"/>
+          Luz ativa
+        </label>
+      </div>
+      <div class="modal-field">
+        <label>Raio (células)</label>
+        <input type="number" id="tokenLuzRaio" value="3" min="1" max="20" class="modal-inp"/>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="modal-btn ghost"   id="btnTokenCancel">Cancelar</button>
+      <button class="modal-btn danger"  id="btnTokenDelete" style="display:none;">Remover</button>
+      <button class="modal-btn primary" id="btnTokenSave">Salvar</button>
+    </div>
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="js/api.js"></script>
 <script src="js/auth-guard.js"></script>
+<script src="js/ficha-cavaleiros.js"></script>
 <script src="js/mesa.js"></script>
+<script>lucide.createIcons();</script>
 </body>
 </html>

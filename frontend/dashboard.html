@@ -8,25 +8,77 @@
   <link rel="stylesheet" href="css/dashboard.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tiptap/2.1.13/tiptap.umd.min.js"></script>
   <link  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    .vk-footer-dash {
+        margin-top: 50px;
+        padding: 40px 20px 30px;
+        text-align: center;
+        border-top: 1px solid #333;
+    }
+    .vk-footer-dash p {
+        color: #888;
+        font-size: 0.95rem;
+        margin-bottom: 20px;
+    }
+    .footer-botoes {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    .btn-comunidade {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        font-family: 'Cinzel', serif;
+        font-size: 0.9rem;
+        font-weight: bold;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: all 0.3s;
+        background: #1a1a1a;
+        color: #ccc;
+        border: 1px solid #333;
+    }
+    .btn-discord:hover { background-color: #5865F2; color: #fff; border-color: #5865F2; box-shadow: 0 0 10px rgba(88, 101, 242, 0.5); }
+    .btn-apoia:hover { background-color: #8b0000; color: #fff; border-color: #ff4500; box-shadow: 0 0 10px rgba(139, 0, 0, 0.5); }
+    .btn-suporte:hover { background-color: #c9a84c; color: #000; border-color: #c9a84c; box-shadow: 0 0 10px rgba(201, 168, 76, 0.5); }
+    
+    /* Ajuste para ícones dentro de botões e listas */
+    .navbar-nav i, .modo-tab i, .section-tab-btn i, .stat-icon i {
+        margin-right: 8px;
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar">
-    <div class="navbar-brand"><div class="sigil">⚔</div>VK.Studio</div>
-    <button class="hamburger" id="hamburger" type="button"><span></span><span></span><span></span></button>
-    <ul class="navbar-nav" id="navMenu">
-      <li><a href="/dashboard" class="active">⚔ Câmara</a></li>
-      <li><a href="/forja">🔥Fichas</a></li>
-      <li id="navAdmin" style="display:none;"><a href="/admin">🛡 Admin</a></li>
-      <li><a href="/perfil">👤 Perfil</a></li>
-      <li><a href="/mesa">🎲 Mesa</a></li>
-    </ul>
-    <div class="navbar-user">
+  <div class="navbar-brand">
+    <div class="sigil"><i class="fa-solid fa-khalid"></i></div>
+    VK.Studio
+  </div>
+  <button class="hamburger" id="hamburger" type="button">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="navbar-nav" id="navMenu">
+    <li><a href="/dashboard"><i class="fa-solid fa-fort-awesome"></i> Sistemas</a></li>
+    <li><a href="/forja"><i class="fa-solid fa-file-lines"></i> Fichas</a></li>
+    <li id="navAdmin" style="display:none;"><a href="/admin"><i class="fa-solid fa-shield-halved"></i> Admin</a></li>
+    <li><a href="/perfil"><i class="fa-solid fa-user"></i> Perfil</a></li>
+    <li><a href="/mesa"><i class="fa-solid fa-dice-d20"></i> Mesa</a></li>
+  </ul>
+ <div class="navbar-user">
       <span id="navUserName"></span>
-      <div class="user-avatar" id="navAvatar">👤</div>
+      <a href="/perfil" class="user-avatar-link" title="Ir para o meu perfil">
+        <div class="user-avatar" id="navAvatar"><i class="fa-solid fa-user"></i></div>
+      </a>
       <button class="btn btn-sm btn-danger" onclick="VK.logout()" type="button">Sair</button>
     </div>
-  </nav>
+</nav>
 
   <main>
     <div class="container page-content">
@@ -38,22 +90,20 @@
             <p class="page-subtitle">Gestão dos Universos · VK.Studio</p>
           </div>
           <div id="mestreBtns" style="display:none;">
-            <button class="btn btn-primary" id="btnNovoDoc" type="button">+ Novo Documento</button>
+            <button class="btn btn-primary" id="btnNovoDoc" type="button"><i class="fa-solid fa-plus"></i> Novo Documento</button>
           </div>
         </div>
       </div>
 
-      <!-- STATS -->
       <div id="statsRow" class="stats-row" style="display:none;">
-        <div class="stat-card"><div class="stat-icon">📜</div><div class="stat-value" id="statDocs">0</div><div class="stat-label">Documentos</div></div>
-        <div class="stat-card"><div class="stat-icon">⚔</div><div class="stat-value" id="statFichas">0</div><div class="stat-label">Fichas</div></div>
-        <div class="stat-card"><div class="stat-icon">🌍</div><div class="stat-value">3</div><div class="stat-label">Universos</div></div>
-        <div class="stat-card"><div class="stat-icon">🎲</div><div class="stat-value" id="statSessoes">—</div><div class="stat-label">Sessões</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-scroll"></i></div><div class="stat-value" id="statDocs">0</div><div class="stat-label">Documentos</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-file-invoice"></i></div><div class="stat-value" id="statFichas">0</div><div class="stat-label">Fichas</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-earth-americas"></i></div><div class="stat-value">3</div><div class="stat-label">Universos</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-dice"></i></div><div class="stat-value" id="statSessoes">—</div><div class="stat-label">Sessões</div></div>
       </div>
 
-      <!-- FORM NOVO DOCUMENTO -->
       <div id="formCriarDoc" class="form-panel">
-        <h3 class="form-panel-title">📜 Novo Documento / Lore</h3>
+        <h3 class="form-panel-title"><i class="fa-solid fa-scroll"></i> Novo Documento / Lore</h3>
         <div id="alertDoc" class="alert" style="margin-bottom:1rem;"></div>
         <div class="form-grid-3">
           <div class="form-group">
@@ -77,17 +127,16 @@
   <label>Tipo de Conteúdo</label>
   <div class="modo-doc-tabs">
     <button class="modo-tab active" data-modo="lore" type="button">
-      📜 Lore / Regras
+      <i class="fa-solid fa-book-open"></i> Lore / Regras
       <span class="modo-tab-sub">Editor de texto livre</span>
     </button>
     <button class="modo-tab" data-modo="estruturado" type="button">
-      ⚔ Item / Arma / Classe
+      <i class="fa-solid fa-sword"></i> Item / Arma / Classe
       <span class="modo-tab-sub">Campos separados por tipo</span>
     </button>
   </div>
 </div>
 
-<!-- MODO LORE: editor Quill -->
 <div id="modoLore" style="margin-top:.75rem;">
   <div id="editorContainer">
     <div id="editorToolbar">
@@ -132,14 +181,12 @@
   <input type="hidden" id="docConteudo"/>
 </div>
 
-<!-- MODO ESTRUTURADO: campos dinâmicos por categoria -->
 <div id="modoEstruturado" style="display:none;margin-top:.75rem;">
   <div class="form-group">
     <label>Descrição Geral</label>
     <textarea id="campoDescricao" rows="3"
       placeholder="Descrição visual, história, origem do item..."></textarea>
   </div>
-  <!-- Container preenchido dinamicamente pelo JS conforme categoria -->
   <div id="camposDinamicos"></div>
 </div>
         <div class="form-grid-3" style="margin-top:1rem;">
@@ -166,68 +213,75 @@
         </div>
       </div>
 
-      <!-- TABS PRINCIPAIS -->
       <div class="section-tabs">
-        <button class="section-tab-btn active" data-stab="documentos" type="button">📜 Documentos & Lore</button>
-        <button class="section-tab-btn" data-stab="fichas" type="button">⚔ Fichas</button>
+        <button class="section-tab-btn active" data-stab="documentos" type="button"><i class="fa-solid fa-scroll"></i> Documentos & Lore</button>
+        <button class="section-tab-btn" data-stab="fichas" type="button"><i class="fa-solid fa-file-lines"></i> Fichas</button>
       </div>
 
-      <!-- ===== ABA DOCUMENTOS ===== -->
       <div id="stabDocumentos">
 
-        <!-- NAVEGAÇÃO POR SISTEMA -->
         <div class="sistema-nav" id="sistemaNave">
           <button class="sistema-btn active" data-sistema="Decadência Cinza" type="button">
-            <span class="sistema-icon">☀</span>
+            <span class="sistema-icon"><i class="fa-solid fa-sun"></i></span>
             <span>Decadência Cinza</span>
           </button>
           <button class="sistema-btn" data-sistema="Oceano Estrelado" type="button">
-            <span class="sistema-icon">☽</span>
+            <span class="sistema-icon"><i class="fa-solid fa-moon"></i></span>
             <span>Oceano Estrelado</span>
           </button>
           <button class="sistema-btn" data-sistema="Cavaleiros de Armadura" type="button">
-            <span class="sistema-icon">☠</span>
+            <span class="sistema-icon"><i class="fa-solid fa-skull"></i></span>
             <span>Cavaleiros de Armadura</span>
           </button>
         </div>
 
         <div class="busca-row" id="buscaRow" style="display:none;">
   <div class="busca-input-wrap">
-    <span class="busca-icon">🔍</span>
+    <span class="busca-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
     <input type="text" id="buscaInput" placeholder="Buscar por título ou #tag..." />
     <button class="busca-limpar" id="btnLimparBusca" type="button" style="display:none;">✕</button>
   </div>
   <div class="tags-sugeridas" id="tagsSugeridas"></div>
 </div>
 
-        <!-- GRID DE CATEGORIAS -->
         <div class="categoria-grid" id="categoriaGrid"></div>
 
-        <!-- HEADER DA LISTAGEM -->
         <div class="section-header" id="docListHeader" style="display:none;">
           <span class="section-title" id="docListTitle">Documentos</span>
           <button class="btn btn-sm" id="btnVoltarCats" type="button">← Categorias</button>
         </div>
 
-        <!-- LISTA DE DOCUMENTOS -->
         <div id="listaDocumentos" class="grid-3" style="display:none;"></div>
       </div>
 
-      <!-- ===== ABA FICHAS ===== -->
       <div id="stabFichas" style="display:none;">
         <div class="section-header">
           <span class="section-title">Fichas de Personagem</span>
           <a href="/forja" class="btn btn-sm">+ Nova Ficha</a>
         </div>
         <div id="listaFichas" class="grid-2">
-          <div class="empty-state" style="grid-column:1/-1;"><div class="icon">⚔</div><p>Carregando fichas...</p></div>
+          <div class="empty-state" style="grid-column:1/-1;"><div class="icon"><i class="fa-solid fa-file-lines"></i></div><p>Carregando fichas...</p></div>
         </div>
       </div>
 
     </div>
   </main>
 
-  <!-- MODAL DOCUMENTO -->
+  <footer class="vk-footer-dash">
+    <p>Faça parte da nossa comunidade e apoie o desenvolvimento do VK.Studio</p>
+    <div class="footer-botoes">
+      <a href="https://discord.gg/uSSezZ98B9" target="_blank" class="btn-comunidade btn-discord">
+        <i class="fa-brands fa-discord"></i> Acesse nosso Discord
+      </a>
+      <a href="URL_DO_APOIASE_AQUI" target="_blank" class="btn-comunidade btn-apoia">
+        <i class="fa-solid fa-hand-holding-dollar"></i> Apoia-se
+      </a>
+      <a href="URL_DO_SUPORTE_AQUI" target="_blank" class="btn-comunidade btn-suporte">
+        <i class="fa-solid fa-headset"></i> Suporte
+      </a>
+    </div>
+  </footer>
+
   <div class="modal-overlay" id="modalDoc">
     <div class="modal">
       <button class="modal-close" onclick="fecharModalDoc()" type="button">✕</button>

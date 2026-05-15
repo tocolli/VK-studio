@@ -932,3 +932,26 @@
   font-size: .82rem; color: var(--text-secondary);
   line-height: 1.5;
 }
+
+/* Estilo para o link do avatar na navbar */
+.user-avatar-link {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.user-avatar-link:hover {
+    transform: scale(1.1); /* Dá um leve zoom ao passar o rato */
+    opacity: 0.9;
+}
+
+.user-avatar {
+    cursor: pointer; /* Garante que o cursor de mãozinha apareça */
+    border: 1px solid transparent;
+    transition: border-color 0.3s ease;
+}
+
+.user-avatar-link:hover .user-avatar {
+    border-color: #c9a84c; /* Opcional: destaca a borda com a cor do estúdio no hover */
+}
