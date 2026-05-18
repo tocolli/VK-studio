@@ -29,4 +29,9 @@ router.put('/:sessaoId/mapas/:mapaId/fog',  authMiddleware, mestreOnly, ctrl.atu
 // Chat
 router.get('/:sessaoId/chat', authMiddleware, ctrl.buscarChat);
 
+// Lojas e Itens (Mercado do Mestre)
+router.get('/:sessaoId/lojas',               authMiddleware, ctrl.listarLojas);
+router.post('/:sessaoId/lojas',              authMiddleware, mestreOnly, ctrl.criarLoja);
+router.post('/:sessaoId/lojas/:lojaId/itens',authMiddleware, mestreOnly, ctrl.adicionarItemLoja);
+
 module.exports = router;

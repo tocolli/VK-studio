@@ -31,7 +31,7 @@
   // ─── INIT ─────────────────────────────────────────────────────────────
   async function init() {
     const user   = VK.user;
-    E.isMestre   = VK.isMestre;
+    E.isMestre   = VK.isMestre; // Master global do site
     E.userId     = user.id;
     E.userName   = user.nome;
 
@@ -384,6 +384,21 @@
 
     socket.on('mesa:estado_inicial', ({ sessao, usuarios }) => {
       E.sessao = sessao; E.sessaoId = sessao.id;
+      // Define se o usuário é o Mestre desta mesa específica (ou Admin do site)
+      if (sessao.mestre_id === E.userId || VK.isMestre) {
+        E.isMestre = true;
+        document.getElementById('grupoMestre').style.display = 'flex';
+        document.getElementById('grupoJogador').style.display = 'none';
+        document.getElementById('ouMestre').style.display = 'flex';
+        document.getElementById('criarSessaoWrap').style.display = 'block';
+        document.getElementById('chatPrivateRow').style.display = 'block';
+        document.getElementById('tabConfigs').style.display = 'flex';
+        const areaLoja = document.getElementById('areaMestreLoja');
+        if (areaLoja) areaLoja.style.display = 'block';
+      }
+      
+      // Carrega a loja logo no início
+      setTimeout(carregarVitrineLoja, 1000);
       fecharOverlay('overlayEntrar');
       document.getElementById('topbarNomeSessao').textContent = sessao.nome;
       document.getElementById('topbarCodigo').textContent     = '#' + sessao.codigo;
@@ -1145,12 +1160,184 @@
   }
   async function criarSessao(){
     const nome=document.getElementById('inputNomeSessao').value.trim();
+    const sistemaSelect = document.getElementById('selectSistemaSessao');
+    const sistema = sistemaSelect ? sistemaSelect.value : 'Decadência Cinza';
+    
     if(!nome){alertEntrar('Digite um nome.','erro');return;}
-    const res=await Api.request('/sessoes',{method:'POST',body:{nome}});
+    
+    const res=await Api.request('/sessoes',{method:'POST',body:{nome, sistema}});
     if(!res?.ok){alertEntrar(res?.data?.message||'Erro.','erro');return;}
     document.getElementById('inputCodigo').value=res.data.sessao.codigo;
     entrarMesa();
   }
+
+
+  // ─── VITRINE DA LOJA (TABLETOP) ───────────────────────────────────────
+  window.lojaAtualMesa = null;
+  window.catalogoDocumentos = [];
+
+  async function carregarVitrineLoja() {
+    if (!E.sessaoId) return;
+    const vitrine = document.getElementById('vitrineLoja');
+    if (!vitrine) return;
+    vitrine.innerHTML = '<div style="text-align:center;color:#888;padding:1rem;">Carregando mercado...</div>';
+    
+    try {
+      // 1. Busca as lojas desta sessão
+      const res = await Api.request(`/sessoes/${E.sessaoId}/lojas`);
+      if (!res?.ok || !res.data.lojas || res.data.lojas.length === 0) {
+        // Se o mestre não criou loja, criamos uma loja "Geral" automaticamente para a vitrine
+        if (E.isMestre) {
+           const resCriar = await Api.request(`/sessoes/${E.sessaoId}/lojas`, { method: 'POST', body: { nome: 'Mercado Geral' } });
+           if (resCriar?.ok) {
+             carregarVitrineLoja(); // Recarrega
+           } else {
+             vitrine.innerHTML = '<div style="text-align:center;color:#888;padding:1rem;">O Mestre ainda não abriu o mercado.</div>';
+           }
+        } else {
+           vitrine.innerHTML = '<div style="text-align:center;color:#888;padding:1rem;">O Mestre ainda não abriu o mercado.</div>';
+        }
+        return;
+      }
+      
+      // Usa a primeira loja criada (ou deixa o mestre escolher no futuro)
+      window.lojaAtualMesa = res.data.lojas[0];
+      const itens = window.lojaAtualMesa.itens || [];
+      
+      if (!itens.length) {
+        vitrine.innerHTML = '<div style="text-align:center;color:#888;padding:1rem;">O mercado está sem estoque no momento.</div>';
+        return;
+      }
+      
+      vitrine.innerHTML = itens.map(item => {
+        // Tenta achar a imagem nos campos se existir
+        let imgHtml = '';
+        if (item.descricao && item.descricao.includes('http')) {
+             // Mockup: Se houver URL na desc (nós arranjamos melhor no catálogo)
+        }
+        
+        return `
+          <div style="background:#111214; border:1px solid #333; border-radius:6px; padding:10px; display:flex; gap:10px; align-items:center;">
+            <div style="width:40px; height:40px; background:#222; border-radius:4px; display:flex; align-items:center; justify-content:center; border:1px solid var(--bronze-dim);">
+              <i data-lucide="package" style="color:var(--gold-dim); width:20px;"></i>
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:600; color:#fff; font-size:0.9rem;">${escH(item.nome)}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">${escH(item.categoria || 'Item')}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="color:var(--gold); font-family:'Cinzel', serif; font-weight:bold; font-size:0.95rem;">${item.preco} 💰</div>
+              ${E.isMestre ? `<div style="font-size:0.65rem; color:#e74c3c; cursor:pointer; text-decoration:underline; margin-top:4px;" onclick="removerItemVitrine(${item.id})">Remover</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      lucide.createIcons();
+      
+    } catch (e) {
+      vitrine.innerHTML = '<div style="text-align:center;color:#e74c3c;padding:1rem;">Erro ao carregar o mercado.</div>';
+    }
+  }
+
+  window.abrirModalCatalogoLoja = async () => {
+    abrirOverlay('overlayCatalogoLoja');
+    const container = document.getElementById('listaCatalogoSistema');
+    container.innerHTML = '<div style="text-align:center;color:#888;">Buscando itens do sistema...</div>';
+    
+    try {
+      const res = await Api.request('/documentos'); // Pega todos do banco
+      if (!res?.ok) throw new Error();
+      
+      // Filtra documentos do sistema da sessão que sejam itens estruturados
+      window.catalogoDocumentos = res.data.documentos.filter(d => 
+        (d.sistema === E.sessao.sistema) &&
+        ['Itens','Armas Brancas','Armas de Fogo','Armaduras','Consumíveis'].includes(d.categoria)
+      );
+      
+      renderCatalogoBusca('');
+    } catch (e) {
+      container.innerHTML = '<div style="text-align:center;color:#e74c3c;">Erro ao carregar banco de dados.</div>';
+    }
+  };
+
+  window.filtrarCatalogoLoja = () => {
+    const term = document.getElementById('inputBuscaCatalogo').value.toLowerCase();
+    renderCatalogoBusca(term);
+  };
+
+  function renderCatalogoBusca(term) {
+    const container = document.getElementById('listaCatalogoSistema');
+    let filtrados = window.catalogoDocumentos;
+    if (term) {
+      filtrados = filtrados.filter(d => d.titulo.toLowerCase().includes(term));
+    }
+    
+    if (!filtrados.length) {
+      container.innerHTML = '<div style="text-align:center;color:#888;">Nenhum item encontrado.</div>';
+      return;
+    }
+    
+    container.innerHTML = filtrados.map(d => {
+      // Lê os campos estruturados, o preço costuma estar lá
+      let precoSugerido = 0;
+      let efeito = d.categoria;
+      try {
+        if (d.conteudo && d.conteudo.startsWith('{')) {
+           const obj = JSON.parse(d.conteudo);
+           const pStr = String(obj['Preço'] || obj['Custo'] || '0').replace(/[^0-9]/g,'');
+           precoSugerido = parseInt(pStr) || 0;
+           efeito = obj['Efeito / Buff'] || obj['Dano'] || d.categoria;
+        }
+      } catch (e) {}
+
+      return `
+        <div style="background:#0a0a0a; border:1px solid #333; padding:10px; border-radius:4px; display:flex; align-items:center; gap:10px;">
+          <div style="flex:1;">
+            <div style="font-weight:bold; color:#fff;">${escH(d.titulo)} <span style="font-size:0.7rem; color:var(--gold-dim); background:rgba(201,168,76,0.1); padding:2px 4px; border-radius:2px; margin-left:5px;">${escH(d.categoria)}</span></div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">${escH(efeito)}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="number" id="preco_add_${d.id}" value="${precoSugerido}" style="width:60px; padding:4px; background:#111214; border:1px solid #333; color:var(--gold); font-family:'Cinzel', serif;">
+            <button class="btn-sm btn-primary" onclick="adicionarItemAoMercado(${d.id}, '${escH(d.titulo.replace(/'/g,"\'"))}', '${escH(d.categoria)}', '${escH(efeito.replace(/'/g,"\'"))}')">Por à Venda</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.adicionarItemAoMercado = async (docId, titulo, categoria, desc) => {
+    if (!window.lojaAtualMesa) {
+       alertEntrar('A loja geral ainda não foi inicializada.', 'erro');
+       return;
+    }
+    
+    const preco = parseInt(document.getElementById(`preco_add_${docId}`).value) || 0;
+    const lojaId = window.lojaAtualMesa.id;
+    
+    try {
+      const res = await Api.request(`/sessoes/${E.sessaoId}/lojas/${lojaId}/itens`, {
+        method: 'POST',
+        body: { nome: titulo, preco: preco, categoria: categoria, descricao: desc }
+      });
+      
+      if (res?.ok) {
+        fecharOverlay('overlayCatalogoLoja');
+        carregarVitrineLoja(); // Atualiza a vitrine da mesa
+        // Se a lógica do socket estivesse pronta para isso, enviariamos um broadcast aqui
+        // socket.emit('mesa:loja_atualizada');
+      } else {
+        alertEntrar('Erro ao adicionar.', 'erro');
+      }
+    } catch(e) {
+      alertEntrar('Erro de conexão.', 'erro');
+    }
+  };
+
+  // Temporário para remover até ter rota no backend
+  window.removerItemVitrine = (itemId) => {
+     alertEntrar('Remoção direta na loja virá na próxima atualização.', 'info');
+  };
 
   // ─── UTILS ────────────────────────────────────────────────────────────
   function redimensionar(){

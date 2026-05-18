@@ -77,6 +77,26 @@ async function initializeDatabase() {
       INDEX idx_created (created_at)
     )`);
 
+    
+    // NOVA: Tabelas do Mercado do Mestre
+    await conn.execute(`CREATE TABLE IF NOT EXISTS lojas (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      sessao_id INT NOT NULL,
+      nome VARCHAR(150) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    await conn.execute(`CREATE TABLE IF NOT EXISTS loja_itens (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      loja_id INT NOT NULL,
+      nome VARCHAR(150) NOT NULL,
+      preco INT DEFAULT 0,
+      categoria VARCHAR(100) DEFAULT 'Item',
+      descricao TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (loja_id) REFERENCES lojas(id) ON DELETE CASCADE
+    )`);
+
     console.log('✅ Tabelas verificadas com sucesso');
   } catch (err) {
     console.error('❌ Erro ao inicializar banco:', err.message);

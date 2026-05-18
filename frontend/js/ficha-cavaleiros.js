@@ -28,7 +28,7 @@
     atrs: { 'Temperança':0,'Vigor Bruto':0,'Zelo':0,'Humanidade':0,'Lucidez':0,'Inteligência':0 },
     proficiencias: Array(PROF_SLOTS).fill(null).map(() => ({ nome:'', desc:'' })),
     habilidades: [],
-    inventario: { alforge_idx:0, slots:{} },
+    inventario: { alforge_idx:0, pecas:0, slots:{} },
     status: [],
     notas: '',
   });
@@ -530,10 +530,23 @@
     const p = criarPanelSimples();
 
     const title = document.createElement('div'); title.className = 'cav-ptitle';
-    title.innerHTML = '<span style="width:12px;height:1px;background:var(--bronze-dim);display:block;"></span>🎒 Inventário';
+    title.style.display = 'flex'; title.style.alignItems = 'center'; title.style.justifyContent = 'space-between';
+    
+    const titleLeft = document.createElement('div');
+    titleLeft.style.display = 'flex'; titleLeft.style.alignItems = 'center';
+    titleLeft.innerHTML = '<span style="width:12px;height:1px;background:var(--bronze-dim);display:block;margin-right:5px;"></span>🎒 Inventário';
+    
+    const btnMercado = document.createElement('button');
+    btnMercado.className = 'btn-add-small';
+    btnMercado.innerHTML = '🛒 Mercado';
+    btnMercado.addEventListener('click', () => abrirModalMercado(e, save, renderGrid));
+    
+    title.appendChild(titleLeft);
+    title.appendChild(btnMercado);
     p.appendChild(title);
 
     const controls = document.createElement('div'); controls.className = 'inv-controls';
+    controls.style.display = 'flex'; controls.style.gap = '15px'; controls.style.alignItems = 'center'; controls.style.flexWrap = 'wrap';
 
     const sel = document.createElement('select'); sel.className = 'inv-select';
     ALFORGES.forEach((a, i) => {
@@ -541,6 +554,17 @@
       if ((e.inventario.alforge_idx || 0) === i) opt.selected = true;
       sel.appendChild(opt);
     });
+
+    const divMoedas = document.createElement('div');
+    divMoedas.style.display = 'flex'; divMoedas.style.alignItems = 'center'; divMoedas.style.gap = '5px';
+    divMoedas.innerHTML = `<span style="font-size:0.8rem; color:var(--gold); font-family: 'Cinzel', serif; font-weight: bold;">💰 Peças:</span>`;
+    const inpMoedas = document.createElement('input');
+    inpMoedas.type = 'number'; inpMoedas.min = 0; inpMoedas.className = 'cav-inp';
+    inpMoedas.style.width = '70px'; inpMoedas.style.padding = '4px 8px'; inpMoedas.style.height = 'auto';
+    inpMoedas.id = 'inv-moedas-inp';
+    inpMoedas.value = e.inventario.pecas || 0;
+    inpMoedas.addEventListener('input', () => { e.inventario.pecas = parseInt(inpMoedas.value) || 0; autoSave(e, save); });
+    divMoedas.appendChild(inpMoedas);
 
     const carga = document.createElement('span'); carga.className = 'inv-carga'; carga.id = 'inv-carga';
 
@@ -563,7 +587,13 @@
         slot.className = 'inv-slot' + (item ? ' tem' : '');
         slot.textContent = item ? item.nome.substring(0, 5) : '';
         if (i >= baseSlots) slot.style.opacity = '.7'; // slots de alforge
-        slot.addEventListener('click', () => abrirModalInv(e, i, save, renderGrid));
+        slot.addEventListener('click', () => {
+          if (e.inventario.slots[i]) {
+            abrirModalInv(e, i, save, renderGrid);
+          } else {
+            abrirModalMercado(e, save, renderGrid);
+          }
+        });
         grid.appendChild(slot);
       }
     }
@@ -573,10 +603,81 @@
       renderGrid(); autoSave(e, save);
     });
 
-    controls.appendChild(sel); controls.appendChild(carga);
+    controls.appendChild(sel); controls.appendChild(divMoedas); controls.appendChild(carga);
     p.appendChild(controls); p.appendChild(grid);
     renderGrid();
     return p;
+  }
+
+  
+  // === TRADUTOR UNIVERSAL DE MACROS ===
+  function traduzirRolagem(fichaObj, formStr) {
+      if (!formStr) return "";
+      let txt = formStr;
+      
+      const atrMap = {
+         '@Temperança': fichaObj.atrs['Temperança'] || 0,
+         '@Vigor Bruto': fichaObj.atrs['Vigor Bruto'] || 0,
+         '@Zelo': fichaObj.atrs['Zelo'] || 0,
+         '@Humanidade': fichaObj.atrs['Humanidade'] || 0,
+         '@Lucidez': fichaObj.atrs['Lucidez'] || 0,
+         '@Inteligência': fichaObj.atrs['Inteligência'] || 0
+      };
+
+      for (let tag in atrMap) {
+          let val = atrMap[tag];
+          txt = txt.replace(new RegExp(tag, 'gi'), val);
+      }
+      return txt;
+  }
+
+  function executarMacro(e, item, btnElement, tipo, saveFn) {
+     if (!item.macro) return;
+     
+     if (tipo === 'rolagem' && item.macro.custo_tipo && item.macro.custo_valor) {
+         const ct = item.macro.custo_tipo;
+         const cv = parseInt(item.macro.custo_valor);
+         
+         if (ct === 'impeto') {
+             if (e.imp[0] < cv) { alert('Ímpeto insuficiente!'); return; }
+             e.imp[0] -= cv;
+         } else if (ct === 'vitalidade') {
+             if (e.vit[0] < cv) { alert('Vitalidade insuficiente!'); return; }
+             e.vit[0] -= cv;
+         } else if (ct === 'lucidez') {
+             if (e.luc[0] < cv) { alert('Lucidez insuficiente!'); return; }
+             e.luc[0] -= cv;
+         }
+         saveFn();
+     }
+
+     let formulaRaw = tipo === 'rolagem' ? item.macro.rolagem : item.macro.dano;
+     if (!formulaRaw) return;
+     
+     let formulaFinal = traduzirRolagem(e, formulaRaw);
+
+     if (w.Socket && w.E && w.E.sessaoId) {
+         let prefix = tipo === 'rolagem' ? 'Ataque/Uso' : 'Dano';
+         let msg = `<div style="font-weight:bold; color:var(--gold);">${esc(item.nome)} (${prefix})</div>`;
+         msg += `<div style="font-size:0.85rem; color:#ccc;">Rolando: [${formulaFinal}]</div>`;
+         if (item.macro.alvo && tipo === 'rolagem') {
+             msg += `<div style="font-size:0.75rem; color:#888;">Alvo: ${esc(item.macro.alvo)}</div>`;
+         }
+         
+         w.Socket.emit('chat:mensagem', {
+             sessao_id: w.E.sessaoId,
+             usuario_id: w.E.userId,
+             texto: `ROLL:${formulaFinal}#${item.nome} (${prefix})`, 
+             nome_autor: e.nome || 'Jogador'
+         });
+         
+         const oldHtml = btnElement.innerHTML;
+         btnElement.innerHTML = `<i class="fa-solid fa-check"></i> Enviado!`;
+         setTimeout(() => { btnElement.innerHTML = oldHtml; }, 2000);
+
+     } else {
+         alert(`A Rolagem de ${tipo} é: ${formulaFinal}\n(Entre numa mesa para rolar os dados em 3D)`);
+     }
   }
 
   function abrirModalInv(e, idx, save, renderFn) {
@@ -603,6 +704,15 @@
             <option ${item.estagio==='Inutilizável'?'selected':''}>Inutilizável</option>
           </select></div>
       </div>
+      ${item.macro ? `
+      <div style="margin-top:15px; padding:10px; background:#111214; border:1px solid #333; border-radius:4px;">
+         <div style="color:var(--gold); font-size:0.8rem; margin-bottom:8px; font-weight:bold;"><i class="fa-solid fa-microchip"></i> Ações Automatizadas</div>
+         <div style="display:flex; gap:8px;">
+            ${item.macro.rolagem ? `<button class="cbtn" style="background:#27ae60; color:#fff; flex:1;" id="mi-btn-rolar" type="button"><i class="fa-solid fa-dice"></i> Rolar Ataque/Uso</button>` : ''}
+            ${item.macro.dano ? `<button class="cbtn" style="background:#c0392b; color:#fff; flex:1;" id="mi-btn-dano" type="button"><i class="fa-solid fa-burst"></i> Rolar Dano</button>` : ''}
+         </div>
+         ${item.macro.custo_valor ? `<div style="font-size:0.7rem; color:#888; margin-top:8px; text-align:center;">Custo de Ativação: -${item.macro.custo_valor} ${item.macro.custo_tipo}</div>` : ''}
+      </div>` : ''}
       <div class="cav-modal-actions">
         <button class="cbtn cbtn-d" id="mi-del" type="button">Esvaziar Slot</button>
         <button class="cbtn cbtn-g" id="mi-cancel" type="button">Cancelar</button>
@@ -632,6 +742,142 @@
       } else delete e.inventario.slots[idx];
       renderFn(); autoSave(e, save); fechar();
     });
+  }
+
+  
+  function abrirModalMercado(e, save, renderFn) {
+    const params = new URLSearchParams(window.location.search);
+    const codigo = params.get('codigo');
+    
+    if (!codigo) {
+      alert('🛒 O Mercado só pode ser acedido quando a ficha está aberta dentro de uma Mesa de RPG ativa.');
+      return;
+    }
+
+    const overlay = document.createElement('div'); overlay.className = 'cav-modal-overlay open';
+    const modal   = document.createElement('div'); modal.className = 'cav-modal';
+    modal.style.maxWidth = '500px';
+
+    modal.innerHTML = `
+      <button class="cav-modal-close" type="button">✕</button>
+      <div class="cav-modal-title">🛒 Mercado da Sessão</div>
+      <div id="mercadoLoading" style="text-align:center; padding:2rem; color:var(--text-muted);">Buscando lojas da região...</div>
+      <div id="mercadoConteudo" style="display:none; max-height: 60vh; overflow-y: auto; padding-right: 5px;"></div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const fechar = () => document.body.removeChild(overlay);
+    overlay.querySelector('.cav-modal-close').addEventListener('click', fechar);
+    overlay.addEventListener('click', ev => { if (ev.target === overlay) fechar(); });
+
+    async function carregarLojas() {
+      try {
+        const resSessao = await window.Api.request('/sessoes/' + codigo);
+        if (!resSessao?.ok) throw new Error('Mesa não encontrada.');
+        const sessaoId = resSessao.data.sessao.id;
+
+        const resLojas = await window.Api.request('/sessoes/' + sessaoId + '/lojas');
+        if (!resLojas?.ok) throw new Error('Erro ao buscar lojas.');
+        
+        const lojas = resLojas.data.lojas || [];
+        const cont = modal.querySelector('#mercadoConteudo');
+        modal.querySelector('#mercadoLoading').style.display = 'none';
+        cont.style.display = 'block';
+
+        if (!lojas.length) {
+          cont.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted);">Nenhuma loja disponível nesta mesa. O Mestre deve criar uma no Painel de Admin.</div>';
+          return;
+        }
+
+        let html = '';
+        lojas.forEach(loja => {
+          html += `<div style="margin-bottom:1rem; border:1px solid #333; border-radius:4px; padding:10px; background:#0e0c08;">
+            <h4 style="margin:0 0 10px 0; color:var(--gold); font-family:'Cinzel', serif; border-bottom:1px solid #333; padding-bottom:5px;">${esc(loja.nome)}</h4>`;
+          if (!loja.itens || !loja.itens.length) {
+            html += `<div style="font-size:0.8rem; color:var(--text-muted);">Loja vazia.</div>`;
+          } else {
+            loja.itens.forEach(item => {
+              html += `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #222;">
+                <div>
+                  <div style="font-weight:bold; font-size:0.9rem; color:#fff;">${esc(item.nome)}</div>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">${esc(item.descricao || item.categoria)}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span style="color:var(--gold); font-family:'Cinzel', serif; font-weight:bold;">${item.preco} 💰</span>
+                  <button class="cbtn cbtn-p btn-comprar" data-id="${item.id}" data-loja="${loja.id}" style="padding:4px 8px; font-size:0.75rem;">Comprar</button>
+                </div>
+              </div>`;
+            });
+          }
+          html += `</div>`;
+        });
+        cont.innerHTML = html;
+
+        lojas.forEach(loja => {
+          (loja.itens || []).forEach(item => {
+            const btn = cont.querySelector(`.btn-comprar[data-id="${item.id}"][data-loja="${loja.id}"]`);
+            if (btn) btn.addEventListener('click', () => comprarItem(item, btn));
+          });
+        });
+
+      } catch(err) {
+        modal.querySelector('#mercadoLoading').textContent = 'Erro ao carregar o mercado.';
+      }
+    }
+
+    function comprarItem(item, btnEl) {
+      const pecas = parseInt(e.inventario.pecas) || 0;
+      if (pecas < item.preco) {
+        alert('Peças insuficientes para comprar ' + item.nome + '! Você tem ' + pecas + ' peças.');
+        return;
+      }
+
+      const vigor = e.atrs['Vigor Bruto'] || 0;
+      const totalSlots = vigor + 5 + (ALFORGES[e.inventario.alforge_idx || 0]?.slots || 0);
+      
+      let slotLivre = -1;
+      for (let i = 0; i < totalSlots; i++) {
+        if (!e.inventario.slots[i]) {
+          slotLivre = i;
+          break;
+        }
+      }
+
+      if (slotLivre === -1) {
+        alert('O teu inventário está cheio! Esvazia algum slot primeiro.');
+        return;
+      }
+
+      // Desconta moedas e adiciona item
+      e.inventario.pecas -= item.preco;
+      e.inventario.slots[slotLivre] = {
+        nome: item.nome,
+        desc: item.descricao || item.categoria,
+        peso: 1,
+        estagio: 'Afiada'
+      };
+
+      const inpMoney = document.getElementById('inv-moedas-inp');
+      if (inpMoney) inpMoney.value = e.inventario.pecas;
+
+      const textoOrig = btnEl.textContent;
+      btnEl.textContent = 'Comprado ✓';
+      btnEl.style.background = '#27ae60';
+      btnEl.style.borderColor = '#27ae60';
+      setTimeout(() => {
+        btnEl.textContent = textoOrig;
+        btnEl.style.background = '';
+        btnEl.style.borderColor = '';
+      }, 1500);
+
+      renderFn();
+      autoSave(e, save);
+    }
+
+    carregarLojas();
   }
 
   // ── NOTAS ─────────────────────────────────────────────────────────────

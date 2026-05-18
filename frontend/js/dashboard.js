@@ -402,7 +402,11 @@
       const t = btn.dataset.stab;
       document.getElementById('stabDocumentos').style.display = t === 'documentos' ? 'block' : 'none';
       document.getElementById('stabFichas').style.display     = t === 'fichas'     ? 'block' : 'none';
+      const stabSessoes = document.getElementById('stabSessoes');
+      if(stabSessoes) stabSessoes.style.display = t === 'sessoes' ? 'block' : 'none';
+      
       if (t === 'fichas') carregarFichas();
+      if (t === 'sessoes') carregarSessoes();
     });
   });
 
@@ -875,6 +879,84 @@
         </div>`;
       }).join('');
     } catch { container.innerHTML = renderEmpty('⚠','Erro de conexão.'); }
+  }
+
+
+  // ===== SESSÕES / MESAS =====
+  window.abrirModalNovaSessao = () => {
+    document.getElementById('nomeSessao').value = '';
+    document.getElementById('sistemaSessao').value = 'Decadência Cinza';
+    document.getElementById('modalNovaSessao').classList.add('open');
+  };
+
+  window.fecharModalNovaSessao = () => {
+    document.getElementById('modalNovaSessao').classList.remove('open');
+  };
+
+  document.getElementById('btnSalvarSessao')?.addEventListener('click', async () => {
+    const nome = document.getElementById('nomeSessao').value.trim();
+    const sistema = document.getElementById('sistemaSessao').value;
+    const narrador = document.getElementById('checkNarradorSessaoDash')?.checked || false;
+    
+    if (!nome) { alert('Digite o nome da campanha.'); return; }
+    
+    const btn = document.getElementById('btnSalvarSessao');
+    btn.disabled = true; btn.textContent = 'Criando...';
+    
+    try {
+      const res = await Api.request('/sessoes', { method: 'POST', body: { nome, sistema, is_narrador: narrador } });
+      if (res?.ok) {
+        fecharModalNovaSessao();
+        carregarSessoes();
+      } else {
+        alert(res?.data?.message || 'Erro ao criar mesa.');
+      }
+    } catch { alert('Erro de conexão.'); }
+    finally { btn.disabled = false; btn.textContent = 'Forjar Mesa'; }
+  });
+
+  async function carregarSessoes() {
+    const container = document.getElementById('listaSessoes');
+    if (!container) return;
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="spinner" style="margin:0 auto;"></div></div>`;
+    
+    try {
+      const res = await Api.request('/sessoes');
+      if (!res?.ok) { 
+        container.innerHTML = renderEmpty('🎲', 'Você ainda não possui mesas. Crie uma nova!');
+        return; 
+      }
+      
+      const sessoes = res.data.sessoes || res.data || [];
+      if (document.getElementById('statSessoes')) document.getElementById('statSessoes').textContent = sessoes.length;
+      
+      if (!sessoes.length) { 
+        container.innerHTML = renderEmpty('🎲', 'Você ainda não possui mesas ativas. Crie uma nova!'); 
+        return; 
+      }
+      
+      container.innerHTML = sessoes.map(s => {
+        const sistemaStr = s.sistema ? `<div class="ficha-sistema">${escH(s.sistema)}</div>` : '';
+        return `
+        <div class="ficha-card fade-in" style="cursor: pointer;" onclick="window.location.href='/mesa?codigo=${s.codigo}'">
+          <div class="ficha-header">
+            <div class="ficha-avatar"><i class="fa-solid fa-dice-d20" style="color:var(--gold-dim); font-size:1.5rem;"></i></div>
+            <div>
+              <div class="ficha-nome">${escH(s.nome)}</div>
+              ${sistemaStr}
+              <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">Código: <strong>#${s.codigo}</strong></div>
+            </div>
+          </div>
+          <div style="margin-top:.75rem; text-align:right;">
+            <span class="btn btn-sm btn-primary">Entrar na Mesa</span>
+          </div>
+        </div>`;
+      }).join('');
+      
+    } catch (e) { 
+      container.innerHTML = renderEmpty('🎲', 'Você ainda não possui mesas. Crie uma nova!');
+      if (document.getElementById('statSessoes')) document.getElementById('statSessoes').textContent = '0';
+    }
   }
 
   // ===== UTILS =====

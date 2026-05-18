@@ -178,6 +178,26 @@
         <input type="text" id="inputNomeSessao" class="modal-inp"
                placeholder="Ex: Sessão 3 — As Ruínas de Korth"/>
       </div>
+      
+      <!-- Filtro de Sistema -->
+      <div class="modal-field">
+        <label>Sistema de RPG</label>
+        <select id="selectSistemaSessao" class="modal-inp" style="cursor: pointer; appearance: auto;">
+          <option value="Decadência Cinza">Decadência Cinza</option>
+          <option value="Oceano Estrelado">Oceano Estrelado</option>
+          <option value="Cavaleiros de Armadura">Cavaleiros de Armadura</option>
+        </select>
+        <div style="text-align: right; margin-top: 8px;">
+          <a href="/integracao" style="color: var(--gold-dim); font-size: 0.75rem; text-decoration: underline; font-family: 'Crimson Text', serif;">Solicite a integração do seu sistema</a>
+        </div>
+      </div>
+
+      <!-- V4: Narrador -->
+      <div style="margin-top: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="checkNarradorSessao" style="width:16px; height:16px; accent-color: var(--gold-dim);">
+        <label for="checkNarradorSessao" style="font-size: 0.85rem; color: #ccc; cursor: pointer;">Assumir papel de Narrador (Mestre da Mesa)</label>
+      </div>
+
       <button class="modal-btn primary" id="btnCriarSessao" style="width:100%;">
         <i data-lucide="plus"></i> Criar Sessão
       </button>
@@ -305,5 +325,25 @@
 <script src="js/ficha-cavaleiros.js"></script>
 <script src="js/mesa.js"></script>
 <script>lucide.createIcons();</script>
+
+<!-- MODAL CATÁLOGO DO SISTEMA (MESTRE) -->
+<div class="modal-overlay" id="overlayCatalogoLoja" style="display:none; z-index:9999;">
+  <div class="modal-content" style="max-width: 600px; width:90%; max-height:80vh; display:flex; flex-direction:column; background:#111214; border:1px solid #3a3d44;">
+    <div class="modal-header" style="border-bottom:1px solid #333; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="color:var(--gold); margin:0; font-family:'Cinzel', serif;">Catálogo do Sistema</h3>
+      <button class="modal-close" onclick="fecharOverlay('overlayCatalogoLoja')" style="background:transparent; border:none; color:#fff; font-size:1.2rem; cursor:pointer;">✕</button>
+    </div>
+    
+    <div style="padding:15px; border-bottom:1px solid #333;">
+      <input type="text" id="inputBuscaCatalogo" placeholder="Buscar item, arma, armadura..." class="modal-inp" style="width:100%;" oninput="filtrarCatalogoLoja()">
+    </div>
+
+    <div id="listaCatalogoSistema" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px;">
+      <!-- Itens do BD aparecem aqui -->
+      <div style="text-align:center; color:#888;">Carregando itens do banco de dados...</div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

@@ -12,32 +12,43 @@
     /* Forçar ícones brancos */
     i { color: #ffffff !important; }
     .navbar-nav i, .section-title i { margin-right: 8px; }
+    
+    /* Estilos para o Gerenciador de Loja */
+    .manager-split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 60vh; margin-top: 15px; }
+    .manager-col { display: flex; flex-direction: column; background: #0a0a0a; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+    .manager-col-header { background: #1a1a1a; padding: 10px; border-bottom: 1px solid #333; font-family: 'Cinzel', serif; color: var(--gold-dim); font-size: 0.85rem; }
+    .manager-list { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .manager-item { background: #111214; border: 1px solid #222; padding: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+    .manager-item:hover { border-color: var(--gold-dim); background: #161719; }
+    .manager-item-info { flex: 1; }
+    .manager-item-name { font-weight: bold; font-size: 0.85rem; display: block; }
+    .manager-item-cat { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; }
   </style>
 </head>
 <body>
   <nav class="navbar">
-  <div class="navbar-brand">
-    <div class="sigil"><i class="fa-solid fa-khalid"></i></div>
-    VK.Studio
-  </div>
-  <button class="hamburger" id="hamburger" type="button">
-    <span></span><span></span><span></span>
-  </button>
-  <ul class="navbar-nav" id="navMenu">
-    <li><a href="/dashboard"><i class="fa-solid fa-fort-awesome"></i> Sistemas</a></li>
-    <li><a href="/forja"><i class="fa-solid fa-file-lines"></i> Fichas</a></li>
-    <li id="navAdmin" style="display:none;"><a href="/admin"><i class="fa-solid fa-shield-halved"></i> Admin</a></li>
-    <li><a href="/perfil"><i class="fa-solid fa-user"></i> Perfil</a></li>
-    <li><a href="/mesa"><i class="fa-solid fa-dice-d20"></i> Mesa</a></li>
-  </ul>
-  <div class="navbar-user">
+    <div class="navbar-brand">
+      <div class="sigil"><i class="fa-solid fa-khalid"></i></div>
+      VK.Studio
+    </div>
+    <button class="hamburger" id="hamburger" type="button">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="navbar-nav" id="navMenu">
+      <li><a href="/dashboard"><i class="fa-solid fa-fort-awesome"></i> Sistemas</a></li>
+      <li><a href="/forja"><i class="fa-solid fa-file-lines"></i> Fichas</a></li>
+      <li id="navAdmin" style="display:none;"><a href="/admin" class="active"><i class="fa-solid fa-shield-halved"></i> Admin</a></li>
+      <li><a href="/perfil"><i class="fa-solid fa-user"></i> Perfil</a></li>
+      <li><a href="/mesa"><i class="fa-solid fa-dice-d20"></i> Mesa</a></li>
+    </ul>
+    <div class="navbar-user">
       <span id="navUserName"></span>
       <a href="/perfil" class="user-avatar-link" title="Ir para o meu perfil">
         <div class="user-avatar" id="navAvatar"><i class="fa-solid fa-user"></i></div>
       </a>
       <button class="btn btn-sm btn-danger" onclick="VK.logout()" type="button">Sair</button>
     </div>
-</nav>
+  </nav>
 
   <main>
     <div class="container page-content">
@@ -46,74 +57,268 @@
         <div class="page-header-inner">
           <div>
             <h1 class="page-title"><i class="fa-solid fa-shield-halved"></i> Painel de Administração</h1>
-            <p class="page-subtitle">Atividades dos Jogadores · VK.Studio</p>
+            <p class="page-subtitle">Gestão Global e Lojas · VK.Studio</p>
           </div>
           <button class="btn btn-sm" id="btnRefresh" type="button"><i class="fa-solid fa-rotate-right"></i> Atualizar</button>
         </div>
       </div>
 
-      <!-- STATS -->
-      <div class="stats-row" id="statsRow">
-        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-users"></i></div><div class="stat-value" id="stUsers">—</div><div class="stat-label">Usuários</div></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-khanda"></i></div><div class="stat-value" id="stFichas">—</div><div class="stat-label">Fichas Ativas</div></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-list-check"></i></div><div class="stat-value" id="stAtivHoje">—</div><div class="stat-label">Alterações Hoje</div></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-fire"></i></div><div class="stat-value" id="stAtivos7d">—</div><div class="stat-label">Jogadores Ativos (7d)</div></div>
+      <!-- TABS DE NAVEGAÇÃO DO ADMIN -->
+      <div class="section-tabs" style="margin-bottom: 2rem;">
+        <button class="section-tab-btn active" data-atab="geral" type="button"><i class="fa-solid fa-chart-line"></i> Visão Geral & Atividades</button>
+        <button class="section-tab-btn" data-atab="lojas" type="button"><i class="fa-solid fa-store"></i> Gestão de Lojas & Pastas</button>
+        <button class="section-tab-btn" data-atab="automacao" id="tabAutomacaoSuper" style="display:none;"><i class="fa-solid fa-bolt"></i> Automação (Global)</button>
       </div>
 
-      <!-- FILTROS -->
-      <div class="admin-filtros card" style="margin-bottom:1.5rem;">
-        <div class="filtros-row">
-          <div class="form-group" style="flex:1;min-width:160px;">
-            <label>Filtrar por Jogador</label>
-            <select id="filtroUsuario">
-              <option value="">Todos os jogadores</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:1;min-width:160px;">
-            <label>Tipo de Alteração</label>
-            <select id="filtroCampo">
-              <option value="">Todos os campos</option>
-              <option value="vida">Vida</option>
-              <option value="sanidade">Sanidade</option>
-              <option value="estamina">Estamina</option>
-              <option value="ficha">Criação / Arquivamento</option>
-              <option value="nome do personagem">Nome</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:0 0 auto;align-self:flex-end;">
-            <button class="btn btn-primary" id="btnFiltrar" type="button">Filtrar</button>
+      <!-- ABA 1: VISÃO GERAL -->
+      <div id="atabGeral">
+        <div class="stats-row" id="statsRow">
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-users"></i></div><div class="stat-value" id="stUsers">—</div><div class="stat-label">Usuários</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-khanda"></i></div><div class="stat-value" id="stFichas">—</div><div class="stat-label">Fichas Ativas</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-list-check"></i></div><div class="stat-value" id="stAtivHoje">—</div><div class="stat-label">Alterações Hoje</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-fire"></i></div><div class="stat-value" id="stAtivos7d">—</div><div class="stat-label">Jogadores Ativos (7d)</div></div>
+        </div>
+
+        <div class="admin-filtros card" style="margin-bottom:1.5rem;">
+          <div class="filtros-row">
+            <div class="form-group" style="flex:1;min-width:160px;">
+              <label>Filtrar por Jogador</label>
+              <select id="filtroUsuario">
+                <option value="">Todos os jogadores</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1;min-width:160px;">
+              <label>Tipo de Alteração</label>
+              <select id="filtroCampo">
+                <option value="">Todos os campos</option>
+                <option value="vida">Vida</option>
+                <option value="sanidade">Sanidade</option>
+                <option value="estamina">Estamina</option>
+                <option value="ficha">Criação / Arquivamento</option>
+                <option value="nome do personagem">Nome</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:0 0 auto;align-self:flex-end;">
+              <button class="btn btn-primary" id="btnFiltrar" type="button">Filtrar</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- FEED DE ATIVIDADES -->
-      <div class="section-header" style="margin-bottom:1rem;">
-        <span class="section-title"><i class="fa-solid fa-list-check"></i> Feed de Atividades</span>
-        <span id="totalAtividades" style="font-family:var(--font-heading);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);"></span>
-      </div>
-
-      <div id="feedAtividades"></div>
-
-      <!-- PAGINAÇÃO -->
-      <div class="paginacao" id="paginacao" style="display:none;">
-        <button class="btn btn-sm" id="btnAnterior" type="button">← Anterior</button>
-        <span id="paginaInfo" style="font-family:var(--font-heading);font-size:.78rem;color:var(--text-muted);"></span>
-        <button class="btn btn-sm" id="btnProxima" type="button">Próxima →</button>
-      </div>
-
-      <!-- TABELA DE USUÁRIOS -->
-      <div style="margin-top:3rem;">
         <div class="section-header" style="margin-bottom:1rem;">
-          <span class="section-title"><i class="fa-solid fa-users"></i> Usuários Cadastrados</span>
+          <span class="section-title"><i class="fa-solid fa-list-check"></i> Feed de Atividades</span>
+          <span id="totalAtividades" style="font-family:var(--font-heading);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);"></span>
         </div>
-        <div id="tabelaUsuarios"></div>
+        <div id="feedAtividades"></div>
+
+        <div class="paginacao" id="paginacao" style="display:none;">
+          <button class="btn btn-sm" id="btnAnterior" type="button">← Anterior</button>
+          <span id="paginaInfo" style="font-family:var(--font-heading);font-size:.78rem;color:var(--text-muted);"></span>
+          <button class="btn btn-sm" id="btnProxima" type="button">Próxima →</button>
+        </div>
+
+        <div style="margin-top:3rem;">
+          <div class="section-header" style="margin-bottom:1rem;">
+            <span class="section-title"><i class="fa-solid fa-users"></i> Usuários Cadastrados</span>
+          </div>
+          <div id="tabelaUsuarios"></div>
+        </div>
+      </div>
+
+      <!-- ABA 2: GESTÃO DE LOJAS E PASTAS -->
+      <div id="atabLojas" style="display:none;">
+        <div class="admin-filtros card" style="margin-bottom:1.5rem; display:flex; align-items:flex-end; gap: 1.5rem; flex-wrap: wrap;">
+          <div class="form-group" style="flex:1; min-width: 250px;">
+            <label>Selecione a Mesa / Sessão</label>
+            <select id="selectMesaLoja" style="width: 100%;">
+              <option value="">Carregando mesas...</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btnNovaPastaLoja" disabled><i class="fa-solid fa-folder-plus"></i> Criar Nova Loja</button>
+        </div>
+
+        <div class="section-header" style="margin-bottom:1rem;">
+          <span class="section-title"><i class="fa-solid fa-store"></i> Estabelecimentos & Pastas</span>
+        </div>
+        
+        <div id="listaPastasLoja" class="grid-2">
+          <div class="empty-state" style="grid-column:1/-1;">
+            <div class="icon"><i class="fa-solid fa-store"></i></div>
+            <p>Selecione uma mesa acima para gerenciar as suas lojas e itens.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 3: AUTOMAÇÃO GLOBAL (SÓ ID 1) -->
+      <div id="atabAutomacao" style="display:none;">
+        <div class="section-header" style="margin-bottom:1rem;">
+          <span class="section-title" style="color: var(--gold);"><i class="fa-solid fa-bolt"></i> Motor de Automação Global</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: -10px; margin-bottom: 20px;">
+          Configure as macros de desconto de recursos e rolagem de dados para os itens/habilidades dos sistemas oficiais. Apenas o Super-Admin (ID 1) tem acesso a esta área.
+        </p>
+
+        <div class="admin-filtros card" style="margin-bottom:1.5rem; display:flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+          <div class="form-group" style="flex:1; min-width: 200px;">
+            <label>Sistema Base</label>
+            <select id="autoSistemaSel" style="width:100%;">
+              <option value="">Selecione um Sistema...</option>
+              <option value="Cavaleiros de Armadura">Cavaleiros de Armadura</option>
+              <option value="Decadência Cinza">Decadência Cinza</option>
+              <option value="Oceano Estrelado">Oceano Estrelado</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1; min-width: 150px;">
+            <label>Categoria</label>
+            <select id="autoCategoriaSel" style="width:100%;">
+              <option value="">Todas as Categorias</option>
+              <option value="Itens">Itens / Equipamentos</option>
+              <option value="Armas Brancas">Armas Brancas</option>
+              <option value="Armas de Fogo">Armas de Fogo</option>
+              <option value="Armaduras">Armaduras</option>
+              <option value="Consumíveis">Consumíveis</option>
+              <option value="Habilidades">Habilidades</option>
+              <option value="Magias/Rituais">Magias/Rituais</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:2; min-width: 200px;">
+            <label>Buscar Item/Arma/Habilidade</label>
+            <input type="text" id="autoBuscaInput" placeholder="Ex: Espada Longa, Estocar..." style="width:100%;" />
+          </div>
+          <button class="btn btn-primary" id="btnBuscarAutoItem" style="height: 42px;"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+        </div>
+
+        <div id="listaAutoItens" style="display:flex; flex-direction:column; gap:10px;">
+          <div class="empty-state" style="padding: 2rem;">
+            <div class="icon"><i class="fa-solid fa-database"></i></div>
+            <p>Selecione um sistema e busque por um item para automatizar.</p>
+          </div>
+        </div>
       </div>
 
     </div>
   </main>
 
+  <!-- MODAL: NOVA PASTA/LOJA -->
+  <div class="modal-overlay" id="modalNovaPastaLoja">
+    <div class="modal" style="max-width: 450px;">
+      <button class="modal-close" onclick="fecharModalLoja('modalNovaPastaLoja')" type="button">✕</button>
+      <div class="modal-title"><i class="fa-solid fa-folder-plus"></i> Criar Nova Loja</div>
+      <div class="form-group" style="margin-top:1.5rem;">
+        <label>Nome do Estabelecimento / Pasta</label>
+        <input type="text" id="nomePastaLoja" placeholder="Ex: Ferreiro de Korth, Taverna..." />
+      </div>
+      <div class="form-actions" style="margin-top: 2rem;">
+        <button class="btn" onclick="fecharModalLoja('modalNovaPastaLoja')" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarPastaLoja" type="button">Criar Loja</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOVO MODAL: GERENCIADOR DE ESTOQUE (SPLIT) -->
+  <div class="modal-overlay" id="modalGerenciarLoja">
+    <div class="modal" style="max-width: 900px; width: 95%;">
+      <button class="modal-close" onclick="fecharModalLoja('modalGerenciarLoja')" type="button">✕</button>
+      <div class="modal-title" id="managerTitle"><i class="fa-solid fa-boxes-stacked"></i> Gerenciador de Estoque</div>
+      <p id="managerSubtitle" style="font-size:0.75rem; color:var(--text-muted); margin-top:-5px;">Clique em um item do catálogo para pôr à venda com um preço definido.</p>
+      
+      <input type="hidden" id="managerLojaId" />
+      
+      <div class="manager-split">
+        <div class="manager-col">
+          <div class="manager-col-header">Catálogo do Sistema (Automatizados)</div>
+          <div class="manager-list" id="managerCatalogList"></div>
+        </div>
+        <div class="manager-col">
+          <div class="manager-col-header">Itens na Loja (Venda)</div>
+          <div class="manager-list" id="managerStoreList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIGURAR AUTOMAÇÃO (SPLIT VIEW) -->
+  <div class="modal-overlay" id="modalConfigAuto">
+    <div class="modal" style="max-width: 900px; width: 95%;">
+      <button class="modal-close" onclick="fecharModalAuto()" type="button">✕</button>
+      <div class="modal-title"><i class="fa-solid fa-cogs"></i> Configurar Macro / Automação</div>
+      
+      <div class="manager-split" style="margin-top: 20px; height: 65vh;">
+        <!-- COLUNA ESQUERDA: PREVIEW DO ITEM -->
+        <div class="manager-col">
+          <div class="manager-col-header"><i class="fa-solid fa-book-open"></i> Detalhes do Item Original</div>
+          <div class="manager-list" style="padding: 20px;" id="autoItemPreview">
+            <!-- Preenchido via JS -->
+          </div>
+        </div>
+
+        <!-- COLUNA DIREITA: CONFIGURAÇÃO -->
+        <div class="manager-col" style="padding: 20px; overflow-y: auto; background:#0e0c08;">
+          <div style="color:var(--gold); font-size:1.2rem; margin-bottom:1.5rem; font-family:'Cinzel', serif;" id="autoItemNome">Item Name</div>
+          <input type="hidden" id="autoItemId" />
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Custo de Ativação (Abater)</label>
+              <select id="autoCustoTipo">
+                <option value="">Nenhum</option>
+                <option value="impeto">Ímpeto / Estamina</option>
+                <option value="vitalidade">Vitalidade</option>
+                <option value="lucidez">Lucidez / Sanidade</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Quantidade a Descontar</label>
+              <input type="number" id="autoCustoValor" placeholder="Ex: 1" min="1" />
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid #222; margin: 1.5rem 0;"></div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Rolagem Principal (Ataque)</label>
+              <input type="text" id="autoRolagem" placeholder="Ex: 1d20 + Força" />
+            </div>
+            <div class="form-group">
+              <label>Testar Contra (Alvo)</label>
+              <select id="autoAlvo">
+                <option value="">Nenhum (Apenas rolar)</option>
+                <option value="defesa">Defesa / Armadura</option>
+              </select>
+            </div>
+          </div>
+          
+          <div style="margin-top: 1rem; padding: 10px; background: #111214; border: 1px dashed #333; border-radius: 4px;">
+            <label style="font-size: 0.75rem; color: var(--gold-dim); display: block; margin-bottom: 8px;"><i class="fa-solid fa-tags"></i> Tags de Atributo Dinâmicas (Clique para inserir no último campo)</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px;" id="macroTagsContainer">
+              <button type="button" class="btn-sm" style="background:#1a1a1a; border:1px solid #333; font-size:0.7rem;" onclick="inserirTagMacro('@Temperança')">@Temperança</button>
+              <button type="button" class="btn-sm" style="background:#1a1a1a; border:1px solid #333; font-size:0.7rem;" onclick="inserirTagMacro('@Vigor Bruto')">@Vigor Bruto</button>
+              <button type="button" class="btn-sm" style="background:#1a1a1a; border:1px solid #333; font-size:0.7rem;" onclick="inserirTagMacro('@Zelo')">@Zelo</button>
+              <button type="button" class="btn-sm" style="background:#1a1a1a; border:1px solid #333; font-size:0.7rem;" onclick="inserirTagMacro('@Humanidade')">@Humanidade</button>
+              <button type="button" class="btn-sm" style="background:#1a1a1a; border:1px solid #333; font-size:0.7rem;" onclick="inserirTagMacro('@Lucidez')">@Lucidez</button>
+              <button type="button" class="btn-sm" style="background:#1a1a1a; border:1px solid #333; font-size:0.7rem;" onclick="inserirTagMacro('@Inteligência')">@Inteligência</button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:1rem;">
+            <label>Rolagem de Dano / Efeito (Se acertar)</label>
+            <input type="text" id="autoDano" placeholder="Ex: 1d8 + 2" />
+            <span style="font-size:0.7rem; color:var(--text-muted); display:block; margin-top:5px;">Esta rolagem aparece com um botão para o jogador clicar logo após o ataque.</span>
+          </div>
+          
+          <div class="form-actions" style="margin-top: 2rem;">
+            <button class="btn" onclick="fecharModalAuto()" type="button">Cancelar</button>
+            <button class="btn btn-primary" id="btnSalvarAuto" type="button">Salvar Automação</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <script src="js/api.js"></script>
   <script src="js/auth-guard.js"></script>
+  <script src="js/sistemas.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>

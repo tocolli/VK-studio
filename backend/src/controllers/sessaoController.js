@@ -55,8 +55,8 @@ async function criarSessao(req, res) {
     } while (tentativas < 10);
 
     const [result] = await pool.execute(
-      'INSERT INTO sessoes_mesa (nome, codigo, mestre_id) VALUES (?, ?, ?)',
-      [nome, codigo, req.user.id]
+      'INSERT INTO sessoes_mesa (nome, codigo, mestre_id, is_narrador) VALUES (?, ?, ?, ?)',
+      [nome, codigo, req.user.id, req.body.is_narrador ? 1 : 0]
     );
 
     return res.status(201).json({ success: true, sessao: { id: result.insertId, nome, codigo } });
@@ -294,7 +294,81 @@ async function buscarChat(req, res) {
   }
 }
 
+
+// ── LOJAS E ITENS (MERCADO DO MESTRE) ────────────────────────────────
+async function listarLojas(req, res) {
+  try {
+    const { sessaoId } = req.params;
+    
+    // Busca as lojas da sessão
+    const [lojasRows] = await pool.execute(
+      'SELECT * FROM lojas WHERE sessao_id = ? ORDER BY created_at ASC',
+      [sessaoId]
+    );
+    
+    if (!lojasRows.length) return res.json({ success: true, lojas: [] });
+
+    // Puxa todos os itens dessas lojas
+    const lojasIds = lojasRows.map(l => l.id);
+    const placeholders = lojasIds.map(() => '?').join(',');
+    const [itensRows] = await pool.execute(
+      `SELECT * FROM loja_itens WHERE loja_id IN (${placeholders}) ORDER BY created_at ASC`,
+      lojasIds
+    );
+
+    // Mapeia e encaixa os itens dentro das suas respectivas lojas
+    const lojasComItens = lojasRows.map(loja => ({
+      ...loja,
+      itens: itensRows.filter(item => item.loja_id === loja.id)
+    }));
+
+    return res.json({ success: true, lojas: lojasComItens });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Erro ao buscar lojas.' });
+  }
+}
+
+async function criarLoja(req, res) {
+  try {
+    const { sessaoId } = req.params;
+    const { nome } = req.body;
+    
+    if (!nome) return res.status(400).json({ success: false, message: 'Nome da loja obrigatório.' });
+
+    const [result] = await pool.execute(
+      'INSERT INTO lojas (sessao_id, nome) VALUES (?, ?)',
+      [sessaoId, nome]
+    );
+    
+    return res.status(201).json({ success: true, loja: { id: result.insertId, sessao_id: sessaoId, nome, itens: [] } });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Erro ao criar loja.' });
+  }
+}
+
+async function adicionarItemLoja(req, res) {
+  try {
+    const { lojaId } = req.params;
+    const { nome, preco, categoria, descricao } = req.body;
+    
+    if (!nome) return res.status(400).json({ success: false, message: 'Nome do item obrigatório.' });
+
+    const [result] = await pool.execute(
+      'INSERT INTO loja_itens (loja_id, nome, preco, categoria, descricao) VALUES (?, ?, ?, ?, ?)',
+      [lojaId, nome, preco || 0, categoria || 'Item', descricao || '']
+    );
+    
+    return res.status(201).json({ success: true, item: { id: result.insertId, loja_id: lojaId, nome, preco, categoria, descricao } });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Erro ao adicionar item à loja.' });
+  }
+}
+
 module.exports = {
+  listarLojas, criarLoja, adicionarItemLoja,
   listarSessoes, criarSessao, buscarSessao, encerrarSessao,
   listarMapas, uploadMapaHandler, selecionarMapa, deletarMapa,
   listarTokens, criarToken, atualizarToken, deletarToken,
