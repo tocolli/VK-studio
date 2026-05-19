@@ -62,23 +62,24 @@
       calcDefesa:    d => (d.rdRoupa||0) + (d.atrs['Físico']||0),
     },
     'Cavaleiros de Armadura': {
-      atributos: { 'Força':0,'Resistência':0,'Vitalidade':0,'Intelecto':0 },
+      // LUCIDEZ REMOVIDA DOS ATRIBUTOS BASE (Fica apenas como Status/Recurso Vital)
+      atributos: { 'Temperança':0,'Vigor Bruto':0,'Zelo':0,'Humanidade':0,'Inteligência':0 },
       pericias: {
         'Combate':0,'Montaria':0,'Armas Brancas':0,'Atletismo':0,
         'Percepção':0,'Reflexos':0,'Intimidação':0,'Sobrevivência':0
       },
       secoes: ['capacitacoes'],
-      calcEsquiva:   d => 10 + (d.atrs['Resistência']||0) + (d.peri['Reflexos']||0),
-      calcPercepcao: d => 10 + (d.atrs['Intelecto']||0)   + (d.peri['Percepção']||0),
-      calcDefesa:    d => (d.rdRoupa||0) + (d.atrs['Força']||0),
+      calcEsquiva:   d => 10 + (d.atrs['Vigor Bruto']||0) + (d.peri['Reflexos']||0),
+      calcPercepcao: d => 10 + (d.atrs['Inteligência']||0) + (d.peri['Percepção']||0),
+      calcDefesa:    d => (d.rdRoupa||0) + (d.atrs['Vigor Bruto']||0),
     },
   };
 
   // ===== ESTADO GLOBAL =====
   let sistemaAtivo   = null;
-  let almaRolada     = null; // { tipo, extra, nucleos }
+  let almaRolada     = null; 
   let totalRolagens  = 0;
-const MAX_ROLAGENS = 2;
+  const MAX_ROLAGENS = 2;
   let fichaState     = {};
   let fichasCache    = [];
   let filtroSistema  = 'todos';
@@ -93,20 +94,6 @@ const MAX_ROLAGENS = 2;
     document.getElementById('btnNovaFicha').style.display = etapa !== 1 ? 'none' : 'none';
   }
 
-  // ===== ETAPA 1: SELEÇÃO DE SISTEMA =====
-  /* document.querySelectorAll('.sistema-select-card').forEach(card => {
-    card.addEventListener('click', () => {
-      sistemaAtivo = card.dataset.sistema;
-      if (sistemaAtivo === 'Decadência Cinza') {
-        mostrarEtapa(1.5);
-        resetRoll();
-      } else {
-        almaRolada = null;
-        iniciarFichaVazia();
-      }
-    });
-  });
- */
   // ===== ROLL DE ALMA (Decadência Cinza) =====
   function resetRoll() {
     document.getElementById('rollResultado').style.display = 'none';
@@ -120,7 +107,7 @@ const MAX_ROLAGENS = 2;
     let extra = null, nucleos = 0;
 
     if (tipo === 'Príncipe Mestiço') {
-      nucleos = Math.floor(Math.random() * 5) + 2; // 2 a 6
+      nucleos = Math.floor(Math.random() * 5) + 2; 
     } else if (tipo === 'Despertado') {
       extra = PODERES_DESPERTADO[Math.floor(Math.random() * PODERES_DESPERTADO.length)];
     } else if (tipo === 'Exilado') {
@@ -133,7 +120,6 @@ const MAX_ROLAGENS = 2;
     document.getElementById('rollResultado').style.display = 'block';
     document.getElementById('rollActions').style.display   = 'flex';
 
-    // Anima o dado
     const dice = document.querySelector('.roll-dice');
     dice.style.animation = 'none';
     requestAnimationFrame(() => { dice.style.animation = 'diceSpin .4s ease-out'; });
@@ -203,49 +189,98 @@ const MAX_ROLAGENS = 2;
     document.getElementById('forjaSubtitle').textContent = sistemaAtivo;
   }
 
+  // ===== GERADOR DE NPC / CRIATURA =====
+  function renderGeradorNPC() {
+    let container = document.getElementById('geradorNpcContainer');
+    if(!container) {
+        container = document.createElement('div');
+        container.id = 'geradorNpcContainer';
+        container.style.padding = '15px';
+        container.style.background = 'var(--surface2)';
+        container.style.border = '1px dashed var(--gold-dim)';
+        container.style.borderRadius = 'var(--radius-lg)';
+        container.style.marginBottom = '15px';
+        container.innerHTML = `
+            <div style="font-family:var(--font-heading); color:var(--gold); margin-bottom:10px; font-size:0.9rem;">⚙️ Gerador Rápido de NPC/Criatura</div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <div>
+                    <label style="font-size:0.7rem; color:var(--text-muted); display:block; margin-bottom:3px;">Nível de Ameaça</label>
+                    <input type="number" id="npcNivelAmeaca" value="1" min="1" max="20" style="width:70px; background:rgba(0,0,0,0.4); color:#fff; border:1px solid var(--border); padding:6px; border-radius:4px;">
+                </div>
+                <div style="align-self: flex-end;">
+                    <button type="button" id="btnGerarNpc" class="btn btn-sm" style="background:var(--gold-dim); color:#111; font-weight:bold; border:none; padding:8px 12px; cursor:pointer; border-radius:4px;">Gerar Atributos</button>
+                </div>
+            </div>
+        `;
+        
+        const targetNode = document.getElementById('secaoCapacitacoes') || document.getElementById('attrDotsContainer').parentNode;
+        if (targetNode) {
+            targetNode.insertBefore(container, targetNode.firstChild);
+        }
+
+        document.getElementById('btnGerarNpc').addEventListener('click', () => {
+            const nivel = parseInt(document.getElementById('npcNivelAmeaca').value) || 1;
+            
+            // Lógica Rápida de Balanceamento de NPC
+            let totalPoints = nivel * 2 + 5; 
+            const keys = Object.keys(fichaState.atrs);
+            
+            keys.forEach(k => fichaState.atrs[k] = 0);
+            
+            while(totalPoints > 0) {
+                const rKey = keys[Math.floor(Math.random() * keys.length)];
+                if(fichaState.atrs[rKey] < 10) {
+                    fichaState.atrs[rKey]++;
+                    totalPoints--;
+                }
+            }
+            
+            fichaState.vidaMax = 10 + (nivel * 6);
+            fichaState.vidaAtual = fichaState.vidaMax;
+            const elVidaMax = document.getElementById('vidaMax');
+            const elVidaAtual = document.getElementById('vidaAtual');
+            if (elVidaMax) elVidaMax.value = fichaState.vidaMax;
+            if (elVidaAtual) elVidaAtual.value = fichaState.vidaAtual;
+
+            renderDots('attrDotsContainer', fichaState.atrs, 'atrs', 10);
+            recalcularCapacitacoes();
+            atualizarPreview();
+        });
+    }
+  }
+
   // ===== MONTAR FORMULÁRIO =====
   function montarFormulario() {
     const tpl = TEMPLATES[sistemaAtivo];
 
-    // Seções condicionais
+    renderGeradorNPC(); // Injeta o gerador na tela
+
     const secoes = ['necessidades','capacitacoes','economia','periciasProfissao'];
     secoes.forEach(s => {
       const el = document.getElementById('secao' + capitalize(s));
       if (el) el.style.display = tpl.secoes.includes(s) ? 'block' : 'none';
     });
 
-    // Bloco de alma
     renderBlocoAlma();
-
-    // Atributos
     renderDots('attrDotsContainer', fichaState.atrs, 'atrs', 10);
-
-    // Perícias
     renderDots('periciasDotsContainer', fichaState.peri, 'peri', 10);
 
-    // Perícias de profissão (DC)
     if (tpl.secoes.includes('periciasProfissao')) {
       renderDots('periciaProfContainer', fichaState.periProf, 'periProf', 10);
     }
 
-    // Listas clicáveis
     ['habilidades','qualidades','defeitos','itens','caracteristicas'].forEach(renderClickable);
 
-    // Bind inputs de recursos
     bindRecursos();
-
-    // Preview inicial
     atualizarPreview();
     recalcularCapacitacoes();
 
-    // Inputs de texto
     ['fichaNome','fichaIdade','fichaProfissao','fichaExpectativa',
      'ecoDinheiro','ecoGasto','ecoRenda','rdRoupa'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', () => { syncTextos(); atualizarPreview(); recalcularCapacitacoes(); });
     });
 
-    // Imagem
     document.getElementById('fichaImagem').addEventListener('change', function() {
       const f = this.files[0]; if (!f) return;
       const r = new FileReader();
@@ -266,12 +301,10 @@ const MAX_ROLAGENS = 2;
     bloco.style.display = 'block';
     bloco.className = `bloco-alma ${tema}`;
 
-    // Badge do sistema no ícone
     document.getElementById('almaIcone').textContent = '☀';
 
     let extraHtml = '';
     if (alma.tipo === 'Príncipe Mestiço' && alma.nucleos > 0) {
-      // Garante que o array de energias existe e tem o tamanho certo
       if (!fichaState.alma.nucleosValores) fichaState.alma.nucleosValores = [];
       while (fichaState.alma.nucleosValores.length < alma.nucleos) fichaState.alma.nucleosValores.push('');
 
@@ -310,7 +343,6 @@ const MAX_ROLAGENS = 2;
       ${extraHtml}
     `;
 
-    // Bind listeners nos inputs de núcleo para salvar em fichaState
     if (alma.tipo === 'Príncipe Mestiço') {
       bloco.querySelectorAll('.nucleo-input').forEach(inp => {
         inp.addEventListener('input', () => {
@@ -320,7 +352,6 @@ const MAX_ROLAGENS = 2;
       });
     }
 
-    // Atualiza badge no preview
     const badge = document.getElementById('previewAlmaBadge');
     badge.style.display = 'inline-block';
     badge.textContent   = alma.tipo;
@@ -339,7 +370,7 @@ const MAX_ROLAGENS = 2;
     return map[tema] || 'transparent';
   }
 
-  // ===== DOTS (atributos / perícias) =====
+  // ===== DOTS =====
   function renderDots(containerId, obj, field, max) {
     const c = document.getElementById(containerId);
     if (!c) return;
@@ -358,7 +389,6 @@ const MAX_ROLAGENS = 2;
       c.appendChild(row);
     });
 
-    // Listeners nos dots
     c.querySelectorAll('.dot').forEach(dot => {
       dot.addEventListener('click', () => {
         const f   = dot.dataset.field;
@@ -394,19 +424,11 @@ const MAX_ROLAGENS = 2;
     if (tipo === 'basica') {
       if (!(nome in fichaState.peri)) fichaState.peri[nome] = 0;
       renderDots('periciasDotsContainer', fichaState.peri, 'peri', 10);
-      setTimeout(() => {
-        const c = document.getElementById('periciasDotsContainer');
-        if (c && c.lastElementChild) c.lastElementChild.scrollIntoView({ behavior:'smooth', block:'nearest' });
-      }, 50);
     } else if (tipo === 'profissao') {
       if (!(nome in fichaState.periProf)) fichaState.periProf[nome] = 0;
       const secao = document.getElementById('secaoPericiasProfissao');
       if (secao) secao.style.display = 'block';
       renderDots('periciaProfContainer', fichaState.periProf, 'periProf', 10);
-      setTimeout(() => {
-        const c = document.getElementById('periciaProfContainer');
-        if (c && c.lastElementChild) c.lastElementChild.scrollIntoView({ behavior:'smooth', block:'nearest' });
-      }, 50);
     } else {
       if (!(nome in fichaState.periOutra)) fichaState.periOutra[nome] = 0;
     }
@@ -476,7 +498,6 @@ const MAX_ROLAGENS = 2;
     document.getElementById('modalItemOverlay').classList.remove('open');
   });
 
-  // Fecha modal ao clicar no overlay
   ['modalItemOverlay','modalPericiaOverlay'].forEach(id => {
     document.getElementById(id).addEventListener('click', e => {
       if (e.target.id === id) document.getElementById(id).classList.remove('open');
@@ -538,7 +559,6 @@ const MAX_ROLAGENS = 2;
     const meta = [fichaState.profissao, fichaState.idade ? fichaState.idade + ' anos' : ''].filter(Boolean).join(' · ');
     document.getElementById('previewMeta').textContent = meta || '—';
 
-    // Stats vitais
     const previewStats = document.getElementById('previewStats');
     const stats = [
       { k:'VIDA',    v:`${fichaState.vidaAtual||0}/${fichaState.vidaMax||0}` },
@@ -566,43 +586,34 @@ const MAX_ROLAGENS = 2;
 
     if (!fichaState.nome) { alertForja('Nome do personagem é obrigatório.'); return; }
 
-    // Monta o JSON completo dos atributos
     const atributosCompletos = {
-      // Atributos base
       ...fichaState.atrs,
-      // Perícias
       _pericias: fichaState.peri,
       _periciasProf: fichaState.periProf,
-      // Status vitais
       vida:    [fichaState.vidaAtual,  fichaState.vidaMax],
       sanidade:[fichaState.sanAtual,   fichaState.sanMax],
       estamina:[fichaState.estAtual,   fichaState.estMax],
-      // Extras DC
       saciedade:[fichaState.sacAtual,  fichaState.sacMax],
       sede:    [fichaState.sedeAtual,  fichaState.sedeMax],
       energia: [fichaState.energiaAtual, fichaState.energiaMax],
       rd_roupa: fichaState.rdRoupa,
-      // Economia
       dinheiro: fichaState.ecoDinheiro,
       gasto_fixo: fichaState.ecoGasto,
       renda: fichaState.ecoRenda,
-      // Dados pessoais
       idade: fichaState.idade,
       profissao: fichaState.profissao,
       expectativa_vida: fichaState.expectativa,
-      // Listas
       habilidades:    fichaState.habilidades,
       qualidades:     fichaState.qualidades,
       defeitos:       fichaState.defeitos,
       itens:          fichaState.itens,
       caracteristicas:fichaState.caracteristicas,
-      // Alma (Decadência Cinza) — salvo fixo para não mudar ao recarregar
       alma: fichaState.alma || null,
     };
 
     const fd = new FormData();
     fd.append('nome_personagem', fichaState.nome);
-    fd.append('sistema', fichaState.sistema); // 'Decadência Cinza', etc.
+    fd.append('sistema', fichaState.sistema); 
     fd.append('atributos', JSON.stringify(atributosCompletos));
     const imgFile = document.getElementById('fichaImagem').files[0];
     if (imgFile) fd.append('imagem', imgFile);
@@ -640,7 +651,6 @@ const MAX_ROLAGENS = 2;
       sistemaAtivo = f.sistema || 'Decadência Cinza';
       const tpl = TEMPLATES[sistemaAtivo];
 
-      // Reconstrói o estado a partir do JSON salvo
       fichaState = {
         id: f.id,
         sistema: sistemaAtivo,
@@ -670,16 +680,13 @@ const MAX_ROLAGENS = 2;
         caracteristicas: atrs.caracteristicas || [],
       };
 
-      // Atributos base (excluindo campos especiais)
       const ignorar = new Set(['_pericias','_periciasProf','vida','sanidade','estamina','saciedade','sede','energia','rd_roupa','dinheiro','gasto_fixo','renda','idade','profissao','expectativa_vida','habilidades','qualidades','defeitos','itens','caracteristicas','alma']);
       Object.keys(tpl.atributos).forEach(k => {
         fichaState.atrs[k] = atrs[k] ?? 0;
       });
 
-      // Perícias base
       if (atrs._pericias) fichaState.peri = atrs._pericias;
 
-      // Preenche campos do formulário
       almaRolada = fichaState.alma;
       montarFormulario();
 
@@ -742,12 +749,12 @@ const MAX_ROLAGENS = 2;
     container.querySelectorAll('.btn-editar-ficha').forEach(btn => {
       btn.addEventListener('click', () => {
         const ficha = fichasCache.find(f => String(f.id) === btn.dataset.id);
-const rota = {
-  'Cavaleiros de Armadura': '/ficha-cavaleiros',
-  'Oceano Estrelado':       '/ficha-oceano',
-  'Decadência Cinza':       '/ficha-decadencia',
-}[ficha?.sistema] || '/forja';
-window.location.href = rota + '?id=' + btn.dataset.id;
+        const rota = {
+          'Cavaleiros de Armadura': '/ficha-cavaleiros',
+          'Oceano Estrelado':       '/ficha-oceano',
+          'Decadência Cinza':       '/ficha-decadencia',
+        }[ficha?.sistema] || '/forja';
+        window.location.href = rota + '?id=' + btn.dataset.id;
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     });
@@ -779,7 +786,6 @@ window.location.href = rota + '?id=' + btn.dataset.id;
 
   document.getElementById('btnRefreshLista').addEventListener('click', carregarFichasLista);
 
-  // ===== ALERT =====
   function alertForja(msg, tipo = 'error') {
     const el = document.getElementById('alertForja');
     el.className = `alert alert-${tipo} show`;
@@ -792,7 +798,6 @@ window.location.href = rota + '?id=' + btn.dataset.id;
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // ===== INIT =====
   const editId = new URLSearchParams(window.location.search).get('id');
   if (editId) {
     carregarFichaParaEdicao(editId);

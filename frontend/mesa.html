@@ -52,11 +52,11 @@
 </header>
 
 <div class="mesa-viewport" id="mesaViewport">
-  <div id="dice-box-container"></div>
+  <div id="dice-box-container" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:9999; pointer-events:none;"></div>
 
-  <canvas id="mesaCanvas"></canvas>
+  <canvas id="mesaCanvas" style="z-index:10;"></canvas>
+  
   <div class="ping-ring" id="pingRing" style="display:none;"></div>
-
   <div class="measure-label" id="measureLabel" style="display:none;"></div>
 
   <div class="zoom-bar">
@@ -68,7 +68,6 @@
 </div>
 
 <aside class="mesa-sidebar" id="mesaSidebar">
-
   <div class="sidebar-tabs">
     <button class="sidebar-tab active" data-stab="fichas">
       <i data-lucide="scroll-text"></i><span>Fichas</span>

@@ -1,12 +1,10 @@
-// ficha-cavaleiros.js
+// frontend/js/ficha-cavaleiros.js
 // Lógica completa da ficha de Cavaleiros de Armadura
-// Integra com Api e fichaState do forja.js
 
 (function (w) {
   'use strict';
 
-  // ─── CONSTANTES ────────────────────────────────────────────────────
-  const ATRIBUTOS = ['Temperança','Vigor Bruto','Zelo','Humanidade','Lucidez','Inteligência'];
+  const ATRIBUTOS = ['Temperança','Vigor Bruto','Zelo','Humanidade','Inteligência'];
   const MAX_DOTS  = 10;
   const PROF_SLOTS = 7;
 
@@ -20,12 +18,11 @@
   ];
   const STATUS_LIST = ['Sangramento','Fraturado','Aterrorizado','Exausto','Atordoado'];
 
-  // Estado padrão de uma ficha nova
   const ESTADO_DEFAULT = () => ({
     nome: '', classe: '', patente: 'Soldado',
     vit: [7,7], imp: [9,9], luc: [10,10],
     arm: [10,10], arm_estagio: 'Impecável',
-    atrs: { 'Temperança':0,'Vigor Bruto':0,'Zelo':0,'Humanidade':0,'Lucidez':0,'Inteligência':0 },
+    atrs: { 'Temperança':0,'Vigor Bruto':0,'Zelo':0,'Humanidade':0,'Inteligência':0 },
     proficiencias: Array(PROF_SLOTS).fill(null).map(() => ({ nome:'', desc:'' })),
     habilidades: [],
     inventario: { alforge_idx:0, pecas:0, slots:{} },
@@ -33,7 +30,6 @@
     notas: '',
   });
 
-  // ─── RENDER PRINCIPAL ───────────────────────────────────────────────
   function render(container, estado, onSave) {
     container.innerHTML = '';
     container.className = 'ficha-cav';
@@ -45,37 +41,17 @@
   function criarFicha(estado, onSave) {
     const root = document.createElement('div');
 
-    // ── Header ──
     root.appendChild(criarHeader(estado, onSave));
-
-    // ── Recursos vitais ──
     root.appendChild(criarRecursos(estado, onSave));
-
-    // ── Capacitações calculadas ──
     root.appendChild(criarCapacitacoes(estado));
-
-    // ── Atributos ──
     root.appendChild(criarAtributos(estado, onSave, root));
-
-    // ── Integridade da Armadura ──
     root.appendChild(criarArmadura(estado, onSave));
-
-    // ── Status de condição ──
     root.appendChild(criarStatus(estado, onSave));
-
-    // ── Proficiências ──
     root.appendChild(criarProficiencias(estado, onSave));
-
-    // ── Habilidades / Armas ──
     root.appendChild(criarHabilidades(estado, onSave));
-
-    // ── Inventário ──
     root.appendChild(criarInventario(estado, onSave));
-
-    // ── Notas ──
     root.appendChild(criarNotas(estado, onSave));
 
-    // Indicador de salvo
     const saved = document.createElement('div');
     saved.className = 'cav-saved';
     saved.id = 'cavSaved_' + Date.now();
@@ -85,21 +61,34 @@
     return root;
   }
 
-  // ── HEADER ──────────────────────────────────────────────────────────
   function criarHeader(e, save) {
     const div = document.createElement('div');
     div.className = 'cav-header';
 
-    // Avatar
     const av = document.createElement('div');
     av.className = 'cav-avatar';
-    av.innerHTML = e.avatar_url ? `<img src="${e.avatar_url}" alt="avatar"/>` : '⚔';
+    av.style.cursor = 'pointer';
+    av.innerHTML = e.avatar_url ? `<img src="${e.avatar_url}" id="avatar-img" alt="avatar"/>` : '<span id="avatar-img">⚔</span>';
+    
+    const input = document.createElement('input');
+    input.type = 'file'; input.id = 'avatar-input'; input.style.display = 'none';
+    input.accept = 'image/*';
+    input.addEventListener('change', (ev) => {
+        const file = ev.target.files[0];
+        if(file) {
+            const reader = new FileReader();
+            reader.onload = (f) => document.getElementById('avatar-img').src = f.target.result;
+            reader.readAsDataURL(file);
+        }
+    });
+    av.addEventListener('click', () => input.click());
+    
     div.appendChild(av);
+    div.appendChild(input);
 
     const info = document.createElement('div');
     info.className = 'cav-header-info';
 
-    // Nome
     const nome = document.createElement('input');
     nome.className = 'cav-nome-input';
     nome.type = 'text';
@@ -108,7 +97,6 @@
     nome.addEventListener('input', () => { e.nome = nome.value; autoSave(e, save); });
     info.appendChild(nome);
 
-    // Meta row
     const meta = document.createElement('div');
     meta.className = 'cav-meta-row';
 
@@ -125,7 +113,6 @@
       meta.appendChild(wrap);
     });
 
-    // Patente (select estilizado)
     const pWrap = document.createElement('div'); pWrap.className = 'cav-meta-field';
     const pLbl = document.createElement('span'); pLbl.className = 'cav-meta-label'; pLbl.textContent = 'Patente';
     const pSel = document.createElement('select'); pSel.className = 'cav-patente cav-meta-input';
@@ -143,7 +130,6 @@
     return div;
   }
 
-  // ── RECURSOS ─────────────────────────────────────────────────────────
   function criarRecursos(e, save) {
     const panel = criarPanel('❤ Recursos Vitais');
     const grid = document.createElement('div'); grid.className = 'recursos-grid';
@@ -151,7 +137,7 @@
     const recursos = [
       { key:'vit', label:'VITALIDADE', cls:'rl-vida',    barCls:'b-vida'    },
       { key:'imp', label:'ÍMPETO',     cls:'rl-impeto',  barCls:'b-impeto'  },
-      { key:'luc', label:'LUCIDEZ',    cls:'rl-lucidez', barCls:'b-lucidez' },
+      { key:'luc', label:'LUCIDEZ',    cls:'rl-lucidez', barCls:'b-lucidez' }, // Status/Recurso preservado
     ];
 
     recursos.forEach(r => {
@@ -190,7 +176,6 @@
     if (fill) fill.style.width = pct(vals[0], vals[1]) + '%';
   }
 
-  // ── CAPACITAÇÕES ─────────────────────────────────────────────────────
   function criarCapacitacoes(e) {
     const panel = criarPanelSimples();
     const row = document.createElement('div'); row.className = 'cap-row';
@@ -211,7 +196,6 @@
     });
 
     panel.appendChild(row);
-    // Atualizar imediatamente
     setTimeout(() => atualizarCalcs(e, panel.closest('.ficha-cav') || panel), 50);
     return panel;
   }
@@ -233,7 +217,6 @@
     return ALFORGES[idx]?.slots || 0;
   }
 
-  // ── ATRIBUTOS ─────────────────────────────────────────────────────────
   function criarAtributos(e, save, root) {
     const panel = criarPanel('⚔ Atributos');
     const list = document.createElement('div'); list.className = 'attr-list';
@@ -254,7 +237,6 @@
         dot.addEventListener('click', () => {
           const cur = e.atrs[nome] || 0;
           e.atrs[nome] = cur === i ? i - 1 : i;
-          // Atualiza dots
           dots.querySelectorAll('.attr-dot').forEach((d, idx) => {
             d.classList.toggle('filled', idx < e.atrs[nome]);
           });
@@ -274,7 +256,6 @@
     return panel.querySelector('.cav-panel').parentElement || panel;
   }
 
-  // ── ARMADURA ──────────────────────────────────────────────────────────
   function criarArmadura(e, save) {
     const panel = criarPanel('🛡 Integridade da Armadura');
     const p = panel.querySelector ? panel : panel;
@@ -299,7 +280,6 @@
     sel.addEventListener('change', () => { e.arm_estagio = sel.value; atualizarEstagio(e, panel); autoSave(e, save); });
     row.appendChild(sel);
 
-    // Aviso rompida
     const aviso = document.createElement('span');
     aviso.className = 'arm-aviso rompida';
     aviso.textContent = '−25% Defesa · +1 Dano Vital';
@@ -321,7 +301,6 @@
   }
 
   function atualizarBarraArm(root) {
-    // será chamado com o container acima — busca no root global
     const fill = document.getElementById('barra-arm');
     if (fill) {
       const cur = parseFloat(fill.closest('.ficha-cav')?.querySelector('.arm-inputs .rec-num')?.value) || 0;
@@ -335,7 +314,6 @@
     if (aviso) aviso.style.display = e.arm_estagio === 'Rompida' ? 'inline-block' : 'none';
   }
 
-  // ── STATUS ────────────────────────────────────────────────────────────
   function criarStatus(e, save) {
     const cont = criarPanelSimples();
     const lbl = document.createElement('div'); lbl.className = 'cav-ptitle'; lbl.innerHTML = '<span style="width:12px;height:1px;background:var(--bronze-dim);display:block;"></span>Condições de Status';
@@ -356,7 +334,6 @@
     return cont;
   }
 
-  // ── PROFICIÊNCIAS ─────────────────────────────────────────────────────
   function criarProficiencias(e, save) {
     const ocupados = e.proficiencias.filter(p => p.nome).length;
     const panel = criarPanel(`📖 Proficiências · <span style="color:var(--text-muted);font-size:.58rem;">${ocupados}/${PROF_SLOTS} usados</span>`);
@@ -382,7 +359,6 @@
       { label:'Descrição / Habilidades concedidas',  key:'desc', tipo:'textarea', val: prof.desc },
     ], (dados) => {
       e.proficiencias[idx] = { nome: dados.nome, desc: dados.desc };
-      // Re-render grid
       grid.querySelectorAll('.prof-slot').forEach((slot, i) => {
         const p = e.proficiencias[i];
         slot.className = 'prof-slot' + (p.nome ? ' ocupado' : '');
@@ -397,7 +373,6 @@
     });
   }
 
-  // ── HABILIDADES / ARMAS ───────────────────────────────────────────────
   function criarHabilidades(e, save) {
     const panel = criarPanel('⚡ Habilidades & Armas');
     const ptitle = panel.querySelector ? panel.querySelector('.cav-ptitle') : null;
@@ -525,7 +500,7 @@
     });
   }
 
-  // ── INVENTÁRIO ────────────────────────────────────────────────────────
+  // ── INVENTÁRIO (COM REFATORAÇÃO JSON) ─────────────────────────────────
   function criarInventario(e, save) {
     const p = criarPanelSimples();
 
@@ -586,7 +561,7 @@
         const item = e.inventario.slots[i];
         slot.className = 'inv-slot' + (item ? ' tem' : '');
         slot.textContent = item ? item.nome.substring(0, 5) : '';
-        if (i >= baseSlots) slot.style.opacity = '.7'; // slots de alforge
+        if (i >= baseSlots) slot.style.opacity = '.7';
         slot.addEventListener('click', () => {
           if (e.inventario.slots[i]) {
             abrirModalInv(e, i, save, renderGrid);
@@ -609,8 +584,6 @@
     return p;
   }
 
-  
-  // === TRADUTOR UNIVERSAL DE MACROS ===
   function traduzirRolagem(fichaObj, formStr) {
       if (!formStr) return "";
       let txt = formStr;
@@ -620,7 +593,6 @@
          '@Vigor Bruto': fichaObj.atrs['Vigor Bruto'] || 0,
          '@Zelo': fichaObj.atrs['Zelo'] || 0,
          '@Humanidade': fichaObj.atrs['Humanidade'] || 0,
-         '@Lucidez': fichaObj.atrs['Lucidez'] || 0,
          '@Inteligência': fichaObj.atrs['Inteligência'] || 0
       };
 
@@ -674,7 +646,6 @@
          const oldHtml = btnElement.innerHTML;
          btnElement.innerHTML = `<i class="fa-solid fa-check"></i> Enviado!`;
          setTimeout(() => { btnElement.innerHTML = oldHtml; }, 2000);
-
      } else {
          alert(`A Rolagem de ${tipo} é: ${formulaFinal}\n(Entre numa mesa para rolar os dados em 3D)`);
      }
@@ -682,6 +653,14 @@
 
   function abrirModalInv(e, idx, save, renderFn) {
     const item = e.inventario.slots[idx] || {};
+    
+    // Tratativa JSON para exibição isolada da narrativa
+    let descExibicao = item.desc || '';
+    try {
+        const parsed = JSON.parse(item.desc);
+        if (parsed.narrativa !== undefined) descExibicao = parsed.narrativa;
+    } catch(err) {}
+
     const overlay = document.createElement('div'); overlay.className = 'cav-modal-overlay open';
     const modal   = document.createElement('div'); modal.className = 'cav-modal';
 
@@ -691,7 +670,7 @@
       <div class="cav-field"><label class="cav-lbl">Nome do Item</label>
         <input class="cav-inp" id="mi-nome" type="text" value="${esc(item.nome||'')}" placeholder="Ex: Espada Longa, Ração..."/></div>
       <div class="cav-field"><label class="cav-lbl">Descrição / Efeito</label>
-        <textarea class="cav-ta" id="mi-desc" rows="3">${esc(item.desc||'')}</textarea></div>
+        <textarea class="cav-ta" id="mi-desc" rows="3">${esc(descExibicao)}</textarea></div>
       <div class="cav-g2">
         <div class="cav-field"><label class="cav-lbl">Peso (slots)</label>
           <input class="cav-inp" id="mi-peso" type="number" min="1" max="10" value="${item.peso||1}"/></div>
@@ -727,7 +706,6 @@
     overlay.querySelector('#mi-cancel').addEventListener('click', fechar);
     overlay.addEventListener('click', ev => { if (ev.target === overlay) fechar(); });
 
-    // Liga os botões de macro se existirem
     const btnRolar = overlay.querySelector('#mi-btn-rolar');
     if (btnRolar) btnRolar.addEventListener('click', () => executarMacro(e, item, btnRolar, 'rolagem', () => autoSave(e, save)));
     
@@ -741,25 +719,36 @@
     
     overlay.querySelector('#mi-save').addEventListener('click', () => {
       const nome = overlay.querySelector('#mi-nome').value.trim();
+      let novaNarrativa = overlay.querySelector('#mi-desc').value.trim();
+      
+      // Reconstrói o JSON para não perder as mecânicas ao editar o texto
+      let descFinal = novaNarrativa;
+      try {
+         const parsed = JSON.parse(item.desc);
+         if (parsed.narrativa !== undefined) {
+             parsed.narrativa = novaNarrativa;
+             descFinal = JSON.stringify(parsed);
+         }
+      } catch(err) {}
+
       if (nome) {
         e.inventario.slots[idx] = {
-          nome, desc: overlay.querySelector('#mi-desc').value.trim(),
+          nome, desc: descFinal,
           peso: parseInt(overlay.querySelector('#mi-peso').value) || 1,
           estagio: overlay.querySelector('#mi-estagio').value,
-          macro: item.macro // PRESERVA A MACRO AO SALVAR
+          macro: item.macro 
         };
       } else delete e.inventario.slots[idx];
       renderFn(); autoSave(e, save); fechar();
     });
   }
 
-  
   function abrirModalMercado(e, save, renderFn) {
     const params = new URLSearchParams(window.location.search);
     const codigo = params.get('codigo');
     
     if (!codigo) {
-      alert('🛒 O Mercado só pode ser acedido quando a ficha está aberta dentro de uma Mesa de RPG ativa.');
+      alert('🛒 O Mercado só pode ser acessado quando a ficha está aberta dentro de uma Mesa de RPG ativa.');
       return;
     }
 
@@ -860,25 +849,18 @@
         return;
       }
 
-      // NOVIDADE: Faz o parse do JSON enviado pelo Mercado para extrair a História e a Macro
-      let descText = item.descricao || item.categoria;
       let macroObj = null;
-
       try {
           const parsed = JSON.parse(item.descricao);
           if (parsed.narrativa !== undefined) {
-              descText = parsed.narrativa;
-              if (parsed.formula) {
-                  macroObj = { rolagem: parsed.formula };
-              }
+              if (parsed.formula) macroObj = { rolagem: parsed.formula };
           }
       } catch (e) {}
 
-      // Desconta moedas e adiciona item com os atributos separados
       e.inventario.pecas -= item.preco;
       e.inventario.slots[slotLivre] = {
         nome: item.nome,
-        desc: descText,
+        desc: item.descricao || item.categoria, // Salva o JSON Puro
         peso: 1,
         estagio: 'Afiada',
         macro: macroObj
@@ -1003,7 +985,6 @@
     clearTimeout(_saveTimer);
     _saveTimer = setTimeout(() => {
       if (typeof fn === 'function') fn(e);
-      // Indicador visual
       const ind = document.querySelector('.cav-saved');
       if (ind) { ind.classList.add('show'); setTimeout(() => ind.classList.remove('show'), 1800); }
     }, 800);

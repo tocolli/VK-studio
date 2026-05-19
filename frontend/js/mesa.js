@@ -60,7 +60,7 @@
     // Carrega galeria de fichas no modal de token
     carregarGaleriaFichas();
 
-    // Inicializa o Motor de Dados 3D
+    // Inicializa o Motor de Dados 3D (Com Offscreen false para garantir visualização sobreposta)
     setTimeout(async () => {
       if (window.DiceBox) {
         try {
@@ -68,10 +68,12 @@
             assetPath: "https://unpkg.com/@3d-dice/dice-box@1.1.3/dist/assets/",
             theme: "default",
             themeColor: "#c9a84c",
-            scale: 6
+            scale: 6,
+            offscreen: false 
           });
           await diceBox.init();
           diceBox.pronto = true;
+          console.log("DiceBox carregado.");
         } catch(e) {
           console.error("Erro ao carregar dados 3D:", e);
         }
@@ -86,7 +88,6 @@
       const res = await Api.listarFichas();
       if (!res?.ok || !res.data.fichas.length) return;
 
-      // Só fichas do jogador atual (mestre vê todas)
       const fichas = E.isMestre
         ? res.data.fichas
         : res.data.fichas.filter(f => f.jogador_id === E.userId);
@@ -99,7 +100,6 @@
         lista.appendChild(item);
       });
 
-      // Mestre vê fichas de outros jogadores separado
       if (E.isMestre) {
         document.getElementById('secaoFichasJogadores').style.display = 'block';
         document.getElementById('listaFichasJogadores').innerHTML = '';
@@ -148,7 +148,6 @@
     return item;
   }
 
-  // Lógica das Pastas Visuais (+ BOTÃO DE ADIÇÃO INCLUÍDO)
   window.criarPastaVisual = function(nome, id = Date.now()) {
     const cont = document.getElementById('listaPastasSidebar');
     if(!cont) return;
@@ -189,7 +188,6 @@
     overlay.className = 'overlay open';
     overlay.style.zIndex = '9999';
 
-    // Pega todas as fichas renderizadas do jogador atual (ou do Mestre)
     const options = E.fichas.map(f => `<option value="${f.id}">${escH(f.nome_personagem)}</option>`).join('');
 
     if(!options) {
@@ -223,7 +221,6 @@
           if(el) {
              const pasta = document.getElementById('pasta-' + pastaId);
              pasta.appendChild(el);
-             // Limpa a mensagem de "Vazio"
              const emptyMsg = pasta.querySelector('div');
              if(emptyMsg && emptyMsg.textContent.includes('Vazio')) emptyMsg.remove();
           } else {
@@ -665,7 +662,6 @@
     ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=2; ctx.setLineDash([6,3]); ctx.stroke(); ctx.setLineDash([]);
   }
 
-  // ==== LÓGICA DE VISÃO INDIVIDUAL IMPLEMENTADA AQUI ====
   function desenharFog(cols,rows,cel) {
     if(!E.fogCelulas) return;
     
@@ -683,12 +679,10 @@
     const fctx = fogCanvas.getContext('2d');
     fctx.clearRect(0, 0, mapW, mapH);
     
-    // 1. Pinta a neblina global
     fctx.globalCompositeOperation = 'source-over';
     fctx.fillStyle = E.isMestre ? 'rgba(0,0,0,0.5)' : '#000000';
     fctx.fillRect(0, 0, mapW, mapH);
     
-    // 2. Recorta onde o mestre apagou a neblina manualmente
     fctx.globalCompositeOperation = 'destination-out';
     for(let r=0;r<rows;r++) {
       for(let c=0;c<cols;c++){
@@ -699,16 +693,14 @@
       }
     }
     
-    // 3. RECORTA A ILUMINAÇÃO DOS TOKENS VÁLIDOS (VISÃO INDIVIDUAL)
     const luzes = E.tokens.filter(t => {
       const ex = t.dados_extras ? (typeof t.dados_extras==='string' ? JSON.parse(t.dados_extras) : t.dados_extras) : {};
       const temLuz = ex.luz_ativa && ex.luz_raio > 0 && t.visivel !== 0;
       
       if (!temLuz) return false;
-      if (E.isMestre) return true; // Mestre vê a luz de todos
-      if (!t.ficha_id) return true; // Elementos do cenário/tochas (sem dono) iluminam para todos
+      if (E.isMestre) return true; 
+      if (!t.ficha_id) return true; 
       
-      // O jogador limpa o mapa APENAS ao redor de suas próprias fichas
       return E.fichas.some(f => String(f.id) === String(t.ficha_id));
     });
 
@@ -720,9 +712,9 @@
       const cy = t.pos_y * cel + (tam * cel) / 2;
 
       const grad = fctx.createRadialGradient(cx, cy, 0, cx, cy, raio);
-      grad.addColorStop(0, 'rgba(0,0,0,1)'); // Centro sem neblina
-      grad.addColorStop(0.7, 'rgba(0,0,0,0.8)'); // Borda suavizada
-      grad.addColorStop(1, 'rgba(0,0,0,0)'); // Escuridão final
+      grad.addColorStop(0, 'rgba(0,0,0,1)'); 
+      grad.addColorStop(0.7, 'rgba(0,0,0,0.8)');
+      grad.addColorStop(1, 'rgba(0,0,0,0)'); 
 
       fctx.fillStyle = grad;
       fctx.beginPath();
@@ -730,7 +722,6 @@
       fctx.fill();
     });
 
-    // Pinta o resultado final por cima do mapa principal
     fctx.globalCompositeOperation = 'source-over';
     ctx.drawImage(fogCanvas, 0, 0);
   }
@@ -1202,11 +1193,11 @@
 
   // ─── CHAT COM DADOS 3D ────────────────────────────────────────────────
   function enviarChat(){
-    const inp=document.getElementById('chatInput');
-    let txt=inp.value.trim();
-    const priv=document.getElementById('checkPrivado')?.checked||false;
+    const inp = document.getElementById('chatInput');
+    let txt = inp.value.trim();
+    const priv = document.getElementById('checkPrivado')?.checked || false;
     if(!txt) return; 
-    inp.value='';
+    inp.value = '';
     
     // Agora aceita tanto "1d20" direto quanto "/r 1d20" ou "/roll 1d20"
     const matchDado = txt.match(/^(?:\/r\s+|\/roll\s+)?(\d*d\d+(?:[+\-*/]\d+)?)$/i);
@@ -1214,16 +1205,14 @@
     if(matchDado) {
       const expressao = matchDado[1]; // Isola a fórmula matemática
       
-      // Se o dado 3D carregou com sucesso, rola ele
       if (diceBox && diceBox.pronto) {
         diceBox.roll(expressao).then(results => {
           socket?.emit('chat:rolar',{sessaoId:E.sessaoId,expressao:expressao,privado:priv});
+          setTimeout(() => diceBox.clear(), 4000); // Limpa a tela após 4 segundos
         }).catch(err => {
-          // Se a física falhar, rola silenciosamente pro chat não quebrar
           socket?.emit('chat:rolar',{sessaoId:E.sessaoId,expressao:expressao,privado:priv});
         });
       } else {
-        // Fallback imediato se o 3D ainda não tiver carregado
         socket?.emit('chat:rolar',{sessaoId:E.sessaoId,expressao:expressao,privado:priv});
       }
     } else {
