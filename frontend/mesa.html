@@ -6,14 +6,12 @@
   <title>Mesa — VK.Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="css/mesa.css"/>
   <link rel="stylesheet" href="css/ficha-cavaleiros.css"/>
 </head>
 <body class="mesa-body">
 
-<!-- ===== TOPBAR ===== -->
 <header class="mesa-topbar">
   <div class="topbar-left">
     <span class="topbar-logo">VK.Studio</span>
@@ -23,7 +21,6 @@
   </div>
 
   <div class="topbar-center" id="topbarTools">
-    <!-- Ferramentas mestre -->
     <div class="tool-group" id="grupoMestre" style="display:none;">
       <button class="tool-btn active" data-tool="select"    data-tip="Selecionar (S)"><i data-lucide="mouse-pointer-2"></i></button>
       <button class="tool-btn"        data-tool="fog-erase" data-tip="Revelar Fog (R)"><i data-lucide="eye"></i></button>
@@ -34,7 +31,6 @@
       <button class="tool-btn" id="btnAddToken" data-tip="Adicionar token"><i data-lucide="plus-circle"></i></button>
       <button class="tool-btn" id="btnMapas"    data-tip="Gerenciar mapas"><i data-lucide="map"></i></button>
     </div>
-    <!-- Ferramentas jogador -->
     <div class="tool-group" id="grupoJogador">
       <button class="tool-btn active" data-tool="select" data-tip="Selecionar"><i data-lucide="mouse-pointer-2"></i></button>
       <button class="tool-btn"        data-tool="measure" data-tip="Medir"><i data-lucide="ruler"></i></button>
@@ -44,6 +40,7 @@
   <div class="topbar-right">
     <div class="usuarios-pips" id="usuariosPips"></div>
     <div class="topbar-divider"></div>
+    <button class="topbar-icon-btn" id="btnPastas" data-tip="Pastas"><i data-lucide="folder"></i></button>
     <button class="topbar-icon-btn" id="btnFichas" data-tip="Fichas (F)"><i data-lucide="scroll-text"></i></button>
     <button class="topbar-icon-btn" id="btnChat"   data-tip="Chat (T)">
       <i data-lucide="message-square"></i>
@@ -54,15 +51,14 @@
   </div>
 </header>
 
-<!-- ===== VIEWPORT ===== -->
 <div class="mesa-viewport" id="mesaViewport">
+  <div id="dice-box-container"></div>
+
   <canvas id="mesaCanvas"></canvas>
   <div class="ping-ring" id="pingRing" style="display:none;"></div>
 
-  <!-- Régua de medição -->
   <div class="measure-label" id="measureLabel" style="display:none;"></div>
 
-  <!-- Controles de zoom (canto inferior esquerdo) -->
   <div class="zoom-bar">
     <button class="zoom-btn" id="btnZoomOut"><i data-lucide="minus"></i></button>
     <span class="zoom-pct" id="zoomPct">100%</span>
@@ -71,13 +67,14 @@
   </div>
 </div>
 
-<!-- ===== SIDEBAR DIREITA ===== -->
 <aside class="mesa-sidebar" id="mesaSidebar">
 
-  <!-- Abas da sidebar -->
   <div class="sidebar-tabs">
     <button class="sidebar-tab active" data-stab="fichas">
       <i data-lucide="scroll-text"></i><span>Fichas</span>
+    </button>
+    <button class="sidebar-tab" data-stab="pastas">
+      <i data-lucide="folder"></i><span>Pastas</span>
     </button>
     <button class="sidebar-tab" data-stab="chat">
       <i data-lucide="message-square"></i><span>Chat</span>
@@ -88,7 +85,6 @@
     </button>
   </div>
 
-  <!-- ABA: FICHAS -->
   <div class="sidebar-content" id="stabFichas">
     <div class="sidebar-section-label">Minhas Fichas</div>
     <div id="listaFichasSidebar" class="fichas-sidebar-lista">
@@ -98,14 +94,24 @@
         <a href="/forja" target="_blank" class="sidebar-link">Criar na Forja</a>
       </div>
     </div>
-    <!-- Fichas de outros jogadores (só mestre) -->
     <div id="secaoFichasJogadores" style="display:none;">
       <div class="sidebar-section-label" style="margin-top:.75rem;">Fichas dos Jogadores</div>
       <div id="listaFichasJogadores" class="fichas-sidebar-lista"></div>
     </div>
   </div>
 
-  <!-- ABA: CHAT -->
+  <div class="sidebar-content" id="stabPastas" style="display:none;">
+    <div class="sidebar-section-label" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Diretório</span>
+      <button id="btnCriarPasta" style="font-family:var(--font-h); font-size:0.6rem; padding: 2px 5px; background: transparent; border: 1px solid var(--border2); color: var(--text-muted); border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 4px; text-transform: uppercase;">
+        <i data-lucide="folder-plus" style="width:12px; height:12px;"></i> Nova
+      </button>
+    </div>
+    <div id="listaPastasSidebar" class="pastas-sidebar-lista">
+      <div style="font-size:0.65rem; color:var(--text-muted); text-align:center; margin-top:1rem; font-family:var(--font-h);">Crie pastas e arraste suas fichas</div>
+    </div>
+  </div>
+
   <div class="sidebar-content" id="stabChat" style="display:none;">
     <div class="chat-msgs-area" id="chatMsgs"></div>
     <div class="chat-dados-row">
@@ -133,7 +139,6 @@
     </div>
   </div>
 
-  <!-- ABA: CONFIG (mestre) -->
   <div class="sidebar-content" id="stabConfig" style="display:none;">
     <div class="sidebar-section-label">Sessão</div>
     <div class="config-info" id="configSessaoInfo"></div>
@@ -143,14 +148,9 @@
   </div>
 </aside>
 
-<!-- ===== JANELAS ARRASTÁVEIS ===== -->
-<!-- Container de janelas (fichas abertas) -->
 <div id="windowsContainer"></div>
-
-<!-- ===== TOOLTIP GLOBAL ===== -->
 <div class="token-ctx-menu" id="tokenCtxMenu" style="display:none;"></div>
 
-<!-- ===== MODAL: ENTRAR NA MESA ===== -->
 <div class="overlay open" id="overlayEntrar">
   <div class="modal-box">
     <div class="modal-header">
@@ -179,7 +179,6 @@
                placeholder="Ex: Sessão 3 — As Ruínas de Korth"/>
       </div>
       
-      <!-- Filtro de Sistema -->
       <div class="modal-field">
         <label>Sistema de RPG</label>
         <select id="selectSistemaSessao" class="modal-inp" style="cursor: pointer; appearance: auto;">
@@ -192,7 +191,6 @@
         </div>
       </div>
 
-      <!-- V4: Narrador -->
       <div style="margin-top: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
         <input type="checkbox" id="checkNarradorSessao" style="width:16px; height:16px; accent-color: var(--gold-dim);">
         <label for="checkNarradorSessao" style="font-size: 0.85rem; color: #ccc; cursor: pointer;">Assumir papel de Narrador (Mestre da Mesa)</label>
@@ -205,7 +203,6 @@
   </div>
 </div>
 
-<!-- ===== MODAL: MAPAS ===== -->
 <div class="overlay" id="overlayMapas">
   <div class="modal-box" style="max-width:560px;">
     <div class="modal-header">
@@ -240,7 +237,6 @@
   </div>
 </div>
 
-<!-- ===== MODAL: TOKEN ===== -->
 <div class="overlay" id="overlayToken">
   <div class="modal-box" style="max-width:480px;">
     <div class="modal-header">
@@ -253,7 +249,6 @@
       <input type="text" id="tokenNome" class="modal-inp" placeholder="Ex: Kael, Goblin A..."/>
     </div>
 
-    <!-- GALERIA DE IMAGENS -->
     <div class="modal-field">
       <label>Imagem</label>
       <div class="galeria-tabs">
@@ -296,7 +291,6 @@
       </div>
     </div>
 
-    <!-- ILUMINAÇÃO -->
     <div class="modal-section-label" style="margin-top:.5rem;">Iluminação</div>
     <div class="modal-grid2">
       <div class="modal-field">
@@ -323,10 +317,15 @@
 <script src="js/api.js"></script>
 <script src="js/auth-guard.js"></script>
 <script src="js/ficha-cavaleiros.js"></script>
+
+<script type="module">
+  import DiceBox from "https://unpkg.com/@3d-dice/dice-box@1.1.3/dist/dice-box.es.min.js";
+  window.DiceBox = DiceBox;
+</script>
+
 <script src="js/mesa.js"></script>
 <script>lucide.createIcons();</script>
 
-<!-- MODAL CATÁLOGO DO SISTEMA (MESTRE) -->
 <div class="modal-overlay" id="overlayCatalogoLoja" style="display:none; z-index:9999;">
   <div class="modal-content" style="max-width: 600px; width:90%; max-height:80vh; display:flex; flex-direction:column; background:#111214; border:1px solid #3a3d44;">
     <div class="modal-header" style="border-bottom:1px solid #333; padding:15px; display:flex; justify-content:space-between; align-items:center;">
@@ -339,7 +338,6 @@
     </div>
 
     <div id="listaCatalogoSistema" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px;">
-      <!-- Itens do BD aparecem aqui -->
       <div style="text-align:center; color:#888;">Carregando itens do banco de dados...</div>
     </div>
   </div>

@@ -27,6 +27,7 @@
   const tokenImgs = {};
   let   mapaImg   = null;
   let   socket    = null;
+  let   diceBox   = null;
 
   // ─── INIT ─────────────────────────────────────────────────────────────
   async function init() {
@@ -58,9 +59,27 @@
     carregarFichasSidebar();
     // Carrega galeria de fichas no modal de token
     carregarGaleriaFichas();
+
+    // Inicializa o Motor de Dados 3D
+    setTimeout(async () => {
+      if (window.DiceBox) {
+        try {
+          diceBox = new window.DiceBox("#dice-box-container", {
+            assetPath: "https://unpkg.com/@3d-dice/dice-box@1.1.3/dist/assets/",
+            theme: "default",
+            themeColor: "#c9a84c",
+            scale: 6
+          });
+          await diceBox.init();
+          diceBox.pronto = true;
+        } catch(e) {
+          console.error("Erro ao carregar dados 3D:", e);
+        }
+      }
+    }, 1000);
   }
 
-  // ─── FICHAS SIDEBAR ───────────────────────────────────────────────────
+  // ─── FICHAS SIDEBAR E PASTAS ──────────────────────────────────────────
   async function carregarFichasSidebar() {
     const lista = document.getElementById('listaFichasSidebar');
     try {
@@ -99,6 +118,11 @@
     const item = document.createElement('div');
     item.className = 'ficha-sidebar-item';
     item.dataset.fichaId = f.id;
+    item.draggable = true;
+    item.id = 'drag-ficha-' + f.id;
+    item.addEventListener('dragstart', (e) => {
+       e.dataTransfer.setData('text/plain', item.id);
+    });
 
     const av = document.createElement('div');
     av.className = 'ficha-sidebar-avatar';
@@ -120,21 +144,104 @@
     item.appendChild(info);
     item.appendChild(openBtn);
 
-    // Clique em qualquer parte abre a janela da ficha
     item.addEventListener('click', () => abrirJanelaFicha(f));
     return item;
   }
 
+  // Lógica das Pastas Visuais (+ BOTÃO DE ADIÇÃO INCLUÍDO)
+  window.criarPastaVisual = function(nome, id = Date.now()) {
+    const cont = document.getElementById('listaPastasSidebar');
+    if(!cont) return;
+    const w = document.createElement('div'); w.className = 'folder-wrap';
+    w.innerHTML = `
+      <div class="folder-header" onclick="this.nextElementSibling.classList.toggle('open')">
+        <span style="display:flex; align-items:center;"><i data-lucide="folder" style="width:12px;height:12px;margin-right:4px;"></i>${escH(nome)}</span>
+        <div style="display:flex; align-items:center;">
+          <button class="btn-add-ficha-pasta" onclick="event.stopPropagation(); abrirModalAddFichaPasta('${id}')" title="Adicionar Ficha à Pasta">
+              <i data-lucide="plus" style="width:14px;height:14px;"></i>
+          </button>
+          <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+        </div>
+      </div>
+      <div class="folder-content" id="pasta-${id}" ondragover="event.preventDefault()" ondrop="soltarNaPasta(event, '${id}')">
+        <div style="font-size:0.65rem; color:#666; text-align:center; padding: 4px;">Vazio</div>
+      </div>
+    `;
+    cont.appendChild(w);
+    if(window.lucide) lucide.createIcons();
+  }
+
+  window.soltarNaPasta = function(e, pastaId) {
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    if(!id) return;
+    const el = document.getElementById(id);
+    if(el && el.classList.contains('ficha-sidebar-item')) {
+       const pasta = document.getElementById('pasta-'+pastaId);
+       pasta.appendChild(el);
+       const emptyMsg = pasta.querySelector('div');
+       if(emptyMsg && emptyMsg.textContent.includes('Vazio')) emptyMsg.remove();
+    }
+  };
+
+  window.abrirModalAddFichaPasta = function(pastaId) {
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay open';
+    overlay.style.zIndex = '9999';
+
+    // Pega todas as fichas renderizadas do jogador atual (ou do Mestre)
+    const options = E.fichas.map(f => `<option value="${f.id}">${escH(f.nome_personagem)}</option>`).join('');
+
+    if(!options) {
+        alertEntrar('Nenhuma ficha disponível.', 'info');
+        overlay.remove();
+        return;
+    }
+
+    overlay.innerHTML = `
+      <div class="modal-box" style="max-width:300px;">
+        <div class="modal-header">
+          <span class="modal-title">Adicionar à Pasta</span>
+          <button class="modal-close" onclick="this.closest('.overlay').remove()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+        <div class="modal-field">
+          <label>Selecione a Ficha</label>
+          <select id="selFichaPasta" class="modal-inp" style="appearance: auto; cursor:pointer;">${options}</select>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn ghost" onclick="this.closest('.overlay').remove()">Cancelar</button>
+          <button class="modal-btn primary" id="btnConfirmAddFicha">Adicionar</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('#btnConfirmAddFicha').addEventListener('click', () => {
+       const fId = overlay.querySelector('#selFichaPasta').value;
+       if(fId) {
+          const el = document.getElementById('drag-ficha-' + fId);
+          if(el) {
+             const pasta = document.getElementById('pasta-' + pastaId);
+             pasta.appendChild(el);
+             // Limpa a mensagem de "Vazio"
+             const emptyMsg = pasta.querySelector('div');
+             if(emptyMsg && emptyMsg.textContent.includes('Vazio')) emptyMsg.remove();
+          } else {
+             alertEntrar('Ficha não encontrada na barra lateral.', 'erro');
+          }
+       }
+       overlay.remove();
+    });
+  };
+
   // ─── JANELAS ARRASTÁVEIS ──────────────────────────────────────────────
   async function abrirJanelaFicha(fichaResumida) {
-    // Se janela já aberta, traz para frente
     if (E.janelas.has(fichaResumida.id)) {
       const janela = E.janelas.get(fichaResumida.id);
       janela.style.zIndex = proxZ();
       return;
     }
 
-    // Busca dados completos
     const res = await Api.request(`/fichas/${fichaResumida.id}`);
     if (!res?.ok) return;
     const f    = res.data.ficha;
@@ -147,7 +254,6 @@
       onClose: () => E.janelas.delete(f.id),
     });
 
-    // Monta estado da ficha
     const estado = FichaCavaleiros.ESTADO_DEFAULT();
     estado.id          = f.id;
     estado.nome        = f.nome_personagem;
@@ -166,7 +272,6 @@
     estado.status        = atrs.status         || [];
     estado.notas         = atrs.notas          || '';
 
-    // Renderiza ficha (só Cavaleiros por agora)
     if (f.sistema === 'Cavaleiros de Armadura' && window.FichaCavaleiros) {
       FichaCavaleiros.render(janela.body, estado, async (e) => {
         const fd = new FormData();
@@ -203,14 +308,12 @@
 
     E.janelas.set(f.id, janela.el);
 
-    // Posição: centro da tela com offset para não sobrepor janelas abertas
     const offset = E.janelas.size * 24;
     const el = janela.el;
     el.style.left = (window.innerWidth  / 2 - 220 + offset) + 'px';
     el.style.top  = (window.innerHeight / 2 - 300 + offset) + 'px';
     el.style.zIndex = proxZ();
     
-    // Chama o gatilho universal para ligar drag&drop, barras e scripts da ficha!
     inicializarFichaAtiva();
   }
 
@@ -261,13 +364,8 @@
     const btnClose = el.querySelector('.vk-window-btn.close');
     const resize   = el.querySelector('.vk-window-resize');
 
-    // Fechar
-    btnClose.addEventListener('click', () => {
-      el.remove();
-      onClose?.();
-    });
+    btnClose.addEventListener('click', () => { el.remove(); onClose?.(); });
 
-    // Maximizar / restaurar
     btnMax.addEventListener('click', () => {
       maximizada = !maximizada;
       if (maximizada) {
@@ -284,16 +382,10 @@
       }
     });
 
-    // Duplo clique no titlebar maximiza
     titlebar.addEventListener('dblclick', () => btnMax.click());
-
-    // Drag da janela
     makeDraggable(el, titlebar);
-
-    // Resize
     makeResizable(el, resize);
 
-    // Foca ao clicar
     el.addEventListener('mousedown', () => { el.style.zIndex = proxZ(); });
 
     document.getElementById('windowsContainer').appendChild(el);
@@ -384,7 +476,6 @@
 
     socket.on('mesa:estado_inicial', ({ sessao, usuarios }) => {
       E.sessao = sessao; E.sessaoId = sessao.id;
-      // Define se o usuário é o Mestre desta mesa específica (ou Admin do site)
       if (sessao.mestre_id === E.userId || VK.isMestre) {
         E.isMestre = true;
         document.getElementById('grupoMestre').style.display = 'flex';
@@ -393,11 +484,8 @@
         document.getElementById('criarSessaoWrap').style.display = 'block';
         document.getElementById('chatPrivateRow').style.display = 'block';
         document.getElementById('tabConfigs').style.display = 'flex';
-        const areaLoja = document.getElementById('areaMestreLoja');
-        if (areaLoja) areaLoja.style.display = 'block';
       }
       
-      // Carrega a loja logo no início
       setTimeout(carregarVitrineLoja, 1000);
       fecharOverlay('overlayEntrar');
       document.getElementById('topbarNomeSessao').textContent = sessao.nome;
@@ -410,7 +498,6 @@
         carregarImgMapa(sessao.mapa_url);
       }
       history.replaceState(null, '', `/mesa?codigo=${sessao.codigo}`);
-      // Config tab
       document.getElementById('configSessaoInfo').textContent =
         `Código: ${sessao.codigo} · Mestre: ${sessao.mestre_nome || '—'}`;
     });
@@ -439,9 +526,21 @@
 
     socket.on('mesa:ping_visual', ({x,y}) => mostrarPing(x,y));
 
-    socket.on('ficha:alterada', ({ jogadorNome, personagem, resumo }) => {
-      if (!E.isMestre) return;
-      msgSistema(`${jogadorNome} atualizou "${personagem}" — Vida: ${resumo.vit[0]}/${resumo.vit[1]} · Ímpeto: ${resumo.imp[0]}/${resumo.imp[1]}`);
+    socket.on('ficha:alterada', ({ jogadorNome, personagem, resumo, fichaId }) => {
+      if (E.isMestre) {
+        msgSistema(`${jogadorNome} atualizou "${personagem}" — Vida: ${resumo.vit[0]}/${resumo.vit[1]}`);
+      }
+      
+      const tokensVinculados = E.tokens.filter(t => String(t.ficha_id) === String(fichaId));
+      tokensVinculados.forEach(t => {
+         if (E.isMestre) {
+             socket.emit('token:atualizar', {
+                 sessaoId: E.sessaoId, 
+                 tokenId: t.id, 
+                 dados: { hp_atual: resumo.vit[0], hp_max: resumo.vit[1] }
+             });
+         }
+      });
     });
 
     socket.on('chat:historico', ({ mensagens }) => {
@@ -460,7 +559,7 @@
     });
   }
 
-  // ─── CANVAS RENDER ────────────────────────────────────────────────────
+  // ─── CANVAS RENDER E NEBLINA OTIMIZADA ────────────────────────────────
   function loop() { renderFrame(); requestAnimationFrame(loop); }
 
   function renderFrame() {
@@ -485,32 +584,15 @@
 
     desenharGrid(cols,rows,cel);
     E.tokens.forEach(t=>desenharToken(t,cel));
+    
     if(E.fogCelulas) {
-      if(E.isMestre) atualizarIluminacao();
       desenharFog(cols,rows,cel);
-    }
-
-    // Halo de luz (se iluminação ativa)
-    const ex2 = t.dados_extras
-      ? (typeof t.dados_extras==='string' ? JSON.parse(t.dados_extras) : t.dados_extras)
-      : {};
-    if(ex2.luz_ativa && ex2.luz_raio > 0) {
-      const raioCanvas = ex2.luz_raio * cel;
-      const grad = ctx.createRadialGradient(cx, cy, r, cx, cy, raioCanvas);
-      grad.addColorStop(0,   'rgba(255,240,180,0.10)');
-      grad.addColorStop(0.6, 'rgba(255,220,100,0.04)');
-      grad.addColorStop(1,   'rgba(255,200, 50,0.00)');
-      ctx.beginPath();
-      ctx.arc(cx, cy, raioCanvas, 0, Math.PI*2);
-      ctx.fillStyle = grad;
-      ctx.fill();
     }
     
     if (E.tokenSel) {
       const t=E.tokens.find(t=>t.id===E.tokenSel.id);
       if(t) desenharSelecao(t,cel);
     }
-    // Linha de medição
     if (E.ferramenta==='measure'&&E.medindoInicio&&E.mouseMapaAtual) {
       const {x:x1,y:y1}=E.medindoInicio, {x:x2,y:y2}=E.mouseMapaAtual;
       ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
@@ -529,6 +611,24 @@
   function desenharToken(t,cel) {
     if(!t.visivel&&!E.isMestre) return;
     const tam=(t.tamanho||1)*cel, cx=t.pos_x*cel+tam/2, cy=t.pos_y*cel+tam/2, r=tam/2-3;
+
+    const ex2 = t.dados_extras
+      ? (typeof t.dados_extras==='string' ? JSON.parse(t.dados_extras) : t.dados_extras)
+      : {};
+    if(ex2.luz_ativa && ex2.luz_raio > 0) {
+      ctx.save();
+      const raioCanvas = ex2.luz_raio * cel;
+      const grad = ctx.createRadialGradient(cx, cy, r, cx, cy, raioCanvas);
+      grad.addColorStop(0,   'rgba(255,240,180,0.10)');
+      grad.addColorStop(0.6, 'rgba(255,220,100,0.04)');
+      grad.addColorStop(1,   'rgba(255,200, 50,0.00)');
+      ctx.beginPath();
+      ctx.arc(cx, cy, raioCanvas, 0, Math.PI*2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.restore();
+    }
+
     ctx.save();
     ctx.shadowColor='rgba(0,0,0,.65)'; ctx.shadowBlur=10;
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
@@ -542,13 +642,11 @@
     ctx.strokeStyle=!t.visivel?'rgba(255,255,255,.2)':(t.cor||'#c9a84c');
     ctx.lineWidth=2; ctx.stroke();
 
-    // HP bar
     const hp=Math.max(0,Math.min(1,(t.hp_atual||0)/(t.hp_max||1)));
     const bW=tam-8,bY=t.pos_y*cel+tam-8,bX=t.pos_x*cel+4;
     ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(bX,bY,bW,4);
     ctx.fillStyle=hp>.5?'#27ae60':hp>.2?'#f39c12':'#e74c3c'; ctx.fillRect(bX,bY,bW*hp,4);
 
-    // Nome
     const fs=Math.max(9,cel*.14);
     ctx.font=`600 ${fs}px Cinzel,serif`; ctx.textAlign='center';
     ctx.strokeStyle='rgba(0,0,0,.85)'; ctx.lineWidth=3;
@@ -567,13 +665,74 @@
     ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=2; ctx.setLineDash([6,3]); ctx.stroke(); ctx.setLineDash([]);
   }
 
+  // ==== LÓGICA DE VISÃO INDIVIDUAL IMPLEMENTADA AQUI ====
   function desenharFog(cols,rows,cel) {
-    const fog=E.fogCelulas;
-    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
-      if(!fog[r]||fog[r][c]!==1) continue;
-      ctx.fillStyle=E.isMestre?'rgba(0,0,0,.4)':'#000';
-      ctx.fillRect(c*cel,r*cel,cel,cel);
+    if(!E.fogCelulas) return;
+    
+    const mapW = cols * cel;
+    const mapH = rows * cel;
+    
+    if (!window.fogCanvasCache) {
+        window.fogCanvasCache = document.createElement('canvas');
     }
+    const fogCanvas = window.fogCanvasCache;
+    if (fogCanvas.width !== mapW || fogCanvas.height !== mapH) {
+        fogCanvas.width = mapW;
+        fogCanvas.height = mapH;
+    }
+    const fctx = fogCanvas.getContext('2d');
+    fctx.clearRect(0, 0, mapW, mapH);
+    
+    // 1. Pinta a neblina global
+    fctx.globalCompositeOperation = 'source-over';
+    fctx.fillStyle = E.isMestre ? 'rgba(0,0,0,0.5)' : '#000000';
+    fctx.fillRect(0, 0, mapW, mapH);
+    
+    // 2. Recorta onde o mestre apagou a neblina manualmente
+    fctx.globalCompositeOperation = 'destination-out';
+    for(let r=0;r<rows;r++) {
+      for(let c=0;c<cols;c++){
+        if(E.fogCelulas[r] && E.fogCelulas[r][c] === 0) {
+          fctx.fillStyle = 'rgba(0,0,0,1)';
+          fctx.fillRect(c*cel, r*cel, cel, cel);
+        }
+      }
+    }
+    
+    // 3. RECORTA A ILUMINAÇÃO DOS TOKENS VÁLIDOS (VISÃO INDIVIDUAL)
+    const luzes = E.tokens.filter(t => {
+      const ex = t.dados_extras ? (typeof t.dados_extras==='string' ? JSON.parse(t.dados_extras) : t.dados_extras) : {};
+      const temLuz = ex.luz_ativa && ex.luz_raio > 0 && t.visivel !== 0;
+      
+      if (!temLuz) return false;
+      if (E.isMestre) return true; // Mestre vê a luz de todos
+      if (!t.ficha_id) return true; // Elementos do cenário/tochas (sem dono) iluminam para todos
+      
+      // O jogador limpa o mapa APENAS ao redor de suas próprias fichas
+      return E.fichas.some(f => String(f.id) === String(t.ficha_id));
+    });
+
+    luzes.forEach(t => {
+      const ex = typeof t.dados_extras==='string' ? JSON.parse(t.dados_extras) : t.dados_extras;
+      const tam = t.tamanho || 1;
+      const raio = parseInt(ex.luz_raio) * cel;
+      const cx = t.pos_x * cel + (tam * cel) / 2;
+      const cy = t.pos_y * cel + (tam * cel) / 2;
+
+      const grad = fctx.createRadialGradient(cx, cy, 0, cx, cy, raio);
+      grad.addColorStop(0, 'rgba(0,0,0,1)'); // Centro sem neblina
+      grad.addColorStop(0.7, 'rgba(0,0,0,0.8)'); // Borda suavizada
+      grad.addColorStop(1, 'rgba(0,0,0,0)'); // Escuridão final
+
+      fctx.fillStyle = grad;
+      fctx.beginPath();
+      fctx.arc(cx, cy, raio, 0, Math.PI * 2);
+      fctx.fill();
+    });
+
+    // Pinta o resultado final por cima do mapa principal
+    fctx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(fogCanvas, 0, 0);
   }
 
   function preloadTokenImg(t){
@@ -614,7 +773,14 @@
     // Sidebar
     document.querySelectorAll('.sidebar-tab').forEach(t=>t.addEventListener('click',()=>trocarAba(t.dataset.stab)));
     document.getElementById('btnFichas').addEventListener('click',()=>toggleSidebar('fichas'));
+    document.getElementById('btnPastas')?.addEventListener('click',()=>toggleSidebar('pastas'));
     document.getElementById('btnChat').addEventListener('click',()=>toggleSidebar('chat'));
+    
+    // Botão nova pasta
+    document.getElementById('btnCriarPasta')?.addEventListener('click', () => {
+      const nome = prompt("Nome da pasta:");
+      if(nome) criarPastaVisual(nome);
+    });
 
     // Chat
     document.getElementById('btnChatSend').addEventListener('click',enviarChat);
@@ -654,7 +820,7 @@
     document.getElementById('btnMapas')?.addEventListener('click',abrirModalMapas);
     document.getElementById('btnEnviarMapa')?.addEventListener('click',enviarMapa);
 
-    // Fechar overlays pelo botão .modal-close
+    // Fechar overlays
     document.querySelectorAll('.modal-close[data-close]').forEach(b=>b.addEventListener('click',()=>fecharOverlay(b.dataset.close)));
 
     // Entrar / criar
@@ -718,7 +884,6 @@
       return;
     }
     if(E.painting&&E.isMestre) aplicarFog(mx,my,E.ferramenta==='fog-erase'?0:1);
-    // Medição
     if(E.ferramenta==='measure'&&E.medindoInicio){
       const cel=E.mapa?.tamanho_cel||60;
       const dx=mx-E.medindoInicio.x,dy=my-E.medindoInicio.y;
@@ -743,7 +908,6 @@
     if(E.painting&&E.isMestre){
       E.painting=false;
       _fogPintura.clear();
-      // Salva estado completo no banco ao terminar a pincelada
       socket?.emit('fog:atualizar',{sessaoId:E.sessaoId,mapaId:E.mapaId,celulas:E.fogCelulas});
     }
     if(E.ferramenta==='measure'){E.medindoInicio=null;document.getElementById('measureLabel').style.display='none';}
@@ -857,7 +1021,6 @@
   }
 
   // ─── FOG ──────────────────────────────────────────────────────────────
-// Guarda células alteradas nesta pincelada
   let _fogPintura = new Set();
 
   function aplicarFog(mx,my,val){
@@ -865,46 +1028,10 @@
     const cel=E.mapa.tamanho_cel||60;
     const col=Math.floor(mx/cel), row=Math.floor(my/cel);
     if(row<0||col<0||row>=E.fogCelulas.length||col>=E.fogCelulas[0].length) return;
-    if(E.fogCelulas[row][col]===val) return; // sem mudança, não emite
+    if(E.fogCelulas[row][col]===val) return; 
     E.fogCelulas[row][col]=val;
     _fogPintura.add(`${row},${col}`);
-    // Emite só a célula alterada (sem rate limit individual)
     socket?.emit('fog:celula',{sessaoId:E.sessaoId,mapaId:E.mapaId,row,col,valor:val});
-  }
-
-  // ─── ILUMINAÇÃO DE TOKENS ────────────────────────────────────────────
-  // Aplica/remove fog em raio ao redor de tokens com iluminação ativa
-  function atualizarIluminacao() {
-    if(!E.fogCelulas||!E.mapa) return;
-
-    const tokensComLuz = E.tokens.filter(t => {
-      const ex = t.dados_extras ? (typeof t.dados_extras==='string' ? JSON.parse(t.dados_extras) : t.dados_extras) : {};
-      return ex.luz_ativa && ex.luz_raio > 0 && t.visivel;
-    });
-
-    if(!tokensComLuz.length) return;
-
-    const cel  = E.mapa.tamanho_cel||60;
-    const cols = E.mapa.largura_grid||20;
-    const rows = E.mapa.altura_grid||20;
-
-    tokensComLuz.forEach(t => {
-      const ex    = typeof t.dados_extras==='string' ? JSON.parse(t.dados_extras) : t.dados_extras;
-      const raio  = parseInt(ex.luz_raio)||0;
-      const tam   = t.tamanho||1;
-      const cx    = t.pos_x + Math.floor(tam/2); // centro em células
-      const cy    = t.pos_y + Math.floor(tam/2);
-
-      for(let r=0;r<rows;r++) {
-        for(let c=0;c<cols;c++) {
-          if(!E.fogCelulas[r]) continue;
-          const dist = Math.sqrt((c-cx)**2 + (r-cy)**2);
-          if(dist<=raio) {
-            E.fogCelulas[r][c] = 0; // revela
-          }
-        }
-      }
-    });
   }
 
   // ─── PING ─────────────────────────────────────────────────────────────
@@ -926,7 +1053,6 @@
     const hdr=document.createElement('div'); hdr.className='ctx-header';
     hdr.innerHTML=`<span class="ctx-nome">${escH(token.nome)}</span>`;
     menu.appendChild(hdr);
-    // HP row
     const hpRow=document.createElement('div'); hpRow.className='ctx-hp-row';
     hpRow.innerHTML=`
       <button class="ctx-hp-btn" id="ctxHpMinus">-</button>
@@ -955,7 +1081,6 @@
       });
     }
 
-    // HP controls
     menu.querySelector('#ctxHpMinus').addEventListener('click',()=>{
       const n=Math.max(0,token.hp_atual-1);
       socket?.emit('token:atualizar',{sessaoId:E.sessaoId,tokenId:token.id,dados:{hp_atual:n}});
@@ -984,7 +1109,7 @@
     document.getElementById('tokenTam').value     =token?.tamanho||1;
     document.getElementById('tokenCor').value     =token?.cor||'#c9a84c';
     document.getElementById('tokenUrlInput').value='';
-    // Iluminação
+    
     const ex = token?.dados_extras
       ? (typeof token.dados_extras==='string' ? JSON.parse(token.dados_extras) : token.dados_extras)
       : {};
@@ -1075,14 +1200,35 @@
     if(res?.ok){document.getElementById('mapaNovoNome').value='';document.getElementById('mapaNovoArq').value='';abrirModalMapas();}
   }
 
-  // ─── CHAT ─────────────────────────────────────────────────────────────
+  // ─── CHAT COM DADOS 3D ────────────────────────────────────────────────
   function enviarChat(){
-    const inp=document.getElementById('chatInput'),txt=inp.value.trim();
+    const inp=document.getElementById('chatInput');
+    let txt=inp.value.trim();
     const priv=document.getElementById('checkPrivado')?.checked||false;
-    if(!txt) return; inp.value='';
-    const isDado=/^\d*d\d+([+\-*/]\d+)?$/.test(txt.replace(/\s/g,'').toLowerCase());
-    if(isDado) socket?.emit('chat:rolar',{sessaoId:E.sessaoId,expressao:txt,privado:priv});
-    else       socket?.emit('chat:mensagem',{sessaoId:E.sessaoId,texto:txt});
+    if(!txt) return; 
+    inp.value='';
+    
+    // Agora aceita tanto "1d20" direto quanto "/r 1d20" ou "/roll 1d20"
+    const matchDado = txt.match(/^(?:\/r\s+|\/roll\s+)?(\d*d\d+(?:[+\-*/]\d+)?)$/i);
+    
+    if(matchDado) {
+      const expressao = matchDado[1]; // Isola a fórmula matemática
+      
+      // Se o dado 3D carregou com sucesso, rola ele
+      if (diceBox && diceBox.pronto) {
+        diceBox.roll(expressao).then(results => {
+          socket?.emit('chat:rolar',{sessaoId:E.sessaoId,expressao:expressao,privado:priv});
+        }).catch(err => {
+          // Se a física falhar, rola silenciosamente pro chat não quebrar
+          socket?.emit('chat:rolar',{sessaoId:E.sessaoId,expressao:expressao,privado:priv});
+        });
+      } else {
+        // Fallback imediato se o 3D ainda não tiver carregado
+        socket?.emit('chat:rolar',{sessaoId:E.sessaoId,expressao:expressao,privado:priv});
+      }
+    } else {
+      socket?.emit('chat:mensagem',{sessaoId:E.sessaoId,texto:txt});
+    }
   }
 
   function renderMsg(msg){
@@ -1127,8 +1273,8 @@
     const el=document.getElementById('stab'+aba.charAt(0).toUpperCase()+aba.slice(1));
     if(el) el.style.display='flex';
     if(aba==='chat'){E.msgNaoLidas=0;document.getElementById('chatBadge').style.display='none';document.getElementById('chatBadgeTab').style.display='none';document.getElementById('chatMsgs').scrollTop=9999;}
-    // Botões topbar
     document.getElementById('btnFichas').classList.toggle('active',E.sidebarAberta&&aba==='fichas');
+    document.getElementById('btnPastas')?.classList.toggle('active',E.sidebarAberta&&aba==='pastas');
     document.getElementById('btnChat').classList.toggle('active',E.sidebarAberta&&aba==='chat');
   }
 
@@ -1171,7 +1317,6 @@
     entrarMesa();
   }
 
-
   // ─── VITRINE DA LOJA (TABLETOP) ───────────────────────────────────────
   window.lojaAtualMesa = null;
   window.catalogoDocumentos = [];
@@ -1183,14 +1328,12 @@
     vitrine.innerHTML = '<div style="text-align:center;color:#888;padding:1rem;">Carregando mercado...</div>';
     
     try {
-      // 1. Busca as lojas desta sessão
       const res = await Api.request(`/sessoes/${E.sessaoId}/lojas`);
       if (!res?.ok || !res.data.lojas || res.data.lojas.length === 0) {
-        // Se o mestre não criou loja, criamos uma loja "Geral" automaticamente para a vitrine
         if (E.isMestre) {
            const resCriar = await Api.request(`/sessoes/${E.sessaoId}/lojas`, { method: 'POST', body: { nome: 'Mercado Geral' } });
            if (resCriar?.ok) {
-             carregarVitrineLoja(); // Recarrega
+             carregarVitrineLoja(); 
            } else {
              vitrine.innerHTML = '<div style="text-align:center;color:#888;padding:1rem;">O Mestre ainda não abriu o mercado.</div>';
            }
@@ -1200,7 +1343,6 @@
         return;
       }
       
-      // Usa a primeira loja criada (ou deixa o mestre escolher no futuro)
       window.lojaAtualMesa = res.data.lojas[0];
       const itens = window.lojaAtualMesa.itens || [];
       
@@ -1210,12 +1352,6 @@
       }
       
       vitrine.innerHTML = itens.map(item => {
-        // Tenta achar a imagem nos campos se existir
-        let imgHtml = '';
-        if (item.descricao && item.descricao.includes('http')) {
-             // Mockup: Se houver URL na desc (nós arranjamos melhor no catálogo)
-        }
-        
         return `
           <div style="background:#111214; border:1px solid #333; border-radius:6px; padding:10px; display:flex; gap:10px; align-items:center;">
             <div style="width:40px; height:40px; background:#222; border-radius:4px; display:flex; align-items:center; justify-content:center; border:1px solid var(--bronze-dim);">
@@ -1246,10 +1382,9 @@
     container.innerHTML = '<div style="text-align:center;color:#888;">Buscando itens do sistema...</div>';
     
     try {
-      const res = await Api.request('/documentos'); // Pega todos do banco
+      const res = await Api.request('/documentos'); 
       if (!res?.ok) throw new Error();
       
-      // Filtra documentos do sistema da sessão que sejam itens estruturados
       window.catalogoDocumentos = res.data.documentos.filter(d => 
         (d.sistema === E.sessao.sistema) &&
         ['Itens','Armas Brancas','Armas de Fogo','Armaduras','Consumíveis'].includes(d.categoria)
@@ -1279,17 +1414,26 @@
     }
     
     container.innerHTML = filtrados.map(d => {
-      // Lê os campos estruturados, o preço costuma estar lá
       let precoSugerido = 0;
       let efeito = d.categoria;
+      let descNarrativa = '';
+      
       try {
         if (d.conteudo && d.conteudo.startsWith('{')) {
            const obj = JSON.parse(d.conteudo);
            const pStr = String(obj['Preço'] || obj['Custo'] || '0').replace(/[^0-9]/g,'');
            precoSugerido = parseInt(pStr) || 0;
            efeito = obj['Efeito / Buff'] || obj['Dano'] || d.categoria;
+           descNarrativa = obj['Descrição'] || obj['Descricao'] || obj['description'] || '';
+        } else {
+           descNarrativa = d.conteudo || '';
         }
       } catch (e) {}
+
+      const payloadDescricao = JSON.stringify({
+          narrativa: descNarrativa,
+          formula: efeito
+      });
 
       return `
         <div style="background:#0a0a0a; border:1px solid #333; padding:10px; border-radius:4px; display:flex; align-items:center; gap:10px;">
@@ -1299,7 +1443,7 @@
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
             <input type="number" id="preco_add_${d.id}" value="${precoSugerido}" style="width:60px; padding:4px; background:#111214; border:1px solid #333; color:var(--gold); font-family:'Cinzel', serif;">
-            <button class="btn-sm btn-primary" onclick="adicionarItemAoMercado(${d.id}, '${escH(d.titulo.replace(/'/g,"\'"))}', '${escH(d.categoria)}', '${escH(efeito.replace(/'/g,"\'"))}')">Por à Venda</button>
+            <button class="btn-sm btn-primary" onclick="adicionarItemAoMercado(${d.id}, '${escH(d.titulo.replace(/'/g,"\\'"))}', '${escH(d.categoria)}', '${escH(payloadDescricao.replace(/'/g,"\\'"))}')">Por à Venda</button>
           </div>
         </div>
       `;
@@ -1323,9 +1467,7 @@
       
       if (res?.ok) {
         fecharOverlay('overlayCatalogoLoja');
-        carregarVitrineLoja(); // Atualiza a vitrine da mesa
-        // Se a lógica do socket estivesse pronta para isso, enviariamos um broadcast aqui
-        // socket.emit('mesa:loja_atualizada');
+        carregarVitrineLoja(); 
       } else {
         alertEntrar('Erro ao adicionar.', 'erro');
       }
@@ -1334,7 +1476,6 @@
     }
   };
 
-  // Temporário para remover até ter rota no backend
   window.removerItemVitrine = (itemId) => {
      alertEntrar('Remoção direta na loja virá na próxima atualização.', 'info');
   };
@@ -1354,8 +1495,6 @@
   function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
   // ─── START ────────────────────────────────────────────────────────────
-
-  // ─── INICIALIZADOR UNIVERSAL DE FICHAS ────────────────────────────────
   function inicializarFichaAtiva() {
     setTimeout(() => {
         if (typeof FichaDecadencia !== 'undefined' && FichaDecadencia.init) {

@@ -153,7 +153,6 @@ function iniciarSocket(io) {
     // ── TOKENS ────────────────────────────────────────────────────────
     socket.on('token:mover', async ({ tokenId, pos_x, pos_y, sessaoId }) => {
       try {
-        // Qualquer um pode mover (validação de posse pode ser adicionada depois)
         await pool.execute(
           'UPDATE tokens_mesa SET pos_x=?, pos_y=? WHERE id=?',
           [pos_x, pos_y, tokenId]
@@ -167,16 +166,20 @@ function iniciarSocket(io) {
     socket.on('token:criar', async ({ sessaoId, mapaId, dados }) => {
       if (!isMestre) return;
       try {
+        // Formata os dados_extras (luz) em string JSON para o banco
+        const extrasStr = dados.dados_extras ? JSON.stringify(dados.dados_extras) : null;
+
         const [result] = await pool.execute(
           `INSERT INTO tokens_mesa
-             (sessao_id, mapa_id, nome, imagem_url, pos_x, pos_y, tamanho, cor, hp_atual, hp_max, ficha_id, jogador_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             (sessao_id, mapa_id, nome, imagem_url, pos_x, pos_y, tamanho, cor, hp_atual, hp_max, ficha_id, jogador_id, dados_extras)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [sessaoId, mapaId,
            dados.nome, dados.imagem_url||null,
            dados.pos_x||0, dados.pos_y||0,
            dados.tamanho||1, dados.cor||'#c9a84c',
            dados.hp_atual||10, dados.hp_max||10,
-           dados.ficha_id||null, dados.jogador_id||null]
+           dados.ficha_id||null, dados.jogador_id||null,
+           extrasStr]
         );
         const [token] = await pool.execute('SELECT * FROM tokens_mesa WHERE id=?', [result.insertId]);
         io.to(String(sessaoId)).emit('token:criado', { token: token[0] });
@@ -188,14 +191,26 @@ function iniciarSocket(io) {
     socket.on('token:atualizar', async ({ sessaoId, tokenId, dados }) => {
       if (!isMestre) return;
       try {
-        const campos = Object.entries(dados)
-          .filter(([k]) => ['nome','cor','hp_atual','hp_max','visivel','tamanho'].includes(k))
-          .map(([k]) => `${k}=?`).join(',');
-        const vals = Object.entries(dados)
-          .filter(([k]) => ['nome','cor','hp_atual','hp_max','visivel','tamanho'].includes(k))
-          .map(([,v]) => v);
+        const camposArray = [];
+        const valsArray = [];
+        
+        for (const [k, v] of Object.entries(dados)) {
+          // Permite campos base do token
+          if (['nome','cor','hp_atual','hp_max','visivel','tamanho'].includes(k)) {
+            camposArray.push(`${k}=?`);
+            valsArray.push(v);
+          }
+          // Permite os dados de iluminação
+          if (k === 'dados_extras') {
+            camposArray.push(`${k}=?`);
+            valsArray.push(typeof v === 'string' ? v : JSON.stringify(v));
+          }
+        }
+        
+        const campos = camposArray.join(',');
         if (!campos) return;
-        await pool.execute(`UPDATE tokens_mesa SET ${campos} WHERE id=?`, [...vals, tokenId]);
+        
+        await pool.execute(`UPDATE tokens_mesa SET ${campos} WHERE id=?`, [...valsArray, tokenId]);
         io.to(String(sessaoId)).emit('token:atualizado', { tokenId, dados });
       } catch (err) {
         console.error('[token:atualizar]', err);
@@ -212,12 +227,43 @@ function iniciarSocket(io) {
       }
     });
 
-    // ── ALTERAÇÃO DE FICHA (jogador salva → notifica mestre) ──────────
+    // ── ALTERAÇÃO DE FICHA E SINCRONIZAÇÃO DE HP ──────────────────────
     socket.on('ficha:alterada', async ({ sessaoId, jogadorId, jogadorNome, fichaId, personagem, resumo }) => {
-      // Repassa para toda a sala (o mestre vê no chat de sistema)
+      
+      // Repassa para a sala
       socket.to(String(sessaoId)).emit('ficha:alterada', {
         jogadorId, jogadorNome, fichaId, personagem, resumo,
       });
+
+      // SINCRONIZAÇÃO FORÇADA DE HP NO BACKEND
+      if (resumo && resumo.vit) {
+        try {
+          const hp_atual = resumo.vit[0];
+          const hp_max = resumo.vit[1];
+          
+          // 1. Salva na base de dados todos os tokens que tem essa ficha_id na sessão atual
+          await pool.execute(
+            'UPDATE tokens_mesa SET hp_atual = ?, hp_max = ? WHERE sessao_id = ? AND ficha_id = ?',
+            [hp_atual, hp_max, sessaoId, fichaId]
+          );
+          
+          // 2. Busca quais foram os tokens alterados para avisar a sala
+          const [tokensVinculados] = await pool.execute(
+            'SELECT id FROM tokens_mesa WHERE sessao_id = ? AND ficha_id = ?',
+            [sessaoId, fichaId]
+          );
+          
+          // 3. Emite a atualização visual dos tokens para todo o mundo
+          tokensVinculados.forEach(t => {
+             io.to(String(sessaoId)).emit('token:atualizado', {
+                tokenId: t.id,
+                dados: { hp_atual, hp_max }
+             });
+          });
+        } catch (e) {
+          console.error('[ficha:alterada] Erro ao forçar HP dos tokens:', e);
+        }
+      }
 
       // Registra no log de atividades (tabela que já existe)
       try {
@@ -238,6 +284,18 @@ function iniciarSocket(io) {
       }
     });
 
+    // ── PASTAS (Sincronização em tempo real) ──────────────────────────
+    socket.on('pasta:criar', async ({ sessaoId, nome, pastaId }) => {
+       // Apenas emite visualmente para os outros jogadores e mestres. 
+       // A lógica de salvamento definitivo deverá ser enviada via Rota da API (pastasController).
+       socket.to(String(sessaoId)).emit('pasta:criada', { pastaId, nome });
+    });
+
+    socket.on('pasta:mover_item', async ({ sessaoId, pastaId, fichaId }) => {
+       // Atualiza quem está movendo as fichas nas pastas pela sidebar
+       socket.to(String(sessaoId)).emit('pasta:item_movido', { pastaId, fichaId });
+    });
+
     // ── FOG OF WAR ────────────────────────────────────────────────────
     socket.on('fog:atualizar', async ({ sessaoId, mapaId, celulas }) => {
       if (!isMestre) return;
@@ -255,25 +313,11 @@ function iniciarSocket(io) {
         console.error('[fog:atualizar]', err);
       }
     });
-
-    // Mestre revela/cobre célula individual
+    
     socket.on('fog:celula', async ({ sessaoId, mapaId, row, col, valor }) => {
       if (!isMestre) return;
       try {
-        const [fogRows] = await pool.execute(
-          'SELECT celulas FROM fog_of_war WHERE sessao_id=? AND mapa_id=?',
-          [sessaoId, mapaId]
-        );
-        if (!fogRows.length) return;
-        const celulas = JSON.parse(fogRows[0].celulas);
-        if (celulas[row]) celulas[row][col] = valor; // 0=revelado, 1=coberto
-        const celStr = JSON.stringify(celulas);
-        await pool.execute(
-          'UPDATE fog_of_war SET celulas=? WHERE sessao_id=? AND mapa_id=?',
-          [celStr, sessaoId, mapaId]
-        );
         socket.to(String(sessaoId)).emit('fog:celula_atualizada', { row, col, valor });
-        socket.emit('fog:celula_atualizada', { row, col, valor });
       } catch (err) {
         console.error('[fog:celula]', err);
       }
@@ -322,7 +366,6 @@ function iniciarSocket(io) {
         };
 
         if (tipo === 'privado') {
-          // Só o mestre vê
           socket.emit('chat:nova_mensagem', { ...msg, privado: true });
         } else {
           io.to(String(sessaoId)).emit('chat:nova_mensagem', msg);
@@ -358,7 +401,6 @@ function rolarDados(expressao) {
     const match = expr.match(/^(\d*)d(\d+)([+\-*/]\d+)?$/);
 
     if (!match && /^\d+$/.test(expr)) {
-      // Número fixo
       return { expressao, dados: [], total: parseInt(expr), mod: 0, tipo: 'fixo' };
     }
 
@@ -393,7 +435,6 @@ function rolarDados(expressao) {
 
 async function emitirSistema(io, sessaoId, texto) {
   try {
-    // Não salva mensagens de sistema no banco para não poluir o chat
     io.to(sessaoId).emit('chat:nova_mensagem', {
       tipo: 'sistema', conteudo: texto,
       created_at: new Date().toISOString(),

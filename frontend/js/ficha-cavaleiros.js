@@ -727,10 +727,18 @@
     overlay.querySelector('#mi-cancel').addEventListener('click', fechar);
     overlay.addEventListener('click', ev => { if (ev.target === overlay) fechar(); });
 
+    // Liga os botões de macro se existirem
+    const btnRolar = overlay.querySelector('#mi-btn-rolar');
+    if (btnRolar) btnRolar.addEventListener('click', () => executarMacro(e, item, btnRolar, 'rolagem', () => autoSave(e, save)));
+    
+    const btnDano = overlay.querySelector('#mi-btn-dano');
+    if (btnDano) btnDano.addEventListener('click', () => executarMacro(e, item, btnDano, 'dano', () => autoSave(e, save)));
+
     overlay.querySelector('#mi-del').addEventListener('click', () => {
       delete e.inventario.slots[idx];
       renderFn(); autoSave(e, save); fechar();
     });
+    
     overlay.querySelector('#mi-save').addEventListener('click', () => {
       const nome = overlay.querySelector('#mi-nome').value.trim();
       if (nome) {
@@ -738,6 +746,7 @@
           nome, desc: overlay.querySelector('#mi-desc').value.trim(),
           peso: parseInt(overlay.querySelector('#mi-peso').value) || 1,
           estagio: overlay.querySelector('#mi-estagio').value,
+          macro: item.macro // PRESERVA A MACRO AO SALVAR
         };
       } else delete e.inventario.slots[idx];
       renderFn(); autoSave(e, save); fechar();
@@ -851,13 +860,28 @@
         return;
       }
 
-      // Desconta moedas e adiciona item
+      // NOVIDADE: Faz o parse do JSON enviado pelo Mercado para extrair a História e a Macro
+      let descText = item.descricao || item.categoria;
+      let macroObj = null;
+
+      try {
+          const parsed = JSON.parse(item.descricao);
+          if (parsed.narrativa !== undefined) {
+              descText = parsed.narrativa;
+              if (parsed.formula) {
+                  macroObj = { rolagem: parsed.formula };
+              }
+          }
+      } catch (e) {}
+
+      // Desconta moedas e adiciona item com os atributos separados
       e.inventario.pecas -= item.preco;
       e.inventario.slots[slotLivre] = {
         nome: item.nome,
-        desc: item.descricao || item.categoria,
+        desc: descText,
         peso: 1,
-        estagio: 'Afiada'
+        estagio: 'Afiada',
+        macro: macroObj
       };
 
       const inpMoney = document.getElementById('inv-moedas-inp');
