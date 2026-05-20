@@ -193,25 +193,71 @@
 
         adicionarItem(item) {
             const container = document.getElementById('inventario-dropzone');
-            
-            // Remove a mensagem de "vazio"
             const placeholder = container.querySelector('.empty-inv-msg');
             if (placeholder) placeholder.remove();
 
+            let descText = item.descricao || item.categoria || '';
+            let macroObj = null;
+
+            // Extrai a formatação JSON do Mercado
+            try {
+                const parsed = JSON.parse(item.descricao);
+                if (parsed.narrativa !== undefined) {
+                    descText = parsed.narrativa;
+                    if (parsed.macro && (parsed.macro.rolagem || parsed.macro.dano)) macroObj = parsed.macro;
+                }
+            } catch (e) {}
+
             const div = document.createElement('div');
             div.className = 'item-card-outbreak';
+
+            let macroHtml = '';
+            if (macroObj) {
+                macroHtml = `
+                  <div style="display:flex; gap:8px; margin-top:10px; border-top:1px solid #333; padding-top:8px;">
+                      ${macroObj.rolagem ? `<button class="btn-rolagem cbtn" style="background:#27ae60; color:#fff; flex:1; font-size:0.75rem; border:none; border-radius:3px; padding:6px; cursor:pointer;"><i class="fa-solid fa-dice"></i> ${macroObj.rolagem}</button>` : ''}
+                      ${macroObj.dano ? `<button class="btn-dano cbtn" style="background:#c0392b; color:#fff; flex:1; font-size:0.75rem; border:none; border-radius:3px; padding:6px; cursor:pointer;"><i class="fa-solid fa-burst"></i> ${macroObj.dano}</button>` : ''}
+                  </div>
+                `;
+            }
+
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <strong style="color: #c9a84c;">${item.titulo}</strong>
-                    <span style="color:#888; font-size:0.8rem;">${item.peso} kg</span>
+                    <strong style="color: #c9a84c;">${item.nome || item.titulo || 'Item'}</strong>
+                    <span style="color:#888; font-size:0.8rem; background:rgba(0,0,0,0.3); padding:2px 4px; border-radius:2px;">${item.peso || 1} kg</span>
                 </div>
-                <p style="margin:0; font-size:0.85rem; color:#ccc;">${item.descricao}</p>
-                <button class="btn-del" style="margin-top: 8px; font-size: 0.8rem; background: transparent; color: #888; border: none; cursor: pointer;">
-                    <i class="fa-solid fa-trash"></i> Descartar
+                <p style="margin:0; font-size:0.8rem; color:#ccc; line-height:1.4;">${descText}</p>
+                ${macroHtml}
+                <button class="btn-del" style="margin-top: 8px; font-size: 0.8rem; background: transparent; color: #888; border: none; cursor: pointer; float:right;">
+                    <i class="fa-solid fa-trash"></i>
                 </button>
+                <div style="clear:both;"></div>
             `;
             
-            // Botão de descartar item
+            // Eventos dos botões de Rolagem conectados com a física 3D do Mesa.js!
+            const btnRolagem = div.querySelector('.btn-rolagem');
+            if(btnRolagem) {
+                btnRolagem.addEventListener('click', () => {
+                    const event = new KeyboardEvent('keydown', { key: 'Enter' });
+                    const chatInput = document.getElementById('chatInput');
+                    if (chatInput) {
+                        chatInput.value = `/r ${macroObj.rolagem}`;
+                        document.getElementById('btnChatSend').click();
+                    }
+                });
+            }
+            
+            const btnDano = div.querySelector('.btn-dano');
+            if(btnDano) {
+                btnDano.addEventListener('click', () => {
+                    const chatInput = document.getElementById('chatInput');
+                    if (chatInput) {
+                        chatInput.value = `/r ${macroObj.dano}`;
+                        document.getElementById('btnChatSend').click();
+                    }
+                });
+            }
+
             div.querySelector('.btn-del').onclick = () => {
                 div.remove();
                 if(container.querySelectorAll('.item-card-outbreak').length === 0) {

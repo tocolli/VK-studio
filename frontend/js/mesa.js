@@ -60,10 +60,15 @@
     // Carrega galeria de fichas no modal de token
     carregarGaleriaFichas();
 
-    // Inicializa o Motor de Dados 3D (Com Offscreen false para garantir visualização sobreposta)
-    setTimeout(async () => {
+   setTimeout(async () => {
       if (window.DiceBox) {
         try {
+          const container = document.getElementById("dice-box-container");
+          
+          const vp = document.getElementById('mesaViewport');
+          container.style.width = vp.clientWidth + "px";
+          container.style.height = vp.clientHeight + "px";
+
           diceBox = new window.DiceBox("#dice-box-container", {
             assetPath: "https://unpkg.com/@3d-dice/dice-box@1.1.3/dist/assets/",
             theme: "default",
@@ -73,7 +78,11 @@
           });
           await diceBox.init();
           diceBox.pronto = true;
-          console.log("DiceBox carregado.");
+
+          window.addEventListener('resize', () => {
+             container.style.width = vp.clientWidth + "px";
+             container.style.height = vp.clientHeight + "px";
+          });
         } catch(e) {
           console.error("Erro ao carregar dados 3D:", e);
         }
@@ -1208,12 +1217,15 @@
       if (diceBox && diceBox.pronto) {
         diceBox.roll(expressao).then(results => {
           socket?.emit('chat:rolar',{sessaoId:E.sessaoId,expressao:expressao,privado:priv});
-          setTimeout(() => diceBox.clear(), 4000); // Limpa a tela após 4 segundos
+          
+          // Limpa os dados da tela após 4 segundos com segurança
+          setTimeout(() => {
+              if (diceBox) diceBox.clear();
+          }, 4000); 
+
         }).catch(err => {
           socket?.emit('chat:rolar',{sessaoId:E.sessaoId,expressao:expressao,privado:priv});
         });
-      } else {
-        socket?.emit('chat:rolar',{sessaoId:E.sessaoId,expressao:expressao,privado:priv});
       }
     } else {
       socket?.emit('chat:mensagem',{sessaoId:E.sessaoId,texto:txt});
@@ -1390,6 +1402,8 @@
     renderCatalogoBusca(term);
   };
 
+  // Substitua as funções de Catálogo no final do seu mesa.js por estas:
+
   function renderCatalogoBusca(term) {
     const container = document.getElementById('listaCatalogoSistema');
     let filtrados = window.catalogoDocumentos;
@@ -1403,41 +1417,69 @@
     }
     
     container.innerHTML = filtrados.map(d => {
-      let precoSugerido = 0;
-      let efeito = d.categoria;
-      let descNarrativa = '';
-      
-      try {
-        if (d.conteudo && d.conteudo.startsWith('{')) {
-           const obj = JSON.parse(d.conteudo);
-           const pStr = String(obj['Preço'] || obj['Custo'] || '0').replace(/[^0-9]/g,'');
-           precoSugerido = parseInt(pStr) || 0;
-           efeito = obj['Efeito / Buff'] || obj['Dano'] || d.categoria;
-           descNarrativa = obj['Descrição'] || obj['Descricao'] || obj['description'] || '';
-        } else {
-           descNarrativa = d.conteudo || '';
-        }
-      } catch (e) {}
-
-      const payloadDescricao = JSON.stringify({
-          narrativa: descNarrativa,
-          formula: efeito
-      });
+      let descNarrativa = d.conteudo || d.categoria || '';
 
       return `
-        <div style="background:#0a0a0a; border:1px solid #333; padding:10px; border-radius:4px; display:flex; align-items:center; gap:10px;">
-          <div style="flex:1;">
-            <div style="font-weight:bold; color:#fff;">${escH(d.titulo)} <span style="font-size:0.7rem; color:var(--gold-dim); background:rgba(201,168,76,0.1); padding:2px 4px; border-radius:2px; margin-left:5px;">${escH(d.categoria)}</span></div>
-            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">${escH(efeito)}</div>
+        <div style="background:#0a0a0a; border:1px solid #333; padding:10px; border-radius:4px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+              <div style="font-weight:bold; color:#fff;">${escH(d.titulo)} <span style="font-size:0.7rem; color:var(--gold-dim); background:rgba(201,168,76,0.1); padding:2px 4px; border-radius:2px; margin-left:5px;">${escH(d.categoria)}</span></div>
           </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <input type="number" id="preco_add_${d.id}" value="${precoSugerido}" style="width:60px; padding:4px; background:#111214; border:1px solid #333; color:var(--gold); font-family:'Cinzel', serif;">
-            <button class="btn-sm btn-primary" onclick="adicionarItemAoMercado(${d.id}, '${escH(d.titulo.replace(/'/g,"\\'"))}', '${escH(d.categoria)}', '${escH(payloadDescricao.replace(/'/g,"\\'"))}')">Por à Venda</button>
+          
+          <div style="font-size:0.8rem; color:#888; margin-bottom:10px; max-height:40px; overflow:hidden;">${escH(descNarrativa)}</div>
+          
+          <div style="background:#111214; padding:8px; border-radius:4px; border:1px solid #222; display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+              <div style="flex:1; min-width:120px;">
+                  <label style="font-size:0.65rem; color:var(--text-muted); display:block; margin-bottom:3px;">Automação: Ação/Ataque</label>
+                  <input type="text" id="macro_acao_${d.id}" placeholder="Ex: 1d20+2" class="modal-inp" style="padding:4px; font-size:0.8rem;">
+              </div>
+              <div style="flex:1; min-width:120px;">
+                  <label style="font-size:0.65rem; color:var(--text-muted); display:block; margin-bottom:3px;">Automação: Dano/Cura</label>
+                  <input type="text" id="macro_dano_${d.id}" placeholder="Ex: 1d8" class="modal-inp" style="padding:4px; font-size:0.8rem;">
+              </div>
+              <div style="width:70px;">
+                  <label style="font-size:0.65rem; color:var(--gold); display:block; margin-bottom:3px;">Preço 💰</label>
+                  <input type="number" id="preco_add_${d.id}" value="0" class="modal-inp" style="padding:4px; font-size:0.8rem; color:var(--gold); font-weight:bold;">
+              </div>
+              <button class="btn-sm btn-primary" style="height:28px;" onclick="adicionarItemAutomatizadoAoMercado(${d.id}, '${escH(d.titulo.replace(/'/g,"\\'"))}', '${escH(d.categoria)}', '${escH(descNarrativa.replace(/'/g,"\\'").replace(/\n/g, '\\n'))}')">Por à Venda</button>
           </div>
         </div>
       `;
     }).join('');
   }
+
+  window.adicionarItemAutomatizadoAoMercado = async (docId, titulo, categoria, descNarrativa) => {
+    if (!window.lojaAtualMesa) {
+       alertEntrar('A loja geral ainda não foi inicializada.', 'erro');
+       return;
+    }
+    
+    const preco = parseInt(document.getElementById(`preco_add_${docId}`).value) || 0;
+    const acao = document.getElementById(`macro_acao_${docId}`).value.trim();
+    const dano = document.getElementById(`macro_dano_${docId}`).value.trim();
+    const lojaId = window.lojaAtualMesa.id;
+
+    // Constrói o JSON Puro e isolado que irá APENAS para a loja, não alterando o sistema principal
+    const objDescricao = {
+        narrativa: descNarrativa,
+        macro: { rolagem: acao, dano: dano }
+    };
+    
+    try {
+      const res = await Api.request(`/sessoes/${E.sessaoId}/lojas/${lojaId}/itens`, {
+        method: 'POST',
+        body: { nome: titulo, preco: preco, categoria: categoria, descricao: JSON.stringify(objDescricao) }
+      });
+      
+      if (res?.ok) {
+        fecharOverlay('overlayCatalogoLoja');
+        carregarVitrineLoja(); 
+      } else {
+        alertEntrar('Erro ao adicionar.', 'erro');
+      }
+    } catch(e) {
+      alertEntrar('Erro de conexão.', 'erro');
+    }
+  };
 
   window.adicionarItemAoMercado = async (docId, titulo, categoria, desc) => {
     if (!window.lojaAtualMesa) {

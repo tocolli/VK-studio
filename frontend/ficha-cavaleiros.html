@@ -54,7 +54,7 @@
           estado = FichaCavaleiros.ESTADO_DEFAULT();
           estado.id         = f.id;
           estado.nome       = f.nome_personagem;
-          estado.avatar_url = f.imagem_url || '';
+          estado.avatar_url = f.imagem_url || atrs.avatar_url || '';
           estado.classe     = atrs.classe || '';
           estado.patente    = atrs.patente || 'Soldado';
           estado.vit        = atrs.vitalidade  || [7,7];

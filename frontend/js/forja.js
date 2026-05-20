@@ -62,7 +62,6 @@
       calcDefesa:    d => (d.rdRoupa||0) + (d.atrs['Físico']||0),
     },
     'Cavaleiros de Armadura': {
-      // LUCIDEZ REMOVIDA DOS ATRIBUTOS BASE (Fica apenas como Status/Recurso Vital)
       atributos: { 'Temperança':0,'Vigor Bruto':0,'Zelo':0,'Humanidade':0,'Inteligência':0 },
       pericias: {
         'Combate':0,'Montaria':0,'Armas Brancas':0,'Atletismo':0,
@@ -94,7 +93,7 @@
     document.getElementById('btnNovaFicha').style.display = etapa !== 1 ? 'none' : 'none';
   }
 
-  // ===== ROLL DE ALMA (Decadência Cinza) =====
+  // ===== ROLL DE ALMA =====
   function resetRoll() {
     document.getElementById('rollResultado').style.display = 'none';
     document.getElementById('rollActions').style.display   = 'none';
@@ -220,8 +219,6 @@
 
         document.getElementById('btnGerarNpc').addEventListener('click', () => {
             const nivel = parseInt(document.getElementById('npcNivelAmeaca').value) || 1;
-            
-            // Lógica Rápida de Balanceamento de NPC
             let totalPoints = nivel * 2 + 5; 
             const keys = Object.keys(fichaState.atrs);
             
@@ -253,7 +250,7 @@
   function montarFormulario() {
     const tpl = TEMPLATES[sistemaAtivo];
 
-    renderGeradorNPC(); // Injeta o gerador na tela
+    renderGeradorNPC(); 
 
     const secoes = ['necessidades','capacitacoes','economia','periciasProfissao'];
     secoes.forEach(s => {
@@ -291,7 +288,6 @@
 
   function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-  // ===== BLOCO DE ALMA =====
   function renderBlocoAlma() {
     const bloco = document.getElementById('blocoAlma');
     if (!fichaState.alma) { bloco.style.display = 'none'; return; }
