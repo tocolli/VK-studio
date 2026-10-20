@@ -32,6 +32,20 @@ function authMiddleware(req, res, next) {
   }
 }
 
+// Como authMiddleware, mas NÃO bloqueia: sem token (ou token inválido/expirado) segue como
+// visitante anônimo. Usado nas rotas públicas da wiki, que filtram o conteúdo pelo papel.
+function optionalAuth(req, _res, next) {
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      req.user = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET);
+    } catch {
+      req.user = undefined;
+    }
+  }
+  next();
+}
+
 function mestreOnly(req, res, next) {
   if (req.user?.role !== 'mestre') {
     return res.status(403).json({
@@ -42,4 +56,4 @@ function mestreOnly(req, res, next) {
   next();
 }
 
-module.exports = { authMiddleware, mestreOnly };
+module.exports = { authMiddleware, optionalAuth, mestreOnly };

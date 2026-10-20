@@ -1,0 +1,27 @@
+{
+  "_ajuda": "Regras do importador de vault. Chaves em nome de página (sem .md). Visibilidade: publico (qualquer pessoa com o link) | jogador (logado) | mestre (só mestre). Depois de importado, tudo pode ser mudado pelo editor do site.",
+
+  "visibilidadePadrao": "jogador",
+
+  "mestre": [
+    "Segredos para os mestres",
+    "Maldições do vazio",
+    "Tabela de insanidade",
+    "Desenvolver",
+    "deuses",
+    "mundos",
+    "vazio"
+  ],
+  "publico": [],
+  "pastasMestre": ["fichas herois2"],
+
+  "dividir": [
+    {
+      "_motivo": "O final de 'Regras gerais' é um Documento de Mestre (deuses). Vira página própria, só do mestre, para não vazar aos jogadores.",
+      "pagina": "Regras gerais",
+      "aPartirDaLinha": "# Divindades e Magias",
+      "novaPagina": "Divindades e Magias",
+      "visibilidade": "mestre"
+    }
+  ]
+}

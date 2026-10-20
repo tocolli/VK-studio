@@ -35,6 +35,7 @@ app.use('/api/documentos', require('./routes/documentos'));
 app.use('/api/fichas',     require('./routes/fichas'));
 app.use('/api/admin',      require('./routes/admin'));
 app.use('/api/sessoes',    require('./routes/sessoes'));
+app.use('/api/wiki',       require('./routes/wiki'));
 
 app.get('/api/health', (_req,res) => res.json({ status:'ok', ts: new Date().toISOString() }));
 app.use('/api', (_req,res) => res.status(404).json({ success:false, message:'Rota não encontrada.' }));
@@ -60,6 +61,9 @@ const PAGINAS = {
 Object.entries(PAGINAS).forEach(([rota, arquivo]) => {
   app.get(rota, (_req,res) => res.sendFile(path.join(FRONTEND_DIR, arquivo)));
 });
+
+// Wiki: /wiki, /wiki/p/<pagina>, /wiki/grafo, /wiki/linha-do-tempo... (rotas tratadas no cliente)
+app.get(/^\/wiki(\/.*)?$/, (_req,res) => res.sendFile(path.join(FRONTEND_DIR, 'wiki.html')));
 
 app.use((_req,res) => res.sendFile(path.join(FRONTEND_DIR, 'index.html')));
 

@@ -1,0 +1,5 @@
+Bibliotecas de terceiros usadas pela wiki (copiadas aqui para não depender de CDN):
+  marked      18.1.1  (MIT)            — converte markdown em HTML
+  DOMPurify   3.4.17  (Apache-2.0/MPL) — sanitiza o HTML (evita XSS)
+  d3          7.9.0   (ISC)            — mapa/grafo interligado
+Para atualizar: npm install <pacote> numa pasta temporária e copiar os arquivos .min / .umd daqui.
