@@ -83,6 +83,7 @@
       btn.classList.add('active');
       document.getElementById('tabLogin').style.display    = btn.dataset.tab === 'login'    ? 'block' : 'none';
       document.getElementById('tabRegister').style.display = btn.dataset.tab === 'register' ? 'block' : 'none';
+      document.getElementById('tabForgot').style.display   = 'none';
       hideAlert();
     });
   });
@@ -113,6 +114,38 @@
     if (t) t.style.opacity = on ? '0' : '1';
     if (s) s.style.display = on ? 'inline-block' : 'none';
   }
+
+  // ESQUECI MINHA SENHA
+  function mostrarEsqueci(on) {
+    hideAlert();
+    document.querySelector('.auth-tabs').style.display = on ? 'none' : '';
+    document.getElementById('tabForgot').style.display = on ? 'block' : 'none';
+    document.getElementById('tabLogin').style.display  = on ? 'none' : 'block';
+    document.getElementById('tabRegister').style.display = 'none';
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', !on && b.dataset.tab === 'login'));
+    if (on) {
+      const e = document.getElementById('forgotEmail');
+      e.value = document.getElementById('loginEmail').value.trim();
+      e.focus();
+    }
+  }
+  document.getElementById('linkEsqueci').addEventListener('click', () => mostrarEsqueci(true));
+  document.getElementById('linkVoltarLogin').addEventListener('click', () => mostrarEsqueci(false));
+  document.getElementById('forgotEmail').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('btnEsqueci').click(); });
+
+  document.getElementById('btnEsqueci').addEventListener('click', async () => {
+    hideAlert();
+    const email = document.getElementById('forgotEmail').value.trim();
+    if (!email) { showAlert('Informe o seu e-mail.'); return; }
+    const btn = document.getElementById('btnEsqueci');
+    setLoading(btn, true);
+    try {
+      const res = await Api.esqueciSenha(email);
+      if (res && res.ok && res.data.success) showAlert(res.data.message, 'success');
+      else showAlert((res && res.data.message) || 'Não foi possível enviar agora.');
+    } catch { showAlert('Erro de conexão.'); }
+    setLoading(btn, false);
+  });
 
   // ENTER
   document.getElementById('loginSenha').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('btnLogin').click(); });
