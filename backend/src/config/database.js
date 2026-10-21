@@ -1,12 +1,14 @@
 // backend/src/config/database.js
 const mysql = require('mysql2/promise');
+const { runMigrations } = require('./migrations');
 require('dotenv').config();
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST, user: process.env.DB_USER,
   password: process.env.DB_PASSWORD, database: process.env.DB_NAME,
   port: parseInt(process.env.DB_PORT) || 3306,
-  ssl: { rejectUnauthorized: false },
+  // Aiven exige SSL (padrão). Só desligue com DB_SSL=false em banco local de desenvolvimento.
+  ssl: process.env.DB_SSL === 'false' ? undefined : { rejectUnauthorized: false },
   waitForConnections: true, connectionLimit: 10, queueLimit: 0, connectTimeout: 20000,
 });
 
@@ -96,6 +98,9 @@ async function initializeDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (loja_id) REFERENCES lojas(id) ON DELETE CASCADE
     )`);
+
+    // Migrações versionadas (wiki etc.) — rodam depois das tabelas base
+    await runMigrations(conn);
 
     console.log('✅ Tabelas verificadas com sucesso');
   } catch (err) {

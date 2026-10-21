@@ -1,0 +1,56 @@
+[
+  {
+    "era": "Primeira geração — os deuses da criação",
+    "titulo": "Os deuses da criação compõem a terra vazia",
+    "descricao": "A primeira geração de deuses foi responsável por compor a terra vazia com suas criações.",
+    "data_texto": "",
+    "ordem": 10,
+    "pagina_slug": "deuses",
+    "visibilidade": "mestre"
+  },
+  {
+    "era": "Segunda geração — os deuses do caos",
+    "titulo": "Nasce a segunda geração: a criação que matou criadores",
+    "descricao": "Os deuses do caos são vontades que nunca morrem: sempre reencarnam, não importa quanto tempo demore.",
+    "data_texto": "",
+    "ordem": 100,
+    "pagina_slug": "deuses",
+    "visibilidade": "mestre"
+  },
+  {
+    "era": "Segunda geração — os deuses do caos",
+    "titulo": "A primeira guerra pelo berço do mundo",
+    "descricao": "A segunda geração é a grande responsável pelo ápice da primeira guerra pelo berço do mundo.",
+    "data_texto": "",
+    "ordem": 110,
+    "pagina_slug": "deuses",
+    "visibilidade": "mestre"
+  },
+  {
+    "era": "Segunda geração — os deuses do caos",
+    "titulo": "Helumele (terra) é morta por Adão e Seph",
+    "descricao": "Com a morte de Helumele, a magia de Terra deixa de exigir adoração a uma divindade viva.",
+    "data_texto": "",
+    "ordem": 120,
+    "pagina_slug": "helumele",
+    "visibilidade": "mestre"
+  },
+  {
+    "era": "Segunda geração — os deuses do caos",
+    "titulo": "Unma (natureza) é morta por Seph",
+    "descricao": "Com a morte de Unma, a magia de Flora deixa de exigir adoração a uma divindade viva.",
+    "data_texto": "",
+    "ordem": 121,
+    "pagina_slug": "unma",
+    "visibilidade": "mestre"
+  },
+  {
+    "era": "Terceira geração — os deuses da ruína",
+    "titulo": "Surge a terceira geração: os deuses da ruína",
+    "descricao": "A terceira geração inclui, entre outros, o deus da praga, o deus da guerra, o deus da fome e os semideuses.",
+    "data_texto": "",
+    "ordem": 200,
+    "pagina_slug": "deuses",
+    "visibilidade": "mestre"
+  }
+]

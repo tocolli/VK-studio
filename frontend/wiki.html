@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compêndio — VK.Studio</title>
+  <!-- Caminhos absolutos: esta página também é servida em /wiki/p/<pagina>, /wiki/grafo etc. -->
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/wiki.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="wiki-body">
+
+  <header class="wiki-top">
+    <button id="btnMenu" class="wiki-icon-btn wiki-only-mobile" aria-label="Abrir menu" aria-controls="wikiSide">☰</button>
+    <a href="/wiki" class="wiki-brand">VK.Studio <span>Compêndio</span></a>
+    <nav class="wiki-nav" aria-label="Seções">
+      <a href="/wiki" data-rota="home"><i class="fa-solid fa-book-open"></i> <span>Compêndio</span></a>
+      <a href="/wiki/grafo" data-rota="grafo"><i class="fa-solid fa-diagram-project"></i> <span>Mapa</span></a>
+      <a href="/wiki/linha-do-tempo" data-rota="tempo"><i class="fa-solid fa-timeline"></i> <span>Linha do tempo</span></a>
+    </nav>
+    <div class="wiki-user" id="wikiUser"></div>
+  </header>
+
+  <div class="wiki-layout">
+    <aside id="wikiSide" class="wiki-side" aria-label="Páginas">
+      <div class="wiki-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="busca" type="search" placeholder="Buscar no compêndio…" autocomplete="off" aria-label="Buscar" />
+      </div>
+      <div id="buscaRes" class="wiki-search-res" hidden></div>
+      <nav id="arvore" class="wiki-tree" aria-label="Todas as páginas"></nav>
+      <div id="acoesMestre" class="wiki-side-actions" hidden>
+        <a href="/wiki/novo" class="wiki-btn"><i class="fa-solid fa-plus"></i> Nova página</a>
+      </div>
+    </aside>
+    <div id="wikiVeu" class="wiki-veil" hidden></div>
+    <main id="wikiMain" class="wiki-main" tabindex="-1"></main>
+  </div>
+
+  <div id="wikiToast" class="wiki-toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/vendor/marked.umd.js"></script>
+  <script src="/vendor/purify.min.js"></script>
+  <script src="/vendor/d3.min.js"></script>
+  <script src="/js/wiki.js"></script>
+</body>
+</html>
