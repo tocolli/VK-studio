@@ -32,6 +32,9 @@ const Api = {
   async login(email, senha)          { return this.request('/auth/login',     { method:'POST', body:{email,senha} }); },
   async registrar(nome, email, senha){ return this.request('/auth/registrar', { method:'POST', body:{nome,email,senha} }); },
   async perfil()                     { return this.request('/auth/perfil'); },
+  async esqueciSenha(email)          { return this.request('/auth/esqueci-senha', { method:'POST', body:{email} }); },
+  async validarResetToken(token)     { return this.request('/auth/redefinir-senha/validar?token=' + encodeURIComponent(token)); },
+  async redefinirSenha(token, senha) { return this.request('/auth/redefinir-senha', { method:'POST', body:{token,senha} }); },
   async atualizarAvatar(fd)          { return this.request('/auth/avatar',    { method:'POST', body:fd }); },
   async listarUsuarios()             { return this.request('/auth/usuarios'); },
 

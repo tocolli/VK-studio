@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- O endereço desta página carrega o token secreto: não deixe o navegador repassá-lo a ninguém -->
+  <meta name="referrer" content="no-referrer" />
+  <meta name="robots" content="noindex" />
+  <title>Redefinir senha — VK.Studio</title>
+  <link rel="icon" type="image/png" href="/img/logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/login.css" />
+  <link rel="stylesheet" href="/css/recuperar-senha.css" />
+</head>
+<body class="login-body" data-theme="decadencia">
+  <div class="login-wrapper reset-unico">
+    <div class="login-panel">
+      <div class="login-form-container">
+
+        <div class="login-header">
+          <div class="login-sigil">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+              <text x="20" y="26" text-anchor="middle" font-size="18" fill="currentColor">☀</text>
+            </svg>
+          </div>
+          <h2 class="login-title">VK.Studio</h2>
+          <p class="login-subtitle">Nova palavra-chave</p>
+        </div>
+
+        <div id="alertBox" class="alert" role="alert"></div>
+
+        <!-- carregando -->
+        <div id="estadoCarregando" class="reset-estado">Conferindo o seu link…</div>
+
+        <!-- link inválido / expirado -->
+        <div id="estadoInvalido" class="reset-estado" style="display:none;">
+          <p>Este link não é mais válido. Ele pode ter expirado (vale 1 hora) ou já ter sido usado.</p>
+          <a class="btn btn-primary" href="/">Pedir um novo link</a>
+        </div>
+
+        <!-- formulário -->
+        <div id="estadoForm" style="display:none;">
+          <div class="form-stack">
+            <div class="form-group">
+              <label for="novaSenha">Nova senha</label>
+              <div class="input-password">
+                <input type="password" id="novaSenha" placeholder="Mínimo 6 caracteres" autocomplete="new-password" required />
+                <button type="button" class="toggle-pass" aria-label="Mostrar senha">👁</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="confirmaSenha">Repita a nova senha</label>
+              <div class="input-password">
+                <input type="password" id="confirmaSenha" placeholder="Digite de novo" autocomplete="new-password" required />
+                <button type="button" class="toggle-pass" aria-label="Mostrar senha">👁</button>
+              </div>
+            </div>
+            <button type="button" id="btnRedefinir" class="btn btn-primary btn-full btn-lg">
+              <span class="btn-text">Salvar nova senha</span>
+              <div class="spinner btn-spinner" style="display:none;"></div>
+            </button>
+            <p class="reset-dica">Depois de salvar, você volta para a tela de entrada.</p>
+          </div>
+        </div>
+
+        <!-- sucesso -->
+        <div id="estadoSucesso" class="reset-estado" style="display:none;">
+          <p>Senha alterada com sucesso!</p>
+          <a class="btn btn-primary" href="/">Entrar</a>
+        </div>
+
+        <p class="login-footer-text">Todos os direitos reservados.<br><strong>Decadência Cinza</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/redefinir-senha.js"></script>
+</body>
+</html>

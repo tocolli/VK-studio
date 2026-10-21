@@ -53,6 +53,7 @@ const PAGINAS = {
   '/admin':            'admin.html',
   '/perfil':           'perfil.html',
   '/mesa':             'mesa.html',
+  '/redefinir-senha':  'redefinir-senha.html',
   '/ficha-cavaleiros': 'ficha-cavaleiros.html',
   '/ficha-decadencia': 'ficha-decadencia.html',
   '/ficha-oceano':     'ficha-oceano.html',
